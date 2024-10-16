@@ -5,3 +5,10 @@
 !README.md
 !openAPI.yaml
 
+!doc/
+!doc/first_delivery_architecture.typ
+
+!assets/
+!assets/images/
+!assets/images/*.png
+!assets/images/*.webp
