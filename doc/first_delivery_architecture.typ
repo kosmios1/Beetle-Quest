@@ -1,6 +1,8 @@
 #import "@preview/touying:0.5.3": *
-#import themes.university: *
 #import "@preview/codly:1.0.0": *
+#import "@preview/cetz:0.3.0"
+
+#import themes.university: *
 
 #show: university-theme.with(
     aspect-ratio: "16-9",
@@ -53,30 +55,36 @@ Michele Ivan Bruna
   columns: (1fr, 1fr, 1fr, 1fr, 1fr),
   column-gutter: 0pt,
   row-gutter: 5pt,
-  [*Common (C)*], [*Rare (R)*], [*Super Rare (SR)*], [*Ultra Rare (UR)*], [*Super Ultra Rare (SUR)*],
-  image("../assets/images/beetle_common.png",      width: 60%),
-  image("../assets/images/hercule_beetle_sur.png", width: 60%),
-  image("../assets/images/hercule_beetle_sur.png", width: 60%),
-  image("../assets/images/hercule_beetle_sur.png", width: 60%),
-  image("../assets/images/hercule_beetle_sur.png", width: 60%),
+  [*Common (C)*], [*Uncommon (U)*], [*Rare (R)*], [*Epic (E)*], [*Legendary (L)*],
+  image("../assets/images/png/butterfly_legendary.png",      width: 60%),
+  image("../assets/images/png/hercule_beetle_legendary.png", width: 60%),
+  image("../assets/images/png/hercule_beetle_legendary.png", width: 60%),
+  image("../assets/images/png/hercule_beetle_legendary.png", width: 60%),
+  image("../assets/images/png/hercule_beetle_legendary.png", width: 60%),
   //
-  image("../assets/images/hercule_beetle_sur.png", width: 60%),
-  image("../assets/images/hercule_beetle_sur.png", width: 60%),
-  image("../assets/images/hercule_beetle_sur.png", width: 60%),
-  image("../assets/images/hercule_beetle_sur.png", width: 60%),
-  image("../assets/images/hercule_beetle_sur.png", width: 60%),
+  image("../assets/images/png/butterfly_legendary.png",      width: 60%),
+  image("../assets/images/png/hercule_beetle_legendary.png", width: 60%),
+  image("../assets/images/png/hercule_beetle_legendary.png", width: 60%),
+  image("../assets/images/png/hercule_beetle_legendary.png", width: 60%),
+  image("../assets/images/png/hercule_beetle_legendary.png", width: 60%),
+  // 
+  image("../assets/images/png/butterfly_legendary.png",      width: 60%),
+  image("../assets/images/png/hercule_beetle_legendary.png", width: 60%),
+  image("../assets/images/png/hercule_beetle_legendary.png", width: 60%),
+  image("../assets/images/png/hercule_beetle_legendary.png", width: 60%),
+  image("../assets/images/png/hercule_beetle_legendary.png", width: 60%),
   //
-  image("../assets/images/hercule_beetle_sur.png", width: 60%),
-  image("../assets/images/hercule_beetle_sur.png", width: 60%),
-  image("../assets/images/hercule_beetle_sur.png", width: 60%),
-  image("../assets/images/hercule_beetle_sur.png", width: 60%),
-  image("../assets/images/hercule_beetle_sur.png", width: 60%),
-  //
-  image("../assets/images/hercule_beetle_sur.png", width: 60%),
-  image("../assets/images/hercule_beetle_sur.png", width: 60%),
-  image("../assets/images/hercule_beetle_sur.png", width: 60%),
-  image("../assets/images/hercule_beetle_sur.png", width: 60%),
-  image("../assets/images/hercule_beetle_sur.png", width: 60%),
+  image("../assets/images/png/butterfly_legendary.png",      width: 60%),
+  image("../assets/images/png/hercule_beetle_legendary.png", width: 60%),
+  image("../assets/images/png/hercule_beetle_legendary.png", width: 60%),
+  image("../assets/images/png/hercule_beetle_legendary.png", width: 60%),
+  image("../assets/images/png/hercule_beetle_legendary.png", width: 60%),
 )]
 
 = Architecture
+
+== 
+
+#align(center)[
+]
+

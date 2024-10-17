@@ -1,0 +1,3 @@
+#!/bin/sh
+
+fd -d 1 -t f -E 'convert_all' | sed 's/^\(.*\)\.webp$/\1/' | xargs -I {} magick {}.webp png/{}.png

@@ -12,3 +12,6 @@
 !assets/images/
 !assets/images/*.png
 !assets/images/*.webp
+!assets/images/convert_all
+!assets/images/png/
+!assets/images/png/.gitkeep
