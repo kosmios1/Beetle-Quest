@@ -56,35 +56,34 @@ Michele Ivan Bruna
   column-gutter: 0pt,
   row-gutter: 5pt,
   [*Common (C)*], [*Uncommon (U)*], [*Rare (R)*], [*Epic (E)*], [*Legendary (L)*],
-  image("../assets/images/png/butterfly_legendary.png",      width: 60%),
-  image("../assets/images/png/hercule_beetle_legendary.png", width: 60%),
-  image("../assets/images/png/hercule_beetle_legendary.png", width: 60%),
-  image("../assets/images/png/hercule_beetle_legendary.png", width: 60%),
-  image("../assets/images/png/hercule_beetle_legendary.png", width: 60%),
+  image("../assets/images/png/warrior_cricket_common.png",      width: 60%),
+  image("../assets/images/png/warrior_centipede_uncommon.png",      width: 60%),
+  image("../assets/images/png/warrior_beetle_rare.png",      width: 60%),
+  image("../assets/images/png/mage_moth_epic.png",      width: 60%),
+  image("../assets/images/png/warrior_hercule_beetle_legendary.png",      width: 60%),
   //
-  image("../assets/images/png/butterfly_legendary.png",      width: 60%),
-  image("../assets/images/png/hercule_beetle_legendary.png", width: 60%),
-  image("../assets/images/png/hercule_beetle_legendary.png", width: 60%),
-  image("../assets/images/png/hercule_beetle_legendary.png", width: 60%),
-  image("../assets/images/png/hercule_beetle_legendary.png", width: 60%),
-  // 
-  image("../assets/images/png/butterfly_legendary.png",      width: 60%),
-  image("../assets/images/png/hercule_beetle_legendary.png", width: 60%),
-  image("../assets/images/png/hercule_beetle_legendary.png", width: 60%),
-  image("../assets/images/png/hercule_beetle_legendary.png", width: 60%),
-  image("../assets/images/png/hercule_beetle_legendary.png", width: 60%),
+  image("../assets/images/png/warrior_locust_common.png", width: 60%),
+  image("../assets/images/png/priest_cicada_uncommon.png",      width: 60%),
+  image("../assets/images/png/priest_moth_rare.png",      width: 60%),
+  image("../assets/images/png/mage_butterfly_epic.png",      width: 60%),
+  image("../assets/images/png/mage_butterfly_legendary.png",      width: 60%),
   //
-  image("../assets/images/png/butterfly_legendary.png",      width: 60%),
-  image("../assets/images/png/hercule_beetle_legendary.png", width: 60%),
-  image("../assets/images/png/hercule_beetle_legendary.png", width: 60%),
-  image("../assets/images/png/hercule_beetle_legendary.png", width: 60%),
-  image("../assets/images/png/hercule_beetle_legendary.png", width: 60%),
+  image("../assets/images/png/tank_mole-cricket_common.png", width: 60%),
+  image("../assets/images/png/mage_mosquito_uncommon.png",      width: 60%),
+  image("../assets/images/png/druid_butterfly_rare.png",      width: 60%),
+  image("../assets/images/png/warrior_dragonfly_epic.png",      width: 60%),
+  image("../assets/images/png/druid_butterfly_legendary.png",      width: 60%),
+  //
+  image("../assets/images/png/munich_grasshopper_common.png",      width: 60%),
+  image("../assets/images/png/druid_bee_uncommon.png",      width: 60%),
+  image("../assets/images/png/assassin_mosquito_rare.png",      width: 60%), // TODO: change
+  image("../assets/images/png/assassin_peacock_epic.png",      width: 60%),
+  image("../assets/images/png/demoniac_mosquito_legendary.png",      width: 60%),
 )]
 
 = Architecture
 
-== 
+==
 
 #align(center)[
 ]
-
