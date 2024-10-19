@@ -15,3 +15,7 @@
 !assets/images/convert_all
 !assets/images/png/
 !assets/images/png/.gitkeep
+
+!gacha-app/
+!gacha-app/**
+!gacha-app/**/*.*
