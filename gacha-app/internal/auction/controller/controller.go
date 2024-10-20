@@ -2,7 +2,6 @@ package controller
 
 import (
 	"encoding/base64"
-	"fmt"
 	"gacha-app/internal/auction/service"
 	"gacha-app/pkg/models"
 	"net/http"
@@ -21,8 +20,6 @@ func (c *AuctionController) CreateAuction(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
-	fmt.Printf("req: %v\n", req)
 
 	endTime, err := time.ParseInLocation(time.RFC3339, req.EndTime, time.UTC)
 	if err != nil {

@@ -19,11 +19,11 @@ const (
 )
 
 func (s *AuctionService) CreateAuction(ownerId models.UserId, gachaId models.GachaId, endTime time.Time) (models.Auction, error) {
-	if s.UserRepo.ValidateUserID(ownerId) {
+	if !s.UserRepo.ValidateUserID(&ownerId) {
 		return models.Auction{}, models.ErrInvalidUserID
 	}
 
-	if s.GachaRepo.ValidateGachaID(gachaId) {
+	if !s.GachaRepo.ValidateGachaID(&gachaId) {
 		return models.Auction{}, models.ErrInvalidGachaID
 	}
 
@@ -60,7 +60,7 @@ func (s *AuctionService) CreateAuction(ownerId models.UserId, gachaId models.Gac
 		Biddings:   []*models.Bid{&genesy},
 	}
 
-	if err = s.AuctionRepo.AddAuction(auction); err != nil {
+	if err = s.AuctionRepo.AddAuction(&auction); err != nil {
 		return models.Auction{}, err
 	}
 

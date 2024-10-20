@@ -5,5 +5,5 @@ import (
 )
 
 type AuctionRepo interface {
-	AddAuction(models.Auction) error
+	AddAuction(*models.Auction) error
 }
