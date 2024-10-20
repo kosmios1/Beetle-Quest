@@ -5,19 +5,23 @@ import (
 	"gacha-app/pkg/models"
 )
 
-type MockUserRepo struct {
-	Users map[string]*models.User
+type MockUserRepo struct{}
+
+var Users = map[string]*models.User{
+	"4b6974": { // "kit" in hex
+		UserID:       []byte("4b6974"),
+		Salt:         []byte("72616e"),
+		Username:     "testuser",
+		Email:        "test@example.com",
+		PasswordHash: []byte("68617368"),
+		Gachas:       []models.Gacha{},
+		Transactions: []models.Transaction{},
+	},
 }
 
-func NewMockUserRepo() *MockUserRepo {
-	return &MockUserRepo{
-		Users: map[string]*models.User{},
-	}
-}
-
-func (m MockUserRepo) ValidateUserID(id *models.UserId) bool {
-	hexId := hex.EncodeToString(*id)
-	if _, ok := m.Users[hexId]; !ok {
+func (m MockUserRepo) ValidateUserID(id models.UserId) bool {
+	hexId := hex.EncodeToString(id)
+	if _, ok := Users[hexId]; !ok {
 		return false
 	}
 	return true

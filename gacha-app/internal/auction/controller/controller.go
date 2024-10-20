@@ -47,3 +47,19 @@ func (c *AuctionController) CreateAuction(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusCreated, models.CreateAuctionRes{Auction: auction})
 }
+
+func (c *AuctionController) GetAuction(ctx *gin.Context) {
+	auctionID, err := base64.StdEncoding.DecodeString(ctx.Param("auction_id"))
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": models.ErrCouldNotDecodeAuctionID})
+		return
+	}
+
+	auction, err := c.Service.GetAuction(auctionID)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, models.GetAuctionRes{Auction: auction})
+}

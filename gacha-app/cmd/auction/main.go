@@ -17,9 +17,9 @@ func main() {
 	if _, ok := os.LookupEnv("DEBUG"); ok {
 		auctionController = controller.AuctionController{
 			Service: service.AuctionService{
-				UserRepo:    mock_repositories.NewMockUserRepo(),
-				GachaRepo:   mock_repositories.NewMockGachaRepo(),
-				AuctionRepo: mock_repositories.NewMockAuctionRepo(),
+				UserRepo:    mock_repositories.MockUserRepo{},
+				GachaRepo:   mock_repositories.MockGachaRepo{},
+				AuctionRepo: mock_repositories.MockAuctionRepo{},
 			},
 		}
 	} else {
@@ -27,11 +27,8 @@ func main() {
 	}
 
 	r.POST("/auction", auctionController.CreateAuction)
+	r.GET("/auction/:auction_id", auctionController.GetAuction)
 
-	// TODO: Implement
-	r.GET("/auction/:auction_id", func(ctx *gin.Context) {
-		ctx.JSON(200, gin.H{"message": "NOT IMPLEMENTED"})
-	})
 	r.DELETE("/auction/:auction_id", func(ctx *gin.Context) {
 		ctx.JSON(200, gin.H{"message": "NOT IMPLEMENTED"})
 	})

@@ -5,5 +5,5 @@ import (
 )
 
 type UserRepo interface {
-	ValidateUserID(id *models.UserId) bool
+	ValidateUserID(id models.UserId) bool
 }

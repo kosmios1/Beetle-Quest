@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-type AuctionId []byte
+type AuctionId EventId
 
 type Auction struct {
 	AuctionID AuctionId `json:"auction_id"`
@@ -14,21 +14,20 @@ type Auction struct {
 	EndTime   time.Time `json:"end_time"`
 	WinnerID  UserId    `json:"winner_id"`
 
-	Difficulty int    `json:"difficulty"`
-	GenesyBid  Bid    `json:"genesy_bid"`
-	Biddings   []*Bid `json:"biddings"`
+	Blockchain *Blockchain `json:"blockchain"`
 }
 
-type Bid struct {
+type Blockchain struct {
+	Difficulty  int      `json:"difficulty"`
+	GenesyBlock *Block   `json:"genesy_bid"`
+	Chain       []*Block `json:"chain"`
+}
+
+type Block struct {
 	Hash         []byte    `json:"hash"`
 	PreviousHash []byte    `json:"previous_hash"`
 	Timestamp    time.Time `json:"timestamp"`
 	Pow          int       `json:"pow"`
 
-	BidData BidData `json:"bid_data"`
-}
-
-type BidData struct {
-	UserID      UserId `json:"user_id"`
-	CurrencyBid int    `json:"currency_bid"`
+	Transactions []*Transaction `json:"transactions"`
 }

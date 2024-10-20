@@ -1,5 +1,7 @@
 package models
 
+// Auction ===================================
+
 type CreateAuctionReq struct {
 	OwnerID string `json:"owner_id"`
 	GachaID string `json:"gacha_id"`
@@ -7,5 +9,9 @@ type CreateAuctionReq struct {
 }
 
 type CreateAuctionRes struct {
-	Auction Auction `json:"auction"`
+	Auction *Auction `json:"auction"`
+}
+
+type GetAuctionRes struct {
+	Auction *Auction `json:"auction"`
 }
