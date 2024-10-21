@@ -17,14 +17,14 @@
 )
 
 
-#show: codly-init.with()
+// #show: codly-init.with()
 
 
 = V-System
 
 == //Group Information
 
-#align(center)[
+#align(center+top)[
 #linebreak()
 #linebreak()
 *Cybersecurity - 2024/2025*\
@@ -36,7 +36,7 @@ Michele Ivan Bruna
 
 
 == Player Information
-#align(center)[
+#align(center+horizon)[
 #raw(lang: "go", block: true,
 `type User struct {
     UserID          []byte
@@ -51,7 +51,7 @@ Michele Ivan Bruna
 
 == Gacha Collection
 
-#align(center)[
+#align(center+horizon)[
 #set text(size: 14.2pt)
 #grid(
   columns: (3fr, .3fr),
@@ -101,12 +101,63 @@ Michele Ivan Bruna
 = Monolithic architecture
 
 ==
-#figure(
-  image("../assets/drawio/monolithic_architecture.svg"),
-)
+#align(center+horizon)[
+    #figure(
+    image("../assets/drawio/monolithic_architecture.svg"),
+    )
+]
 
 
 == Database contents
 
+#align(center + horizon)[
+#set text(size: 14.2pt)
+#set align(left)
 
-== User’s interactions
+#table(
+    columns: (3fr, 3fr),
+    gutter: 10pt,
+    [```sql
+    CREATE TABLE users (
+        user_id BYTEA PRIMARY KEY,
+        salt BYTEA NOT NULL,
+        username VARCHAR(255) NOT NULL UNIQUE,
+        email VARCHAR(255) NOT NULL UNIQUE,
+        password_hash BYTEA NOT NULL
+    );```],
+    [```sql
+    CREATE TABLE gachas (
+        gacha_id BYTEA PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        rarity rarity NOT NULL,
+        price BIGINT
+    );```],
+    [```sql
+    CREATE TABLE transactions (
+        transaction_id BYTEA PRIMARY KEY,
+        transaction_type transaction_type NOT NULL,
+        user_id BYTEA REFERENCES users(user_id),
+        amount BIGINT NOT NULL,
+        date_time TIMESTAMP NOT NULL,
+        event_type VARCHAR(255) NOT NULL,
+        event_id BYTEA NOT NULL
+    );```],
+    [```sql
+    CREATE TABLE user_gachas (
+        user_id BYTEA REFERENCES users(user_id),
+        gacha_id BYTEA REFERENCES gachas(gacha_id),
+        PRIMARY KEY (user_id, gacha_id)
+    );```]
+)
+
+
+#text(size: 7pt)[
+```sql
+CREATE TYPE transaction_type AS ENUM ('Deposit', 'Withdraw');
+```
+```sql
+CREATE TYPE rarity AS ENUM ('Common', 'Uncommon', 'Rare', 'Epic', 'Legendary');
+```
+]
+
+]
