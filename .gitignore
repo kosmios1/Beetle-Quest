@@ -14,7 +14,10 @@
 !assets/images/convert_all
 !assets/images/png/
 !assets/images/png/.gitkeep
-//!assets/images/png/*.png
 !assets/drawio/
 !assets/drawio/*.svg
 !assets/drawio/*.drawio
+
+!gacha-app/
+!gacha-app/**
+!gacha-app/**/*.*
