@@ -6,7 +6,7 @@ info:
         This is an API for a gacha system where user can register, login, buy gacha items, roll for random gacha items, create auctions for gacha items, and bid on auctions. The system also has an admin interface to monitor the system and manage gacha items.
 
 servers:
-    - url: localhost:8080
+    - url: localhost:8080/api/v1
 
 tags:
     - name: Users
@@ -17,8 +17,8 @@ tags:
       description: Endpoints to create and manage auctions for gachas.
     - name: Game
       description: Endpoints for games.
-    - name: PVP
-      description: Endpoints for player vs player battles.
+    # - name: PVP
+      # description: Endpoints for player vs player battles.
     - name: Admin
       description: Endpoints for administrators to manage the system.
 
@@ -78,10 +78,10 @@ paths:
                         Set-Cookie:
                             schema:
                                 type: string
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/User"
+                    # content:
+                    #     application/json:
+                    #         schema:
+                    #             $ref: "#/components/schemas/User"
                 400:
                     description: Invalid request data.
                 401:
@@ -89,9 +89,31 @@ paths:
                 500:
                     description: Internal server error.
 
-    /user/{user_id}:
+    /user/{username}:
         get:
             summary: Get details of a specific user
+            tags: [Users]
+            security:
+                - authCookie: []
+            parameters:
+                - name: user_id
+                  in: path
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                200:
+                    description: User details fetched successfully.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/UserPublic"
+                404:
+                    description: User not found.
+    
+    /user/private/{username}:
+        get:
+            summary: Get details of own user account
             tags: [Users]
             security:
                 - authCookie: []
@@ -110,17 +132,13 @@ paths:
                                 $ref: "#/components/schemas/User"
                 404:
                     description: User not found.
+
+    /user:
         delete:
             summary: Delete a user account
             tags: [Users]
             security:
                 - authCookie: []
-            parameters:
-                - name: user_id
-                  in: path
-                  required: true
-                  schema:
-                      type: string
             responses:
                 204:
                     description: User account deleted successfully.
@@ -164,8 +182,8 @@ paths:
                         schema:
                             type: object
                             properties:
-                                user_id:
-                                    type: string
+                                # user_id:
+                                #     type: string
                                 gacha_id:
                                     type: string
             responses:
@@ -193,8 +211,8 @@ paths:
                         schema:
                             type: object
                             properties:
-                                user_id:
-                                    type: string
+                                # user_id:
+                                #     type: string
                                 currency_spent:
                                     type: integer
             responses:
@@ -315,10 +333,10 @@ paths:
             responses:
                 200:
                     description: Bid placed successfully.
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#components/schemas/Auction"
+                    # content:
+                    #     application/json:
+                    #         schema:
+                    #             $ref: "#components/schemas/Auction"
                 400:
                     description: invalid request data.
                 404:
@@ -333,6 +351,8 @@ paths:
             tags: [Game]
             summary: Start a new minigame
             description: Initializes a new game and returns the game ID and the initial game state.
+            security:
+                - authCookie: []
             requestBody:
                 description: Game type to start
                 required: true
@@ -379,6 +399,8 @@ paths:
             tags: [Game]
             summary: Play a move in the game
             description: Send a move to the specified game and update the game state.
+            security:
+                - authCookie: []
             parameters:
                 - in: path
                   name: game_id
@@ -444,6 +466,8 @@ paths:
             tags: [Game]
             summary: Get the current game state
             description: Retrieves the current state of the game by its ID.
+            security:
+                - authCookie: []
             parameters:
                 - in: path
                   name: game_id
@@ -477,40 +501,6 @@ paths:
                                         type: string
                                 example: Game not found
 
-    /game/score/{game_id}:
-        get:
-            tags: [Game]
-            summary: Get the current game score
-            description: Retrieves the score for the specified game ID.
-            parameters:
-                - in: path
-                  name: game_id
-                  required: true
-                  schema:
-                    type: integer
-                  description: The ID of the game
-            responses:
-                '200':
-                    description: Current game score returned
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    score:
-                                        type: integer
-                                        example: 10
-                '404':
-                    description: Game not found
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    error:
-                                        type: string
-                                        example: Game not found
-
     ### ADMIN ENDPOINTS ###
     /admin/monitor:
         get:
@@ -518,7 +508,6 @@ paths:
             tags: [Admin]
             security:
                 - authCookie: []
-                - adminKey: []
             responses:
                 200:
                     description: System statistics and monitoring information.
@@ -542,7 +531,6 @@ paths:
             tags: [Admin]
             security:
                 - authCookie: []
-                - adminKey: []
             responses:
                 200:
                     description: List of users.
@@ -566,7 +554,6 @@ paths:
             tags: [Admin]
             security:
                 - authCookie: []
-                - adminKey: []
             parameters:
                 - name: gacha_id
                   in: path
@@ -584,29 +571,11 @@ paths:
                     description: Gacha added successfully.
                 404:
                     description: Gacha not found.
-        # delete: # NOTE: Remove a gacha price from the system, the gacha item will not be removed from user's collection.
-        #     summary: Remove a gacha item from the system
-        #     tags: [Admin]
-        #     security:
-        #         - authCookie: []
-        #         - adminKey: []
-        #     parameters:
-        #         - name: gacha_id
-        #           in: path
-        #           required: true
-        #           schema:
-        #               type: string
-        #     responses:
-        #         204:
-        #             description: Gacha removed successfully.
-        #         404:
-        #             description: Gacha not found.
         patch:
             summary: Update a gacha item
             tags: [Admin]
             security:
                 - authCookie: []
-                - adminKey: []
             parameters:
                 - name: gacha_id
                   in: path
@@ -632,12 +601,17 @@ components:
             in: cookie
             name: auth_cookie
 
-        adminKey:
-            type: apiKey
-            in: cookie
-            name: admin_cookie
-
     schemas:
+        UserPublic:
+            type: object
+            properties:
+                username:
+                    type: string
+                gacha_collection:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/Gacha"
+
         User:
             type: object
             properties:
@@ -655,6 +629,7 @@ components:
                     type: array
                     items:
                         $ref: "#/components/schemas/Transaction"
+
 
         Register:
             type: object
@@ -697,8 +672,6 @@ components:
         CreateAuctionData:
             type: object
             properties:
-                user_id:
-                    type: string
                 gacha_id:
                     type: string
                 start_price:
@@ -711,7 +684,7 @@ components:
             properties:
                 auction_id:
                     type: string
-                owner_id:
+                owner_username:
                     type: string
                 gacha_id:
                     type: string
@@ -719,7 +692,7 @@ components:
                     type: string
                 end_time:
                     type: string
-                winner_id:
+                winner_username:
                     type: string
                 biddings:
                     type: array
@@ -756,8 +729,6 @@ components:
                 timestamp:
                     type: string
                 gacha_id:
-                    type: string
-                auction_id:
                     type: string
         
         Minigame:
