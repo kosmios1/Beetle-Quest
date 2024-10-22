@@ -40,6 +40,7 @@ Michele Ivan Bruna
 #raw(lang: "go", block: true,
 `type User struct {
     UserID          []byte
+    ApiUUID         [16]byte
     Salt            []byte
     Username        string
     Email           string
@@ -119,7 +120,8 @@ Michele Ivan Bruna
     gutter: 10pt,
     [```sql
     CREATE TABLE users (
-        user_id BYTEA PRIMARY KEY,
+        user_id BYTEA PRIMARY KEY UNIQUE,
+        api_uuid BYTEA NOT NULL UNIQUE,
         salt BYTEA NOT NULL,
         username VARCHAR(255) NOT NULL UNIQUE,
         email VARCHAR(255) NOT NULL UNIQUE,
@@ -127,14 +129,16 @@ Michele Ivan Bruna
     );```],
     [```sql
     CREATE TABLE gachas (
-        gacha_id BYTEA PRIMARY KEY,
+        gacha_id BYTEA PRIMARY KEY UNIQUE,
+        api_uuid BYTEA NOT NULL UNIQUE
         name VARCHAR(255) NOT NULL,
         rarity rarity NOT NULL,
         price BIGINT
     );```],
     [```sql
     CREATE TABLE transactions (
-        transaction_id BYTEA PRIMARY KEY,
+        transaction_id BYTEA PRIMARY KEY UNIQUE,
+        api_uuid BYTEA NOT NULL UNIQUE,
         transaction_type transaction_type NOT NULL,
         user_id BYTEA REFERENCES users(user_id),
         amount BIGINT NOT NULL,
