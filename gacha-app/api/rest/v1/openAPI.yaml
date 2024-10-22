@@ -89,14 +89,26 @@ paths:
                 500:
                     description: Internal server error.
 
-    /user/{username}:
+    /user/delete:
+        delete:
+            summary: Delete a user account
+            tags: [Users]
+            security:
+                - authCookie: []
+            responses:
+                204:
+                    description: User account deleted successfully.
+                404:
+                    description: User not found.
+
+    /user/{user_uuid}:
         get:
             summary: Get details of a specific user
             tags: [Users]
             security:
                 - authCookie: []
             parameters:
-                - name: user_id
+                - name: user_uuid
                   in: path
                   required: true
                   schema:
@@ -111,14 +123,14 @@ paths:
                 404:
                     description: User not found.
     
-    /user/private/{username}:
+    /user/private/{user_uuid}:
         get:
             summary: Get details of own user account
             tags: [Users]
             security:
                 - authCookie: []
             parameters:
-                - name: user_id
+                - name: uuid
                   in: path
                   required: true
                   schema:
@@ -133,20 +145,8 @@ paths:
                 404:
                     description: User not found.
 
-    /user:
-        delete:
-            summary: Delete a user account
-            tags: [Users]
-            security:
-                - authCookie: []
-            responses:
-                204:
-                    description: User account deleted successfully.
-                404:
-                    description: User not found.
-
     ### GACHA ENDPOINTS ###
-    /gachas:
+    /gacha/list:
         get:
             summary: Get a list of all gachas
             tags: [Gachas]
@@ -182,9 +182,7 @@ paths:
                         schema:
                             type: object
                             properties:
-                                # user_id:
-                                #     type: string
-                                gacha_id:
+                                gacha_uuid:
                                     type: string
             responses:
                 200:
@@ -211,8 +209,6 @@ paths:
                         schema:
                             type: object
                             properties:
-                                # user_id:
-                                #     type: string
                                 currency_spent:
                                     type: integer
             responses:
@@ -227,14 +223,14 @@ paths:
                 404:
                     description: user not found/insufficient currency.
 
-    /gacha/{gacha_id}:
+    /gacha/{gacha_uuid}:
         get:
             summary: Get details of a specific gacha.
             tags: [Gachas]
             security:
                 - authCookie: []
             parameters:
-                - name: gacha_id
+                - name: gacha_uuid
                   in: path
                   required: true
                   schema:
@@ -274,14 +270,14 @@ paths:
                 404:
                     description: "{user, gacha} not found/start price must be greater than 0/end time must be after start time."
 
-    /auction/{auction_id}:
+    /auction/{auction_uuid}:
         get:
             summary: Get details of a specific auction
             tags: [Auctions]
             security:
                 - authCookie: []
             parameters:
-                - name: auction_id
+                - name: auction_uuid
                   in: path
                   required: true
                   schema:
@@ -301,7 +297,7 @@ paths:
             security:
                 - authCookie: []
             parameters:
-                - name: auction_id
+                - name: auction_uuid
                   in: path
                   required: true
                   schema:
@@ -312,14 +308,14 @@ paths:
                 404:
                     description: auction not found.
 
-    /auction/{auction_id}/bid:
+    /auction/{auction_uuid}/bid:
         post:
             summary: Place a bid on an auction
             tags: [Auctions]
             security:
                 - authCookie: []
             parameters:
-                - name: auction_id
+                - name: auction_uuid
                   in: path
                   required: true
                   schema:
@@ -333,17 +329,10 @@ paths:
             responses:
                 200:
                     description: Bid placed successfully.
-                    # content:
-                    #     application/json:
-                    #         schema:
-                    #             $ref: "#components/schemas/Auction"
                 400:
                     description: invalid request data.
                 404:
                     description: auction not found/user not found/insufficient currency.
-
-    ### PVP ENDPOINTS ###
-    # NOTE: TBD
 
     ### GAME ENDPOINTS ###
     /game/start:
@@ -394,7 +383,7 @@ paths:
                                         type: string
                                         example: Invalid game type
 
-    /game/play/{game_id}:
+    /game/play/{game_uuid}:
         post:
             tags: [Game]
             summary: Play a move in the game
@@ -403,7 +392,7 @@ paths:
                 - authCookie: []
             parameters:
                 - in: path
-                  name: game_id
+                  name: game_uuid
                   required: true
                   schema:
                     type: integer
@@ -461,7 +450,7 @@ paths:
                                         type: string
                                         example: Game not found
 
-    /game/state/{game_id}:
+    /game/state/{game_uuid}:
         get:
             tags: [Game]
             summary: Get the current game state
@@ -470,7 +459,7 @@ paths:
                 - authCookie: []
             parameters:
                 - in: path
-                  name: game_id
+                  name: game_uuid
                   required: true
                   schema:
                     type: integer
@@ -548,14 +537,14 @@ paths:
                 404:
                     description: No users found.
 
-    /admin/gacha/{gacha_id}:
+    /admin/gacha/{gacha_uuid}:
         post:
             summary: Add a new gacha item to the system
             tags: [Admin]
             security:
                 - authCookie: []
             parameters:
-                - name: gacha_id
+                - name: gacha_uuid
                   in: path
                   required: true
                   schema:
@@ -565,7 +554,16 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: "#/components/schemas/Gacha"
+                            type: object
+                            properties:
+                              price: 
+                                  type: integer
+                              name:
+                                  type: string
+                              rarity:
+                                  type: string
+                              image_url:
+                                  type: string
             responses:
                 200:
                     description: Gacha added successfully.
@@ -577,7 +575,7 @@ paths:
             security:
                 - authCookie: []
             parameters:
-                - name: gacha_id
+                - name: gacha_uuid
                   in: path
                   required: true
                   schema:
@@ -587,7 +585,16 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: "#/components/schemas/Gacha"
+                            type: object
+                            properties:
+                              price: 
+                                  type: integer
+                              name:
+                                  type: string
+                              rarity:
+                                  type: string
+                              image_url:
+                                  type: string
             responses:
                 200:
                     description: Gacha updated successfully.
@@ -605,6 +612,8 @@ components:
         UserPublic:
             type: object
             properties:
+                user_uuid:
+                    type: string
                 username:
                     type: string
                 gacha_collection:
@@ -615,7 +624,7 @@ components:
         User:
             type: object
             properties:
-                user_id:
+                user_uuid:
                     type: string
                 username:
                     type: string
@@ -629,7 +638,6 @@ components:
                     type: array
                     items:
                         $ref: "#/components/schemas/Transaction"
-
 
         Register:
             type: object
@@ -652,7 +660,7 @@ components:
         Gacha:
             type: object
             properties:
-                gacha_id:
+                gacha_uuid:
                     type: string
                 name:
                     type: string
@@ -672,7 +680,7 @@ components:
         CreateAuctionData:
             type: object
             properties:
-                gacha_id:
+                gacha_uuid:
                     type: string
                 start_price:
                     type: integer
@@ -682,11 +690,11 @@ components:
         Auction:
             type: object
             properties:
-                auction_id:
+                auction_uuid:
                     type: string
                 owner_username:
                     type: string
-                gacha_id:
+                gacha_uuid:
                     type: string
                 start_time:
                     type: string
@@ -702,7 +710,7 @@ components:
         BidInput:
             type: object
             properties:
-                auction_id:
+                auction_uuid:
                     type: string
                 bid_amount:
                     type: integer
@@ -710,7 +718,7 @@ components:
         Bid:
             type: object
             properties:
-                bid_id:
+                bid_uuid:
                     type: string
                 currency_bidded:
                     type: integer
@@ -722,19 +730,23 @@ components:
         Transaction:
             type: object
             properties:
-                transaction_id:
+                transaction_uuid:
                     type: string
                 amount:
                     type: integer
                 timestamp:
                     type: string
-                gacha_id:
+                event_type:
                     type: string
+                event_uuid:
+                    type: string
+                # gacha_uuid:
+                #     type: string
         
         Minigame:
             type: object
             properties:
-                minigame_id:
+                minigame_uuid:
                     type: string
                 name:
                     type: string
