@@ -10,13 +10,19 @@
 
 !assets/
 !assets/images/
+!assets/images/*.png
 !assets/images/*.webp
 !assets/images/convert_all
 !assets/images/png/
 !assets/images/png/.gitkeep
+
 !assets/drawio/
 !assets/drawio/*.svg
 !assets/drawio/*.drawio
+
+!assets/gimp/
+!assets/gimp/*.xcf
+
 
 !beetle-quest/
 !beetle-quest/**

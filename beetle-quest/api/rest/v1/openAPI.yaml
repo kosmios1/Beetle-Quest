@@ -98,7 +98,7 @@ paths:
                     description: Internal server error.
 
     ### USER ###
-    /user/private/{user_uuid}:
+    /user/account/{user_uuid}:
         get:
             summary: Get details of own user account
             tags: [Users]
