@@ -20,7 +20,7 @@
 // #show: codly-init.with()
 
 
-= V-System
+= Beetle Quest
 
 == //Group Information
 
