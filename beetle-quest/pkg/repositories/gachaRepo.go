@@ -1,6 +1,6 @@
 package repositories
 
-import "gacha-app/pkg/models"
+import "beetle-quest/pkg/models"
 
 type GachaRepo interface {
 	ValidateGachaID(models.GachaId) bool

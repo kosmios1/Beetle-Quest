@@ -1,7 +1,7 @@
 package repositories
 
 import (
-	"gacha-app/pkg/models"
+	"beetle-quest/pkg/models"
 )
 
 type UserRepo interface {

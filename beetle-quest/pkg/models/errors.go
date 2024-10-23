@@ -15,10 +15,11 @@ const (
 	ErrCouldNotGenerateAuction constError = "could not generate auction"
 
 	// Controllers errors
-	ErrCouldNotParseTime       constError = "time format not correct"
-	ErrCouldNotDecodeUserID    constError = "could not decode user id"
-	ErrCouldNotDecodeGachaID   constError = "could not decode gacha id"
-	ErrCouldNotDecodeAuctionID constError = "could not decode auction id"
+	ErrCouldNotParseTime          constError = "time format not correct"
+	ErrCouldNotDecodeUserID       constError = "could not decode user id"
+	ErrCouldNotDecodeGachaID      constError = "could not decode gacha id"
+	ErrCouldNotDecodeAuctionID    constError = "could not decode auction id"
+	ErrCouldNotFindResourceByUUID constError = "could not find resource by uuid"
 
 	// Repositories errors
 	ErrAuctionNotFound       constError = "auction not found"

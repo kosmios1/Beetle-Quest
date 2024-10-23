@@ -14,6 +14,7 @@ const (
 
 type Gacha struct {
 	GachaID GachaId `json:"gacha_id"`
+	UUID    ApiUUID `json:"uuid"`
 	Name    string  `json:"name"`
 	Rarity  Rarity  `json:"rarity"`
 	Price   uint64  `json:"price"`

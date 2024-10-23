@@ -13,6 +13,7 @@ const (
 
 type Transaction struct {
 	TransactionID TransactionId   `json:"transaction_id"`
+	UUID          ApiUUID         `json:"uuid"`
 	Type          TransactionType `json:"transaction_type"`
 	UserID        UserId          `json:"user_id"`
 	Amount        uint64          `json:"amount"`

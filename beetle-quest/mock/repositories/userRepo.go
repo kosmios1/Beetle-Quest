@@ -1,8 +1,8 @@
 package mock_repositories
 
 import (
+	"beetle-quest/pkg/models"
 	"encoding/hex"
-	"gacha-app/pkg/models"
 )
 
 type MockUserRepo struct{}

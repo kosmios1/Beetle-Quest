@@ -1,11 +1,11 @@
 package service
 
 import (
-	"gacha-app/pkg/models"
-	"gacha-app/pkg/utils"
+	"beetle-quest/pkg/models"
+	"beetle-quest/pkg/utils"
 	"time"
 
-	repo "gacha-app/pkg/repositories"
+	repo "beetle-quest/pkg/repositories"
 )
 
 type AuctionService struct {
@@ -18,7 +18,8 @@ const (
 	AuctionDifficulty int = 10
 )
 
-func (s *AuctionService) CreateAuction(ownerId models.UserId, gachaId models.GachaId, endTime time.Time) (*models.Auction, error) {
+func (s *AuctionService) CreateAuction(ownerId models.ApiUUID, gachaId models.ApiUUID, endTime time.Time) (*models.Auction, error) {
+	// TODO: Convert ApiUUID to UserID and gachaID
 	if !s.UserRepo.ValidateUserID(ownerId) {
 		return nil, models.ErrInvalidUserID
 	}
@@ -37,25 +38,15 @@ func (s *AuctionService) CreateAuction(ownerId models.UserId, gachaId models.Gac
 		return nil, models.ErrInvalidEndTime
 	}
 
-	transactionId, err := utils.GenerateRandomID(8)
-	if err != nil {
-		return nil, models.ErrCouldNotGenerateAuction
-	}
-
 	genesy := &models.Block{
 		Hash:         []byte{},
 		PreviousHash: []byte{},
 		Timestamp:    startTime,
 		Pow:          0,
-		Transactions: []*models.Transaction{
+		Bids: []*models.Bid{
 			{
-				TransactionID: transactionId,
-				Type:          models.Withdraw,
-				UserID:        ownerId,
-				Amount:        0,
-				DateTime:      startTime,
-				EventType:     models.AuctionEv,
-				EventID:       auctionId,
+				UserID:      ownerId,
+				AmountSpend: 0,
 			},
 		},
 	}
@@ -82,7 +73,8 @@ func (s *AuctionService) CreateAuction(ownerId models.UserId, gachaId models.Gac
 	return auction, err
 }
 
-func (s *AuctionService) GetAuction(auctionId models.AuctionId) (*models.Auction, error) {
+func (s *AuctionService) GetAuction(auctionId models.ApiUUID) (*models.Auction, error) {
+	// TODO: Convert ApiUUID to UserID and gachaID
 	if !s.AuctionRepo.VaildateAuctionID(auctionId) {
 		return &models.Auction{}, models.ErrInvalidAuctionID
 	}

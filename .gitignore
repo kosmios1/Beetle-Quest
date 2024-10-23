@@ -18,6 +18,6 @@
 !assets/drawio/*.svg
 !assets/drawio/*.drawio
 
-!gacha-app/
-!gacha-app/**
-!gacha-app/**/*.*
+!beetle-quest/
+!beetle-quest/**
+!beetle-quest/**/*.*

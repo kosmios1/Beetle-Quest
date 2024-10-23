@@ -1,9 +1,9 @@
 package controller
 
 import (
-	"encoding/base64"
-	"gacha-app/internal/auction/service"
-	"gacha-app/pkg/models"
+	"beetle-quest/internal/auction/service"
+	"beetle-quest/pkg/models"
+	"beetle-quest/pkg/utils"
 	"net/http"
 	"time"
 
@@ -15,7 +15,7 @@ type AuctionController struct {
 }
 
 func (c *AuctionController) CreateAuction(ctx *gin.Context) {
-	var req models.CreateAuctionReq
+	var req models.CreateAuctionRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -27,39 +27,39 @@ func (c *AuctionController) CreateAuction(ctx *gin.Context) {
 		return
 	}
 
-	ownerID, err := base64.StdEncoding.DecodeString(req.OwnerID)
+	ownerUUID, err := utils.Parse(ctx.Param("user_uuid"))
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": models.ErrCouldNotDecodeUserID})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err})
 		return
 	}
 
-	gachaID, err := base64.StdEncoding.DecodeString(req.GachaID)
+	gachaUUID, err := utils.Parse(req.GachaUUID)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": models.ErrCouldNotDecodeGachaID})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err})
 		return
 	}
 
-	auction, err := c.Service.CreateAuction(ownerID, gachaID, endTime)
+	auction, err := c.Service.CreateAuction(ownerUUID, gachaUUID, endTime)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, models.CreateAuctionRes{Auction: auction})
+	ctx.JSON(http.StatusCreated, models.CreateAuctionResponse{Auction: auction})
 }
 
 func (c *AuctionController) GetAuction(ctx *gin.Context) {
-	auctionID, err := base64.StdEncoding.DecodeString(ctx.Param("auction_id"))
+	auctionUUID, err := utils.Parse(ctx.Param("auction_id"))
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": models.ErrCouldNotDecodeAuctionID})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err})
 		return
 	}
 
-	auction, err := c.Service.GetAuction(auctionID)
+	auction, err := c.Service.GetAuction(auctionUUID)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, models.GetAuctionRes{Auction: auction})
+	ctx.JSON(http.StatusOK, models.GetAuctionResponse{Auction: auction})
 }

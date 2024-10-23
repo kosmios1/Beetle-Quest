@@ -1,8 +1,8 @@
 package mock_repositories
 
 import (
+	"beetle-quest/pkg/models"
 	"encoding/hex"
-	"gacha-app/pkg/models"
 	"time"
 )
 
@@ -24,17 +24,6 @@ var Auctions = map[string]*models.Auction{
 				PreviousHash: []byte{},
 				Timestamp:    time.Now(),
 				Pow:          0,
-				Transactions: []*models.Transaction{
-					{
-						TransactionID: models.TransactionId("7472616e73616374696f6e"),
-						Type:          models.Withdraw,
-						UserID:        models.UserId("4b6974"),
-						Amount:        0,
-						DateTime:      time.Now(),
-						EventType:     models.AuctionEv,
-						EventID:       models.EventId(models.AuctionId("6175637469")),
-					},
-				},
 			},
 			Chain: []*models.Block{},
 		},

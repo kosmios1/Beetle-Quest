@@ -5,9 +5,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"gacha-app/internal/auction/controller"
-	"gacha-app/internal/auction/service"
-	mock_repositories "gacha-app/mock/repositories"
+	"beetle-quest/internal/auction/controller"
+	"beetle-quest/internal/auction/service"
+	mock_repositories "beetle-quest/mock/repositories"
 )
 
 func main() {
