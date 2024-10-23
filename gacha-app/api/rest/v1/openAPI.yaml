@@ -90,7 +90,7 @@ paths:
             security:
                 - authCookie: []
             parameters:
-                - name: uuid
+                - name: user_uuid
                   in: path
                   required: true
                   schema:
@@ -128,11 +128,24 @@ paths:
                                     type: string
                                 password:
                                     type: string
+            responses:
+              200:
+                description: User account updated successfully.
+              400:
+                description: Bad request.
+              404:
+                description: User not found.
         delete:
             summary: Delete a user account
             tags: [Users]
             security:
                 - authCookie: []
+            parameters:
+                - name: user_uuid
+                  in: path
+                  required: true
+                  schema:
+                      type: string
             responses:
                 204:
                     description: User account deleted successfully.
@@ -421,7 +434,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: "#components/schemas/BidInput"
+                            $ref: "#/components/schemas/BidInput"
             responses:
                 200:
                     description: Bid placed successfully.
@@ -546,44 +559,44 @@ paths:
     #                                     type: string
     #                                     example: Game not found
     # /game/state/{game_uuid}:
-        get:
-            tags: [Game]
-            summary: Get the current game state
-            description: Retrieves the current state of the game by its ID.
-            security:
-                - authCookie: []
-            parameters:
-                - in: path
-                  name: game_uuid
-                  required: true
-                  schema:
-                    type: integer
-                  description: The ID of the game
-            responses:
-                '200':
-                    description: Current game state returned
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    state:
-                                        type: array
-                                    items:
-                                        type: array
-                                        items:
-                                            type: string
-                                            example: [["X", "", ""], ["", "X", ""], ["", "", "O"]]
-                '404':
-                    description: Game not found
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    error:
-                                        type: string
-                                example: Game not found
+        # get:
+        #     tags: [Game]
+        #     summary: Get the current game state
+        #     description: Retrieves the current state of the game by its ID.
+        #     security:
+        #         - authCookie: []
+        #     parameters:
+        #         - in: path
+        #           name: game_uuid
+        #           required: true
+        #           schema:
+        #             type: integer
+        #           description: The ID of the game
+        #     responses:
+        #         '200':
+        #             description: Current game state returned
+        #             content:
+        #                 application/json:
+        #                     schema:
+        #                         type: object
+        #                         properties:
+        #                             state:
+        #                                 type: array
+        #                             items:
+        #                                 type: array
+        #                                 items:
+        #                                     type: string
+        #                                     example: [["X", "", ""], ["", "X", ""], ["", "", "O"]]
+        #         '404':
+        #             description: Game not found
+        #             content:
+        #                 application/json:
+        #                     schema:
+        #                         type: object
+        #                         properties:
+        #                             error:
+        #                                 type: string
+        #                         example: Game not found
 
 
     ### ADMIN ENDPOINTS ###
@@ -645,12 +658,12 @@ paths:
             tags: [Admin]
             security:
                 - authCookie: []
-            parameters:
-                - name: gacha_uuid
-                  in: path
-                  required: true
-                  schema:
-                      type: string
+            # parameters:
+            #     - name: gacha_uuid
+            #       in: path
+            #       required: true
+            #       schema:
+            #           type: string
             requestBody:
                 required: true
                 content:
@@ -833,7 +846,7 @@ components:
                 biddings:
                     type: array
                     items:
-                        $ref: "#components/schemas/Bid"
+                        $ref: "#/components/schemas/Bid"
 
         BidInput:
             type: object
