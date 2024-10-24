@@ -3,5 +3,6 @@ package repositories
 import "beetle-quest/pkg/models"
 
 type GachaRepo interface {
-	ValidateGachaID(models.GachaId) bool
+	FindByID(models.GachaId) (*models.Gacha, bool)
+	FindByUUID(models.ApiUUID) (*models.Gacha, bool)
 }

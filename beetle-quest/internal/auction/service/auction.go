@@ -18,17 +18,18 @@ const (
 	AuctionDifficulty int = 10
 )
 
-func (s *AuctionService) CreateAuction(ownerId models.ApiUUID, gachaId models.ApiUUID, endTime time.Time) (*models.Auction, error) {
-	// TODO: Convert ApiUUID to UserID and gachaID
-	if !s.UserRepo.ValidateUserID(ownerId) {
+func (s *AuctionService) CreateAuction(ownerUUID models.ApiUUID, gachaUUID models.ApiUUID, endTime time.Time) (*models.Auction, error) {
+	user, ok := s.UserRepo.FindByUUID(ownerUUID)
+	if !ok {
 		return nil, models.ErrInvalidUserID
 	}
 
-	if !s.GachaRepo.ValidateGachaID(gachaId) {
+	gacha, ok := s.GachaRepo.FindByUUID(gachaUUID)
+	if !ok {
 		return nil, models.ErrInvalidGachaID
 	}
 
-	auctionId, err := utils.GenerateRandomID(16)
+	auctionID, err := utils.GenerateRandomID(16)
 	if err != nil {
 		return nil, err
 	}
@@ -38,6 +39,8 @@ func (s *AuctionService) CreateAuction(ownerId models.ApiUUID, gachaId models.Ap
 		return nil, models.ErrInvalidEndTime
 	}
 
+	auctionUUID := utils.GenerateUUID()
+
 	genesy := &models.Block{
 		Hash:         []byte{},
 		PreviousHash: []byte{},
@@ -45,16 +48,17 @@ func (s *AuctionService) CreateAuction(ownerId models.ApiUUID, gachaId models.Ap
 		Pow:          0,
 		Bids: []*models.Bid{
 			{
-				UserID:      ownerId,
+				UserID:      user.UserID,
 				AmountSpend: 0,
 			},
 		},
 	}
 
 	auction := &models.Auction{
-		AuctionID: auctionId,
-		OwnerID:   ownerId,
-		GachaID:   gachaId,
+		AuctionID: auctionID,
+		UUID:      auctionUUID,
+		OwnerID:   user.UserID,
+		GachaID:   gacha.GachaID,
 		StartTime: startTime,
 		EndTime:   endTime,
 		WinnerID:  nil,
@@ -73,11 +77,10 @@ func (s *AuctionService) CreateAuction(ownerId models.ApiUUID, gachaId models.Ap
 	return auction, err
 }
 
-func (s *AuctionService) GetAuction(auctionId models.ApiUUID) (*models.Auction, error) {
-	// TODO: Convert ApiUUID to UserID and gachaID
-	if !s.AuctionRepo.VaildateAuctionID(auctionId) {
+func (s *AuctionService) GetAuction(auctionUUID models.ApiUUID) (*models.Auction, error) {
+	auction, ok := s.AuctionRepo.FindByUUID(auctionUUID)
+	if !ok {
 		return &models.Auction{}, models.ErrInvalidAuctionID
 	}
-
-	return s.AuctionRepo.GetAuction(auctionId)
+	return auction, nil
 }

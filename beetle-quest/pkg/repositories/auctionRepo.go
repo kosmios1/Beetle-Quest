@@ -6,7 +6,6 @@ import (
 
 type AuctionRepo interface {
 	AddAuction(*models.Auction) error
-	GetAuction(models.AuctionId) (*models.Auction, error)
-
-	VaildateAuctionID(models.AuctionId) bool
+	FindByID(models.AuctionId) (*models.Auction, bool)
+	FindByUUID(models.ApiUUID) (*models.Auction, bool)
 }

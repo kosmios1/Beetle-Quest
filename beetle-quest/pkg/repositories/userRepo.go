@@ -5,5 +5,6 @@ import (
 )
 
 type UserRepo interface {
-	ValidateUserID(id models.UserId) bool
+	FindByID(id models.UserId) (*models.User, bool)
+	FindByUUID(uuid models.ApiUUID) (*models.User, bool)
 }

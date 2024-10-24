@@ -63,3 +63,7 @@ func (c *AuctionController) GetAuction(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, models.GetAuctionResponse{Auction: auction})
 }
+
+func (c *AuctionController) DeleteAuction(ctx *gin.Context) {
+
+}

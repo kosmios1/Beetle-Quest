@@ -13,3 +13,7 @@ func Parse(id string) (models.ApiUUID, error) {
 		return models.ApiUUID(uuid), nil
 	}
 }
+
+func GenerateUUID() models.ApiUUID {
+	return models.ApiUUID(uuid.New())
+}
