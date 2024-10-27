@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type AuthController struct {
@@ -40,16 +41,25 @@ func (c *AuthController) Login(ctx *gin.Context) {
 		return
 	}
 
+	sessionID := uuid.New().String()
+
 	session := sessions.Default(ctx)
 	session.Set("username", loginData.Username)
+	session.Set("session_id", sessionID)
 	session.Save()
 
-	ctx.JSON(http.StatusOK, gin.H{"message": "logged in as " + loginData.Username})
+	ctx.JSON(http.StatusOK, gin.H{"message": "logged in as " + session.Get("username").(string)})
 }
 
 func (c *AuthController) Logout(ctx *gin.Context) {
 	session := sessions.Default(ctx)
-	session.Delete("username")
+
+	if session.Get("session_id") == nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	session.Clear()
 	session.Save()
 	ctx.JSON(http.StatusOK, gin.H{"message": "logged out"})
 }

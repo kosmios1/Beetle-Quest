@@ -1,7 +1,5 @@
 package models
 
-type GachaId []byte
-
 type Rarity uint8
 
 const (
@@ -13,9 +11,8 @@ const (
 )
 
 type Gacha struct {
-	GachaID GachaId `json:"gacha_id"`
-	UUID    ApiUUID `json:"uuid"`
-	Name    string  `json:"name"`
-	Rarity  Rarity  `json:"rarity"`
-	Price   uint64  `json:"price"`
+	GachaID UUID   `json:"gacha_id"`
+	Name    string `json:"name"`
+	Rarity  Rarity `json:"rarity"`
+	Price   uint64 `json:"price"`
 }

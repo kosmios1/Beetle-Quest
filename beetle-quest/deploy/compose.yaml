@@ -1,10 +1,5 @@
 name: beetle-quest
 services:
-    auth-redis:
-        image: redis:7.4.1-alpine3.20
-        command: redis-server --bind auth-redis --requirepass secret --maxmemory 256mb --maxmemory-policy allkeys-lru #--appendonly yes
-        ports:
-            - "6379:6379"
     auth-app:
         build:
             context: ../
@@ -13,11 +8,45 @@ services:
             - "8080:8080"
         depends_on:
             - auth-redis
+            - monolith-db
+        networks:
+            - mynet
         environment:
-            # - GIN_MODE="release"
+            # - GIN_MODE=release
             - REDIS_HOST=auth-redis
             - REDIS_PORT=6379
             - REDIS_PASSWD=secret
             - REDIS_ENC_SECRET=771f54268849fe96111562b311bf75947fba8f7f65929e6a2c6d524c8504148b
             - REDIS_AUTH_SECRET=af9d1d23b413e193c17928559584e05548ab082ceea0c456e8f047664c662c46973e01e78a13b2ed47725baa92fcbabe7cd2dd221fd4eab3643402d1e17b6379
             - INTERNAL_AUTH_TOKEN=ciaone
+
+            - POSTGRES_HOST=monolith-db
+            - POSTGRES_PORT=5432
+            - POSTGRES_USER=beetle
+            - POSTGRES_PASSWORD=secret
+            - POSTGRES_DB_NAME=beetle-quest-main-db
+            - POSTGRES_SSLMODE=disable
+            - POSTGRES_TIMEZONE=Europe/Rome
+
+    auth-redis:
+        image: redis:7.4.1-alpine3.20
+        command: redis-server --bind auth-redis --requirepass secret --maxmemory 256mb --maxmemory-policy allkeys-lru
+        networks:
+            - mynet
+
+    monolith-db:
+        build:
+            context: ./postgres
+            dockerfile: ./Dockerfile
+        networks:
+            - mynet
+        environment:
+            - POSTGRES_USER=beetle
+            - POSTGRES_PASSWORD=secret
+            - POSTGRES_DB=beetle-quest-main-db
+
+networks:
+    mynet:
+        driver: bridge
+    admin:
+        driver: bridge

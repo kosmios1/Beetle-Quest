@@ -11,7 +11,7 @@ import (
 )
 
 func Proxy(ctx *gin.Context) {
-	remote, err := url.Parse("http://myremotedomain.com")
+	remote, err := url.Parse("http://google.com")
 	if err != nil {
 		panic(err)
 	}

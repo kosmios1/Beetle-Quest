@@ -4,16 +4,13 @@ import (
 	"time"
 )
 
-type AuctionId EventId
-
 type Auction struct {
-	AuctionID AuctionId `json:"auction_id"`
-	UUID      ApiUUID   `json:"uuid"`
-	OwnerID   UserId    `json:"owner_id"`
-	GachaID   GachaId   `json:"gacha_id"`
+	AuctionID UUID      `json:"auction_id"`
+	OwnerID   UUID      `json:"owner_id"`
+	GachaID   UUID      `json:"gacha_id"`
 	StartTime time.Time `json:"start_time"`
 	EndTime   time.Time `json:"end_time"`
-	WinnerID  UserId    `json:"winner_id"`
+	WinnerID  UUID      `json:"winner_id"`
 
 	Blockchain *Blockchain `json:"blockchain"`
 }
@@ -33,6 +30,6 @@ type Block struct {
 }
 
 type Bid struct {
-	UserID      UserId `json:"owner_id"`
-	AmountSpend int64  `json:"amount_spend"`
+	UserID      UUID  `json:"owner_id"`
+	AmountSpend int64 `json:"amount_spend"`
 }
