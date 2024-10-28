@@ -10,9 +10,8 @@ import (
 func AuthMiddleware(internal_auth_token string) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		session := sessions.Default(ctx)
-		user := session.Get("username")
 		sessionID := session.Get("session_id")
-		if user == nil || sessionID == nil {
+		if sessionID == nil {
 			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 			ctx.Abort()
 			return

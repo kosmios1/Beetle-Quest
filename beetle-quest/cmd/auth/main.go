@@ -68,19 +68,23 @@ func main() {
 	r.Use(gin.Recovery())
 	r.Use(sessions.Sessions("my-session", store))
 
+	basePath := r.Group("/api/v1")
 	{
 		cnt := controller.AuthController{
 			AuthService: service.AuthService{
 				UserRepo: repository.NewUserRepo(),
 			},
 		}
-		r.GET("/logout", cnt.Logout)
-		r.POST("/login", cnt.Login)
-		r.POST("/register", cnt.Register)
+		basePath.GET("/logout", cnt.Logout)
+		basePath.POST("/login", cnt.Login)
+		basePath.POST("/register", cnt.Register)
 	}
 
-	authorized := r.Group("/api/v1", controller.Proxy)
+	authorized := r.Group("/api/v1")
 	authorized.Use(middleware.AuthMiddleware(internalAuthToken))
+	{
+		authorized.GET("/prova", controller.Proxy)
+	}
 
 	r.Run()
 }

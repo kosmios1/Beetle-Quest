@@ -1,8 +1,6 @@
 package controller
 
 import (
-	"fmt"
-	"io"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -33,12 +31,12 @@ func Proxy(ctx *gin.Context) {
 		req.URL.Path = remote.Path
 
 		// NOTE: To log the request body, maybe use github.com/uber-go/zap
-		value, err := io.ReadAll(req.Body)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		fmt.Printf(string(value))
+		// value, err := io.ReadAll(req.Body)
+		// if err != nil {
+		// 	fmt.Println(err)
+		// 	return
+		// }
+		// fmt.Printf(string(value))
 	}
 
 	proxy.ServeHTTP(ctx.Writer, ctx.Request)
