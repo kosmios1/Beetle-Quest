@@ -16,7 +16,7 @@ var (
 	dbHost         = os.Getenv("POSTGRES_HOST")
 	dbUserName     = os.Getenv("POSTGRES_USER")
 	dbUserPassword = os.Getenv("POSTGRES_PASSWORD")
-	dbName         = os.Getenv("POSTGRES_DB_NAME")
+	dbName         = os.Getenv("POSTGRES_DB")
 	dbPort         = os.Getenv("POSTGRES_PORT")
 	dbSSLMode      = os.Getenv("POSTGRES_SSLMODE")
 	dbTimeZone     = os.Getenv("POSTGRES_TIMEZONE")
@@ -28,7 +28,7 @@ type UserRepo struct {
 
 func NewUserRepo() *UserRepo {
 	if dbHost == "" || dbUserName == "" || dbUserPassword == "" || dbName == "" || dbPort == "" || dbSSLMode == "" || dbTimeZone == "" {
-		log.Fatalf("Either POSTGRES_HOST, POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB_NAME, POSTGRES_PORT, POSTGRES_SSLMODE or POSTGRES_TIMEZONE is not set")
+		log.Fatalf("Either POSTGRES_HOST, POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB, POSTGRES_PORT, POSTGRES_SSLMODE or POSTGRES_TIMEZONE is not set")
 	}
 
 	var repo = &UserRepo{}

@@ -1,6 +1,16 @@
 name: beetle-quest
+
+x-postgres-common-envs: &postgres-environments
+    POSTGRES_USER: beetle
+    POSTGRES_PASSWORD: secret
+    POSTGRES_DB: beetle-quest-main-db
+
+x-common-services-environments: &common-services-environments
+    INTERNAL_AUTH_TOKEN: ciaone
+
 services:
-    auth-app:
+    # MICROSERVICES SECTION =============================================================================================================================================================================
+    auth-service:
         build:
             context: ../
             dockerfile: deploy/auth/Dockerfile
@@ -12,22 +22,43 @@ services:
         networks:
             - mynet
         environment:
-            # - GIN_MODE=release
-            - REDIS_HOST=auth-redis
-            - REDIS_PORT=6379
-            - REDIS_PASSWD=secret
-            - REDIS_ENC_SECRET=771f54268849fe96111562b311bf75947fba8f7f65929e6a2c6d524c8504148b
-            - REDIS_AUTH_SECRET=af9d1d23b413e193c17928559584e05548ab082ceea0c456e8f047664c662c46973e01e78a13b2ed47725baa92fcbabe7cd2dd221fd4eab3643402d1e17b6379
-            - INTERNAL_AUTH_TOKEN=ciaone
+            <<: [*postgres-environments, *common-services-environments]
 
-            - POSTGRES_HOST=monolith-db
-            - POSTGRES_PORT=5432
-            - POSTGRES_USER=beetle
-            - POSTGRES_PASSWORD=secret
-            - POSTGRES_DB_NAME=beetle-quest-main-db
-            - POSTGRES_SSLMODE=disable
-            - POSTGRES_TIMEZONE=Europe/Rome
+            # Redis specific environment variables
+            REDIS_HOST: auth-redis
+            REDIS_PORT: 6379
+            REDIS_PASSWD: secret
+            REDIS_ENC_SECRET: 771f54268849fe96111562b311bf75947fba8f7f65929e6a2c6d524c8504148b
+            REDIS_AUTH_SECRET: af9d1d23b413e193c17928559584e05548ab082ceea0c456e8f047664c662c46973e01e78a13b2ed47725baa92fcbabe7cd2dd221fd4eab3643402d1e17b6379
 
+            # Postgres client specific environment variables
+            POSTGRES_HOST: monolith-db
+            POSTGRES_PORT: 5432
+            POSTGRES_SSLMODE: disable
+            POSTGRES_TIMEZONE: Europe/Rome
+
+    user-service:
+        build:
+            context: ../
+            dockerfile: deploy/user/Dockerfile
+        deploy: # This deploy two instances of the service
+            replicas: 2
+            mode: replicated
+            endpoint_mode: vip # Virtual IP, front-end for services, client know nothing about how many replicas are running
+            resources:
+                limits: # max
+                    pids: 10
+                    cpus: "0.25"
+                    memory: 50M
+                reservations: # at least
+                    cpus: "0.05"
+                    memory: 20M
+        networks:
+            - mynet
+        environment:
+            <<: *common-services-environments
+
+    # DB SERVICES SECTION ===============================================================================================================================================================================
     auth-redis:
         image: redis:7.4.1-alpine3.20
         command: redis-server --bind auth-redis --requirepass secret --maxmemory 256mb --maxmemory-policy allkeys-lru
@@ -41,9 +72,7 @@ services:
         networks:
             - mynet
         environment:
-            - POSTGRES_USER=beetle
-            - POSTGRES_PASSWORD=secret
-            - POSTGRES_DB=beetle-quest-main-db
+            <<: *postgres-environments
 
 networks:
     mynet:

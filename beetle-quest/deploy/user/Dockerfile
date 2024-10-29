@@ -7,7 +7,7 @@ COPY --exclude=deploy --exclude=api ./go.mod ./go.mod
 RUN go mod download
 
 COPY --exclude=deploy --exclude=api . .
-RUN CGO_ENABLED=0 go build  -o /go/bin/app ./cmd/auth/main.go
+RUN CGO_ENABLED=0 go build  -o /go/bin/app ./cmd/user/main.go
 
 FROM gcr.io/distroless/base-debian12
 COPY --from=build /go/bin/app /

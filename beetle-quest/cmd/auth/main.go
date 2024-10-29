@@ -8,7 +8,6 @@ import (
 	"encoding/hex"
 	"os"
 
-	"github.com/gin-contrib/secure"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/redis"
 	"github.com/gin-gonic/gin"
@@ -67,19 +66,20 @@ func main() {
 
 	r := gin.Default()
 	r.Use(gin.Recovery())
-	r.Use(secure.New(secure.Config{
-		SSLRedirect:           true,
-		IsDevelopment:         false,
-		STSSeconds:            315360000,
-		STSIncludeSubdomains:  true,
-		FrameDeny:             true,
-		ContentTypeNosniff:    true,
-		BrowserXssFilter:      true,
-		ContentSecurityPolicy: "default-src 'self'",
-		IENoOpen:              true,
-		SSLProxyHeaders:       map[string]string{"X-Forwarded-Proto": "https"},
-		AllowedHosts:          []string{},
-	}))
+	// TODO: Uncomment this when having a valid SSL certificate
+	// r.Use(secure.New(secure.Config{
+	// 	SSLRedirect:           true,
+	// 	IsDevelopment:         false,
+	// 	STSSeconds:            315360000,
+	// 	STSIncludeSubdomains:  true,
+	// 	FrameDeny:             true,
+	// 	ContentTypeNosniff:    true,
+	// 	BrowserXssFilter:      true,
+	// 	ContentSecurityPolicy: "default-src 'self'",
+	// 	IENoOpen:              true,
+	// 	SSLProxyHeaders:       map[string]string{"X-Forwarded-Proto": "https"},
+	// 	AllowedHosts:          []string{},
+	// }))
 	r.Use(sessions.Sessions("my-session", store))
 
 	basePath := r.Group("/api/v1")
