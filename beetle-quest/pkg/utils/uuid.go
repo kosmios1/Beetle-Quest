@@ -6,14 +6,14 @@ import (
 	"github.com/google/uuid"
 )
 
-func Parse(id string) (models.ApiUUID, error) {
+func Parse(id string) (models.UUID, error) {
 	if uuid, err := uuid.Parse(id); err != nil {
-		return models.ApiUUID{}, models.ErrCouldNotFindResourceByUUID
+		return models.UUID{}, models.ErrCouldNotFindResourceByUUID
 	} else {
-		return models.ApiUUID(uuid), nil
+		return models.UUID(uuid), nil
 	}
 }
 
-func GenerateUUID() models.ApiUUID {
-	return models.ApiUUID(uuid.New())
+func GenerateUUID() models.UUID {
+	return models.UUID(uuid.New())
 }

@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"os"
 
+	"github.com/gin-contrib/secure"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/redis"
 	"github.com/gin-gonic/gin"
@@ -66,6 +67,19 @@ func main() {
 
 	r := gin.Default()
 	r.Use(gin.Recovery())
+	r.Use(secure.New(secure.Config{
+		SSLRedirect:           true,
+		IsDevelopment:         false,
+		STSSeconds:            315360000,
+		STSIncludeSubdomains:  true,
+		FrameDeny:             true,
+		ContentTypeNosniff:    true,
+		BrowserXssFilter:      true,
+		ContentSecurityPolicy: "default-src 'self'",
+		IENoOpen:              true,
+		SSLProxyHeaders:       map[string]string{"X-Forwarded-Proto": "https"},
+		AllowedHosts:          []string{},
+	}))
 	r.Use(sessions.Sessions("my-session", store))
 
 	basePath := r.Group("/api/v1")
@@ -83,7 +97,53 @@ func main() {
 	authorized := r.Group("/api/v1")
 	authorized.Use(middleware.AuthMiddleware(internalAuthToken))
 	{
-		authorized.GET("/prova", controller.Proxy)
+		// User routes ===================================================================================================================
+		userServiceAddr := "http://user-service:8080"
+		userGroup := authorized.Group("/user")
+		{
+			userGroup.GET("/account/:user_id", controller.Proxy(userServiceAddr))
+			userGroup.PATCH("/account/:user_id", controller.Proxy(userServiceAddr))
+			userGroup.DELETE("/account/:user_id", controller.Proxy(userServiceAddr))
+
+			userGroup.GET("/:user_id/gacha", controller.Proxy(userServiceAddr))
+			userGroup.GET("/:user_id/gacha/:gacha_id", controller.Proxy(userServiceAddr))
+		}
+
+		// Gacha routes ==================================================================================================================
+		gachaServiceAddr := "http://gacha-service:8080"
+		gachaGroup := authorized.Group("/gacha")
+		{
+			gachaGroup.POST("/roll", controller.Proxy(gachaServiceAddr))
+			gachaGroup.GET("/list", controller.Proxy(gachaServiceAddr))
+			gachaGroup.GET("/:gacha_id", controller.Proxy(gachaServiceAddr))
+		}
+
+		// Market routes =================================================================================================================
+		marketServiceAddr := "http://market-service:8080"
+		marketGroup := authorized.Group("/market")
+		{
+			marketGroup.POST("/bugscoin/buy", controller.Proxy(marketServiceAddr))
+
+			auctionGroup := marketGroup.Group("/auction")
+			{
+				auctionGroup.POST("/create", controller.Proxy(marketServiceAddr))
+				auctionGroup.GET("/list", controller.Proxy(marketServiceAddr))
+				auctionGroup.GET("/:auction_id", controller.Proxy(marketServiceAddr))
+				auctionGroup.DELETE("/:auction_id", controller.Proxy(marketServiceAddr))
+				auctionGroup.POST("/:auction_id/bid", controller.Proxy(marketServiceAddr))
+			}
+		}
+
+		// Admin routes ==================================================================================================================
+		adminServiceAddr := "http://admin-service:8080"
+		adminGroup := authorized.Group("/admin")
+		{
+			adminGroup.GET("/monitor", controller.Proxy(adminServiceAddr))
+			adminGroup.GET("/user/list", controller.Proxy(adminServiceAddr))
+			adminGroup.POST("/gacha", controller.Proxy(adminServiceAddr))
+			adminGroup.PATCH("/gacha/:gacha_id", controller.Proxy(adminServiceAddr))
+			adminGroup.POST("/report/issue", controller.Proxy(adminServiceAddr))
+		}
 	}
 
 	r.Run()
