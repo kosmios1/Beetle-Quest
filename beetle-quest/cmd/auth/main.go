@@ -3,8 +3,9 @@ package main
 import (
 	"beetle-quest/internal/auth/controller"
 	"beetle-quest/internal/auth/middleware"
-	"beetle-quest/internal/auth/repository"
 	"beetle-quest/internal/auth/service"
+	repository "beetle-quest/pkg/repositories/impl"
+
 	"encoding/hex"
 	"os"
 	"time"
@@ -20,8 +21,6 @@ var (
 	redisPasswd     = os.Getenv("REDIS_PASSWD")
 	redisEncSecret  = os.Getenv("REDIS_ENC_SECRET")
 	redisAuthSecret = os.Getenv("REDIS_AUTH_SECRET")
-
-	internalAuthToken = os.Getenv("INTERNAL_AUTH_TOKEN")
 )
 
 func setup_redis_connection() redis.Store {
@@ -59,10 +58,6 @@ func setup_redis_connection() redis.Store {
 }
 
 func main() {
-	if internalAuthToken == "" {
-		panic("INTERNAL_AUTH_TOKEN is not set")
-	}
-
 	// This will connect to redis and return a store object used by the session middleware to store session data
 	store := setup_redis_connection()
 
@@ -97,7 +92,7 @@ func main() {
 	}
 
 	authorized := r.Group("/api/v1")
-	authorized.Use(middleware.AuthMiddleware(internalAuthToken))
+	authorized.Use(middleware.AuthMiddleware())
 	{
 		// User routes ===================================================================================================================
 		userServiceAddr := "http://user-service:8080"

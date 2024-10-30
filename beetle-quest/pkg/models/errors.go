@@ -19,6 +19,12 @@ const (
 	ErrInvalidUsernameOrPassOrEmail constError = "invalid username or password or email"
 	ErrCheckingPassword             constError = "error when checking password"
 	ErrUserParametersNotValid       constError = "inserted username or mail are already in the system"
+	ErrCouldNotDelete               constError = "could not delete user"
+	ErrInvalidPassword              constError = "invalid password"
+	ErrCouldNotUseNewPassword       constError = "could not use new password"
+	ErrCouldNotUpdate               constError = "could not update user"
+	ErrUsernameAlreadyExists        constError = "username already exists"
+	ErrEmailAlreadyExists           constError = "email already exists"
 
 	// Controllers errors
 	ErrCouldNotParseTime          constError = "time format not correct"

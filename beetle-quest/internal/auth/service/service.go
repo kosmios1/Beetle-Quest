@@ -3,8 +3,7 @@ package service
 import (
 	"beetle-quest/pkg/models"
 	"beetle-quest/pkg/repositories"
-
-	"golang.org/x/crypto/bcrypt"
+	"beetle-quest/pkg/utils"
 )
 
 type AuthService struct {
@@ -16,12 +15,17 @@ func (s *AuthService) Register(email, username, password string) error {
 		return models.ErrInvalidUsernameOrPassOrEmail
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	// hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	// if err != nil {
+	// 	return models.ErrCheckingPassword
+	// }
+
+	hashedPassword, err := utils.GenerateHashFromPassword([]byte(password))
 	if err != nil {
 		return models.ErrCheckingPassword
 	}
 
-	if ok := s.UserRepo.Create(email, username, hashedPassword); !ok {
+	if ok := s.UserRepo.Create(email, username, hashedPassword, 200); !ok {
 		return models.ErrUserParametersNotValid
 	}
 
@@ -38,7 +42,11 @@ func (s *AuthService) Login(username, password string) (*models.User, error) {
 		return nil, models.ErrInvalidUsernameOrPass
 	}
 
-	if err := bcrypt.CompareHashAndPassword(user.PasswordHash, []byte(password)); err != nil {
+	// if err := bcrypt.CompareHashAndPassword(user.PasswordHash, []byte(password)); err != nil {
+	// 	return nil, models.ErrInvalidUsernameOrPass
+	// }
+
+	if err := utils.CompareHashPassword([]byte(password), user.PasswordHash); err != nil {
 		return nil, models.ErrInvalidUsernameOrPass
 	}
 

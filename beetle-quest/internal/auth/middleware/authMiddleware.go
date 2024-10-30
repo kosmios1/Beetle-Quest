@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func AuthMiddleware(internalAuthToken string) gin.HandlerFunc {
+func AuthMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		session := sessions.Default(ctx)
 		sessionID := session.Get("session_id")
@@ -17,7 +17,6 @@ func AuthMiddleware(internalAuthToken string) gin.HandlerFunc {
 			ctx.Abort()
 			return
 		} else {
-			ctx.Set("Internal_auth_token", internalAuthToken)
 			ctx.Next()
 		}
 	}

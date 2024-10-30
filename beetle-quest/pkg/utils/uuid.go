@@ -6,7 +6,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func Parse(id string) (models.UUID, error) {
+func ParseUUID(id string) (models.UUID, error) {
 	if uuid, err := uuid.Parse(id); err != nil {
 		return models.UUID{}, models.ErrCouldNotFindResourceByUUID
 	} else {

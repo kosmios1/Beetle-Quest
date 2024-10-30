@@ -2,9 +2,9 @@ package main
 
 import (
 	"beetle-quest/internal/user/controller"
-	"beetle-quest/internal/user/repository"
+	"beetle-quest/internal/user/middleware"
 	"beetle-quest/internal/user/service"
-	"beetle-quest/pkg/middleware"
+	repository "beetle-quest/pkg/repositories/impl"
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -35,7 +35,6 @@ func main() {
 	// 	SSLProxyHeaders:       map[string]string{"X-Forwarded-Proto": "https"},
 	// 	AllowedHosts:          []string{},
 	// }))
-	r.Use(middleware.CheckAuthServiceMiddleware(internalAuthToken))
 
 	cnt := controller.UserController{
 		UserService: service.UserService{
@@ -45,9 +44,14 @@ func main() {
 
 	basePath := r.Group("/api/v1/user")
 	{
-		basePath.GET("/account/:user_id", cnt.GetUserAccountDetails)
-		basePath.PATCH("/account/:user_id", cnt.UpdateUserAccountDetails)
-		basePath.DELETE("/account/:user_id", cnt.DeleteUserAccount)
+
+		accountGroup := basePath.Group("/account")
+		accountGroup.Use(middleware.CheckUserIDCorrespondWithSessionID())
+		{
+			accountGroup.GET("/:user_id", cnt.GetUserAccountDetails)
+			accountGroup.PATCH("/:user_id", cnt.UpdateUserAccountDetails)
+			accountGroup.DELETE("/:user_id", cnt.DeleteUserAccount)
+		}
 
 		basePath.GET("/:user_id/gacha", cnt.GetUserGachaList)
 		basePath.GET("/:user_id/gacha/:gacha_id", cnt.GetUserGachaDetails)

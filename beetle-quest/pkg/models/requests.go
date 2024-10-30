@@ -13,6 +13,23 @@ type LoginRequest struct {
 	Password string `json:"password"`
 }
 
+// User ======================================
+
+type GetUserAccountDetailsResponse struct {
+	Username     string        `json:"username"`
+	Email        string        `json:"email"`
+	Currency     int64         `json:"currency"`
+	Gachas       []Gacha       `json:"gachas"`
+	Transactions []Transaction `json:"transactions"`
+}
+
+type UpdateUserAccountDetailsRequest struct {
+	Username    string `json:"username"`
+	Email       string `json:"email"`
+	OldPassword string `json:"old_password"`
+	NewPassword string `json:"new_password"`
+}
+
 // Auction ===================================
 
 type CreateAuctionRequest struct {
