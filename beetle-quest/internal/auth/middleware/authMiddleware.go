@@ -13,10 +13,11 @@ func AuthMiddleware(internalAuthToken string) gin.HandlerFunc {
 		sessionID := session.Get("session_id")
 		if sessionID == nil {
 			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+			ctx.Redirect(http.StatusMovedPermanently, "/api/v1/login")
 			ctx.Abort()
 			return
 		} else {
-			ctx.Set("INTERNAL_AUTH_TOKEN", internalAuthToken)
+			ctx.Set("Internal_auth_token", internalAuthToken)
 			ctx.Next()
 		}
 	}

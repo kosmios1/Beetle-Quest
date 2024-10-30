@@ -22,25 +22,25 @@ func (s *AuthService) Register(email, username, password string) error {
 	}
 
 	if ok := s.UserRepo.Create(email, username, hashedPassword); !ok {
-		return models.ErrInternalServerError
+		return models.ErrUserParametersNotValid
 	}
 
 	return nil
 }
 
-func (s *AuthService) Login(username, password string) error {
+func (s *AuthService) Login(username, password string) (*models.User, error) {
 	if username == "" || password == "" {
-		return models.ErrInvalidUsernameOrPass
+		return nil, models.ErrInvalidUsernameOrPass
 	}
 
 	user, ok := s.UserRepo.FindByUsername(username)
 	if !ok {
-		return models.ErrInvalidUsernameOrPass
+		return nil, models.ErrInvalidUsernameOrPass
 	}
 
 	if err := bcrypt.CompareHashAndPassword(user.PasswordHash, []byte(password)); err != nil {
-		return models.ErrInvalidUsernameOrPass
+		return nil, models.ErrInvalidUsernameOrPass
 	}
 
-	return nil
+	return user, nil
 }

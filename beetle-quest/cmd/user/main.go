@@ -1,6 +1,9 @@
 package main
 
 import (
+	"beetle-quest/internal/user/controller"
+	"beetle-quest/internal/user/repository"
+	"beetle-quest/internal/user/service"
 	"beetle-quest/pkg/middleware"
 	"os"
 
@@ -34,18 +37,20 @@ func main() {
 	// }))
 	r.Use(middleware.CheckAuthServiceMiddleware(internalAuthToken))
 
+	cnt := controller.UserController{
+		UserService: service.UserService{
+			UserRepo: repository.NewUserRepo(),
+		},
+	}
+
 	basePath := r.Group("/api/v1/user")
 	{
-		f := func(c *gin.Context) {
-			c.JSON(200, gin.H{"message": "EHEHEHEH NOT IMPLEMENTED YET!"})
-		}
+		basePath.GET("/account/:user_id", cnt.GetUserAccountDetails)
+		basePath.PATCH("/account/:user_id", cnt.UpdateUserAccountDetails)
+		basePath.DELETE("/account/:user_id", cnt.DeleteUserAccount)
 
-		basePath.GET("/account/:user_id", f)
-		basePath.PATCH("/account/:user_id", f)
-		basePath.DELETE("/account/:user_id", f)
-
-		basePath.GET("/:user_id/gacha", f)
-		basePath.GET("/:user_id/gacha/:gacha_id", f)
+		basePath.GET("/:user_id/gacha", cnt.GetUserGachaList)
+		basePath.GET("/:user_id/gacha/:gacha_id", cnt.GetUserGachaDetails)
 	}
 
 	r.Run()

@@ -7,6 +7,7 @@ import (
 	"beetle-quest/internal/auth/service"
 	"encoding/hex"
 	"os"
+	"time"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/redis"
@@ -48,9 +49,10 @@ func setup_redis_connection() redis.Store {
 	}
 
 	store.Options(sessions.Options{
+		Path:     "/",
 		Secure:   true,
-		MaxAge:   60 * 20,
 		HttpOnly: true, // NOTE: This is set to true to prevent XSS attacks
+		MaxAge:   int(time.Hour) * 24,
 	})
 
 	return store

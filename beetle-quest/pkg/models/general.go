@@ -8,6 +8,10 @@ import (
 
 type UUID uuid.UUID
 
+func (c UUID) String() string {
+	return uuid.UUID(c).String()
+}
+
 func (uid *UUID) Scan(value interface{}) error {
 	var id uuid.UUID
 	var err error

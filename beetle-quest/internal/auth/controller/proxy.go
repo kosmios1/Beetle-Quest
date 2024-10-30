@@ -17,7 +17,7 @@ func Proxy(serviceAddr string) gin.HandlerFunc {
 			return
 		}
 
-		internalAuthToken, ok := ctx.Get("INTERNAL_AUTH_TOKEN")
+		internalAuthToken, ok := ctx.Get("Internal_auth_token")
 		if !ok {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 			return

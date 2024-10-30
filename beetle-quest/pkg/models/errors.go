@@ -18,6 +18,7 @@ const (
 	ErrInvalidUsernameOrPass        constError = "invalid username or password"
 	ErrInvalidUsernameOrPassOrEmail constError = "invalid username or password or email"
 	ErrCheckingPassword             constError = "error when checking password"
+	ErrUserParametersNotValid       constError = "inserted username or mail are already in the system"
 
 	// Controllers errors
 	ErrCouldNotParseTime          constError = "time format not correct"

@@ -22,6 +22,10 @@ paths:
             summary: Register a new user
             tags: [Auth]
             parameters:
+                - name: email
+                  in: query
+                  schema:
+                    type: string
                 - name: username
                   in: query
                   schema:
