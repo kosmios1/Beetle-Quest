@@ -11,7 +11,6 @@ const (
 	ErrInternalServerError          constError = "internal server error"
 	ErrInvalidEndTime               constError = "invalid end time"
 	ErrInvalidUserID                constError = "invalid user id"
-	ErrInvalidGachaID               constError = "invalid gacha id"
 	ErrInvalidAuctionID             constError = "invalid auction id"
 	ErrCouldNotGenerateAuction      constError = "could not generate auction"
 	ErrUserNotFound                 constError = "user not found"
@@ -32,6 +31,9 @@ const (
 	ErrCouldNotDecodeGachaID      constError = "could not decode gacha id"
 	ErrCouldNotDecodeAuctionID    constError = "could not decode auction id"
 	ErrCouldNotFindResourceByUUID constError = "could not find resource by uuid"
+
+	ErrInvalidGachaID constError = "invalid gacha id"
+	ErrGachaNotFound  constError = "gacha not found"
 
 	// Repositories errors
 	ErrAuctionNotFound       constError = "auction not found"

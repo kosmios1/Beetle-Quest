@@ -1,0 +1,21 @@
+http:
+    routers:
+        router0:
+            rule: "Path(`/`)"
+            service: auth
+        router1:
+            rule: "Host(`nginx.example.com`)"
+            service: gacha
+        router2:
+            rule: "Host(`apache.example.com`)"
+            service: user
+
+    services:
+        service1:
+            loadBalancer:
+                servers:
+                    - url: "http://127.0.0.1:8082"
+        service2:
+            loadBalancer:
+                servers:
+                    - url: "http://127.0.0.1:8083"

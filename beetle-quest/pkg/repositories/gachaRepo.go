@@ -3,5 +3,6 @@ package repositories
 import "beetle-quest/pkg/models"
 
 type GachaRepo interface {
+	GetAll() ([]models.Gacha, bool)
 	FindByID(models.UUID) (*models.Gacha, bool)
 }

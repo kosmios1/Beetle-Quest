@@ -1,0 +1,30 @@
+log:
+    level: "DEBUG"
+
+entryPoints:
+    web:
+        address: ":80"
+        middlewares:
+            - auth@file
+        transport:
+            keepAliveMaxRequests: 42
+            keepAliveMaxTime: 42s
+        # http:
+        #     redirections:
+        #         entryPoint:
+        #             to: websecure
+        #             scheme: https
+
+    websecure:
+        address: ":443"
+        middlewares:
+            - auth@file
+        http3: {}
+        transport:
+            keepAliveMaxRequests: 42
+            keepAliveMaxTime: 42s
+
+providers:
+    file:
+        filename: "./rules.yml"
+        watch: true

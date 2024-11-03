@@ -5,7 +5,6 @@ import (
 	"beetle-quest/pkg/models"
 	"beetle-quest/pkg/utils"
 	"net/http"
-	"net/url"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
@@ -54,8 +53,9 @@ func (c *AuthController) Login(ctx *gin.Context) {
 	session.Save()
 
 	// NOTE: This works because of http.StatusFound and not http.StatusPermanentRedirect
-	location := url.URL{Path: "/api/v1/user/account/" + user.UserID.String()}
-	ctx.Redirect(http.StatusFound, location.RequestURI())
+	// location := url.URL{Path: "/api/v1/user/account/" + user.UserID.String()}
+	// ctx.Redirect(http.StatusFound, location.RequestURI())
+	ctx.JSON(http.StatusOK, gin.H{"message": "logged in"})
 }
 
 func (c *AuthController) Logout(ctx *gin.Context) {

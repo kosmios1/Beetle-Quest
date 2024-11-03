@@ -1,18 +1,19 @@
 package models
 
-type Rarity uint8
+type Rarity string
 
 const (
-	Common Rarity = iota
-	Uncommon
-	Rare
-	Epic
-	Legendary
+	Common    Rarity = "COMMON"
+	Uncommon  Rarity = "UNCOMMON"
+	Rare      Rarity = "RARE"
+	Epic      Rarity = "EPIC"
+	Legendary Rarity = "LEGENDARY"
 )
 
 type Gacha struct {
-	GachaID UUID   `json:"gacha_id"`
-	Name    string `json:"name"`
-	Rarity  Rarity `json:"rarity"`
-	Price   uint64 `json:"price"`
+	GachaID   UUID   `json:"gacha_id"`
+	Name      string `json:"name"`
+	Rarity    Rarity `json:"rarity"`
+	Price     uint64 `json:"price"`
+	ImagePath string `json:"image_path"`
 }

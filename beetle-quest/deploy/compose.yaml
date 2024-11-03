@@ -10,7 +10,8 @@ x-postgres-common-envs: &postgres-environments
     POSTGRES_DB: beetle-quest-main-db
 
 x-common-services-environments: &common-services-environments
-    INTERNAL_AUTH_TOKEN: ciaone
+    LOG_LEVEL: debug
+    GIN_MODE: release
 
 services:
     # MICROSERVICES SECTION =============================================================================================================================================================================
@@ -39,18 +40,39 @@ services:
         build:
             context: ../
             dockerfile: deploy/user/Dockerfile
-        deploy: # This deploy two instances of the service
-            replicas: 2
-            mode: replicated
-            endpoint_mode: vip # Virtual IP, front-end for services, client know nothing about how many replicas are running
-            # resources:
-            #     limits: # max
-            #         pids: 10
-            #         cpus: "0.25"
-            #         memory: 50M
-            #     reservations: # at least
-            #         cpus: "0.05"
-            #         memory: 20M
+        # deploy: # This deploy two instances of the service
+        #     replicas: 2
+        #     mode: replicated
+        #     endpoint_mode: vip # Virtual IP, front-end for services, client know nothing about how many replicas are running
+        # resources:
+        #     limits: # max
+        #         pids: 10
+        #         cpus: "0.25"
+        #         memory: 50M
+        #     reservations: # at least
+        #         cpus: "0.05"
+        #         memory: 20M
+        networks:
+            - mynet
+        environment:
+            <<: [*common-services-environments, *postgres-environments]
+
+    gacha-service:
+        build:
+            context: ../
+            dockerfile: deploy/gacha/Dockerfile
+        # deploy: # This deploy two instances of the service
+        #     replicas: 2
+        #     mode: replicated
+        #     endpoint_mode: vip # Virtual IP, front-end for services, client know nothing about how many replicas are running
+        # resources:
+        #     limits: # max
+        #         pids: 10
+        #         cpus: "0.25"
+        #         memory: 50M
+        #     reservations: # at least
+        #         cpus: "0.05"
+        #         memory: 20M
         networks:
             - mynet
         environment:
@@ -67,6 +89,8 @@ services:
         build:
             context: ./postgres
             dockerfile: ./Dockerfile
+        volumes:
+            - ../../assets/images/:/images/
         networks:
             - mynet
         environment:

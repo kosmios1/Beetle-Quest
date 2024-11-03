@@ -1,0 +1,43 @@
+<!doctype html>
+
+<head>
+    <title>Beetle Quest</title>
+
+    <script src="./scripts/index.js"></script>
+    <script src="./scripts/htmx.min.js"></script>
+    <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+    <div class="navbar">
+        <div class="logo">Beetle Quest</div>
+        <a hx-get="/api/v1/market" hx-target="#content" hx-trigger="click">View Market</a>
+        <a hx-get="/api/v1/account" hx-target="#content" hx-trigger="click">View Account</a>
+        <a hx-get="/api/v1/gacha/list" hx-target="#content" hx-trigger="click">View Gachas</a>
+        <a hx-get="/api/v1/logout" hx-target="#content" hx-trigger="click">Logout</a>
+    </div>
+
+    <div class="container" id="auth-container">
+        <form hx-post="/api/v1/login" hx-target="#content" hx-swap="outerHTML">
+            <h2>Login</h2>
+            <label for="login-username">Username:</label>
+            <input type="text" id="login-username" name="username" required />
+            <label for="login-password">Password:</label>
+            <input type="password" id="login-password" name="password" required />
+            <button type="submit">Login</button>
+        </form>
+
+        <form hx-post="/api/v1/register" hx-target="#content" hx-swap="outerHTML">
+            <h2>Register</h2>
+            <label for="register-username">Username:</label>
+            <input type="text" id="register-username" name="username" required />
+            <label for="register-password">Password:</label>
+            <input type="password" id="register-password" name="password" required />
+            <label for="register-email">Email:</label>
+            <input type="email" id="register-email" name="email" required />
+            <button type="submit">Register</button>
+        </form>
+    </div>
+
+    <div id="content"></div>
+</body>

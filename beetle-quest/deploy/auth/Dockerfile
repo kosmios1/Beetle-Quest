@@ -3,7 +3,11 @@ FROM golang:1.23 as build
 
 WORKDIR /go/src/app
 
-COPY --exclude=deploy --exclude=api ./go.mod ./go.mod
+COPY --exclude=deploy --exclude=api --exclude=static \
+    --exclude=cmd/gacha/* --exclude=internal/gacha/* \
+    --exclude=cmd/user/* --exclude=internal/user/* \
+    ./go.mod ./go.mod
+
 RUN go mod download
 
 COPY --exclude=deploy --exclude=api . .

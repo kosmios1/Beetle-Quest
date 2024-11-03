@@ -30,6 +30,20 @@ type UpdateUserAccountDetailsRequest struct {
 	NewPassword string `json:"new_password"`
 }
 
+// Gacha =====================================
+
+type GetGachaDetailsResponse struct {
+	GachaID   string `json:"gacha_id"`
+	Name      string `json:"name"`
+	Rarity    string `json:"rarity"`
+	Price     uint64 `json:"price"`
+	ImagePath string `json:"image_path"`
+}
+
+type GetGachaListResponse struct {
+	Gachas []GetGachaDetailsResponse `json:"gachas"`
+}
+
 // Auction ===================================
 
 type CreateAuctionRequest struct {

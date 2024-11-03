@@ -1,9 +1,8 @@
 package main
 
 import (
-	"beetle-quest/internal/user/controller"
-	"beetle-quest/internal/user/middleware"
-	"beetle-quest/internal/user/service"
+	"beetle-quest/internal/gacha/controller"
+	"beetle-quest/internal/gacha/service"
 	repository "beetle-quest/pkg/repositories/impl"
 
 	"github.com/gin-gonic/gin"
@@ -27,25 +26,17 @@ func main() {
 	// 	AllowedHosts:          []string{},
 	// }))
 
-	cnt := controller.UserController{
-		UserService: service.UserService{
-			UserRepo: repository.NewUserRepo(),
+	cnt := controller.GachaController{
+		GachaService: service.GachaService{
+			GachaRepo: repository.NewGachaRepo(),
 		},
 	}
 
-	basePath := r.Group("/api/v1/user")
+	basePath := r.Group("/api/v1/gacha")
 	{
-
-		accountGroup := basePath.Group("/account")
-		accountGroup.Use(middleware.CheckUserIDCorrespondWithSessionID())
-		{
-			accountGroup.GET("/:user_id", cnt.GetUserAccountDetails)
-			accountGroup.PATCH("/:user_id", cnt.UpdateUserAccountDetails)
-			accountGroup.DELETE("/:user_id", cnt.DeleteUserAccount)
-		}
-
-		basePath.GET("/:user_id/gacha", cnt.GetUserGachaList)
-		basePath.GET("/:user_id/gacha/:gacha_id", cnt.GetUserGachaDetails)
+		basePath.POST("/roll", cnt.Roll)
+		basePath.GET("/list", cnt.List)
+		basePath.GET("/:gacha_id", cnt.GetGachaDetails)
 	}
 
 	r.Run()
