@@ -15,6 +15,7 @@ RUN CGO_ENABLED=0 go build  -o /go/bin/app ./cmd/auth/main.go
 
 FROM gcr.io/distroless/base-debian12
 COPY --from=build /go/bin/app /
+COPY --from=build /go/src/app/templates/ /templates/
 
 EXPOSE 8080
 

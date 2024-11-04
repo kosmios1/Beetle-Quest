@@ -19,11 +19,7 @@ func Proxy(serviceAddr string) gin.HandlerFunc {
 		}
 
 		session := sessions.Default(ctx)
-		userID := session.Get("user_id").(string)
-		if userID == "" {
-			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-			return
-		}
+		userID := session.Get("user_id")
 
 		proxy := httputil.NewSingleHostReverseProxy(remote)
 		proxy.Director = func(req *http.Request) {
@@ -33,7 +29,10 @@ func Proxy(serviceAddr string) gin.HandlerFunc {
 			req.URL.Path = remote.Path
 
 			req.Header = ctx.Request.Header
-			req.Header.Set("user_id", userID)
+
+			if userID != nil {
+				req.Header.Set("user_id", userID.(string))
+			}
 
 			req.Body = ctx.Request.Body
 

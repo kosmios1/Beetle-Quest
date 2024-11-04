@@ -1,12 +1,17 @@
 package main
 
 import (
-	"beetle-quest/internal/gacha/controller"
-	"beetle-quest/internal/gacha/service"
-	repository "beetle-quest/pkg/repositories/impl"
+	"embed"
+	_ "embed"
+	"io/fs"
+	"log"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
+
+//go:embed static
+var staticFiles embed.FS
 
 func main() {
 	r := gin.Default()
@@ -26,20 +31,17 @@ func main() {
 	// 	AllowedHosts:          []string{},
 	// }))
 
-	r.LoadHTMLGlob("templates/*")
-
-	cnt := controller.GachaController{
-		GachaService: service.GachaService{
-			GachaRepo: repository.NewGachaRepo(),
-		},
+	staticFS, err := fs.Sub(staticFiles, "static")
+	if err != nil {
+		log.Fatal(err)
 	}
+	r.StaticFS("/static", http.FS(staticFS))
 
-	basePath := r.Group("/api/v1/gacha")
-	{
-		basePath.POST("/roll", cnt.Roll)
-		basePath.GET("/list", cnt.List)
-		basePath.GET("/:gacha_id", cnt.GetGachaDetails)
-	}
+	// imagesFS, err := fs.Sub(imageFiles, "images")
+	// if err != nil {
+	// 	log.Fatal("Failed to create sub filesystem for images: ", err)
+	// }
+	// r.StaticFS("/api/v1/static/images", http.FS(imagesFS))
 
 	r.Run()
 }

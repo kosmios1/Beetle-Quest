@@ -5,6 +5,7 @@ import (
 	"beetle-quest/internal/auth/middleware"
 	"beetle-quest/internal/auth/service"
 	repository "beetle-quest/pkg/repositories/impl"
+	"net/http"
 
 	"encoding/hex"
 	"os"
@@ -77,7 +78,16 @@ func main() {
 	// 	SSLProxyHeaders:       map[string]string{"X-Forwarded-Proto": "https"},
 	// 	AllowedHosts:          []string{},
 	// }))
+
 	r.Use(sessions.Sessions("my-session", store))
+	r.LoadHTMLGlob("templates/*")
+
+	// Serve static files
+	r.GET("/", func(ctx *gin.Context) {
+		ctx.Redirect(http.StatusMovedPermanently, "/static/index.html")
+	})
+
+	r.GET("/static/*filepath", controller.Proxy("http://static-service:8080"))
 
 	basePath := r.Group("/api/v1")
 	{
@@ -89,6 +99,7 @@ func main() {
 		basePath.GET("/logout", cnt.Logout)
 		basePath.POST("/login", cnt.Login)
 		basePath.POST("/register", cnt.Register)
+		basePath.GET("/check_session", cnt.CheckSession)
 	}
 
 	authorized := r.Group("/api/v1")
@@ -142,6 +153,5 @@ func main() {
 			adminGroup.POST("/report/issue", controller.Proxy(adminServiceAddr))
 		}
 	}
-
 	r.Run()
 }

@@ -11,11 +11,12 @@ COPY --exclude=deploy --exclude=api --exclude=static \
 RUN go mod download
 
 COPY --exclude=deploy --exclude=api . .
-RUN CGO_ENABLED=0 go build  -o /go/bin/app ./cmd/gacha/main.go
+RUN CGO_ENABLED=0 go build  -o /gacha-service ./cmd/gacha/main.go
 
 FROM gcr.io/distroless/base-debian12
-COPY --from=build /go/bin/app /
+COPY --from=build /gacha-service /
+COPY --from=build /go/src/app/templates/ /templates/
 
 EXPOSE 8080
 
-CMD ["/app"]
+CMD ["/gacha-service"]

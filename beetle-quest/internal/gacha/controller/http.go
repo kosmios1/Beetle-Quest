@@ -4,6 +4,7 @@ import (
 	"beetle-quest/internal/gacha/service"
 	"beetle-quest/pkg/models"
 	"beetle-quest/pkg/utils"
+	"html/template"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -11,6 +12,7 @@ import (
 
 type GachaController struct {
 	service.GachaService
+	templates *template.Template
 }
 
 func (c *GachaController) Roll(ctx *gin.Context) {
@@ -35,7 +37,7 @@ func (c *GachaController) List(ctx *gin.Context) {
 		})
 	}
 
-	ctx.JSON(http.StatusOK, gachaList)
+	ctx.HTML(http.StatusOK, "gachaList.tmpl", gin.H{"GachaList": gachaList})
 }
 
 func (c *GachaController) GetGachaDetails(ctx *gin.Context) {

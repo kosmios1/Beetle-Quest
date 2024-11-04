@@ -38,7 +38,7 @@ func (c *UserController) GetUserAccountDetails(ctx *gin.Context) {
 	// TODO: Get user's gacha list
 	// TODO: Get user's transaction history
 
-	ctx.JSON(http.StatusFound, models.GetUserAccountDetailsResponse{
+	ctx.HTML(http.StatusOK, "userInfo.tmpl", models.GetUserAccountDetailsResponse{
 		Username:     user.Username,
 		Email:        user.Email,
 		Currency:     user.Currency,

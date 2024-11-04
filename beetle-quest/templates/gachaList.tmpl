@@ -1,0 +1,13 @@
+<h2>Gacha List</h2>
+<div class="gacha-list">
+    {{ range .GachaList }}
+    <div class="gacha-item {{ .Rarity }}">
+        <img src="{{ .ImagePath }}" alt="{{ .Name }}" class="gacha-image" />
+        <div class="gacha-info">
+            <h3>{{ .Name }}</h3>
+            <p class="rarity">{{ .Rarity }}</p>
+            <p class="price">Price: {{ .Price }} coins</p>
+        </div>
+    </div>
+    {{ end }}
+</div>

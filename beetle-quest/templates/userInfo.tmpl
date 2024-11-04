@@ -1,0 +1,18 @@
+<!-- <div class="navbar">
+    <a href="#profile">Profile</a>
+    <a href="#gachas">Gachas</a>
+    <a href="#transactions">Transactions</a>
+</div> -->
+
+<div class="account-container">
+    <h2 class="account-header">User Account</h2>
+    <div class="account-info">
+        <p><strong>Username:</strong> {{ .Username }}</p>
+        <p><strong>Email:</strong> {{ .Email }}</p>
+        <div class="account-currency">
+            <strong>Currency:</strong>
+            <span>{{ .Currency }}</span>
+            <img src="/static/images/coin.webp" class="coin-image" alt="Currency Icon">
+        </div>
+    </div>
+</div>

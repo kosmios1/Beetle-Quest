@@ -78,6 +78,15 @@ services:
         environment:
             <<: [*common-services-environments, *postgres-environments]
 
+    static-service:
+        build:
+            context: ../
+            dockerfile: deploy/static/Dockerfile
+        networks:
+            - mynet
+        environment:
+            <<: [*common-services-environments]
+
     # DB SERVICES SECTION ===============================================================================================================================================================================
     auth-redis:
         image: redis:7.4.1-alpine3.20

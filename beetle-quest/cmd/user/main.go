@@ -27,6 +27,8 @@ func main() {
 	// 	AllowedHosts:          []string{},
 	// }))
 
+	r.LoadHTMLGlob("templates/*")
+
 	cnt := controller.UserController{
 		UserService: service.UserService{
 			UserRepo: repository.NewUserRepo(),
@@ -35,7 +37,6 @@ func main() {
 
 	basePath := r.Group("/api/v1/user")
 	{
-
 		accountGroup := basePath.Group("/account")
 		accountGroup.Use(middleware.CheckUserIDCorrespondWithSessionID())
 		{
