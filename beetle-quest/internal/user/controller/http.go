@@ -16,19 +16,22 @@ type UserController struct {
 func (c *UserController) GetUserAccountDetails(ctx *gin.Context) {
 	userID := ctx.Param("user_id")
 	if userID == "" {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Bad request"})
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "No User ID has been provided!"})
+		ctx.Abort()
 		return
 	}
 
 	parsedUserID, err := utils.ParseUUID(userID)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Bad request"})
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "Invalid User ID for this session!"})
+		ctx.Abort()
 		return
 	}
 
 	user, err := c.UserService.GetUserAccountDetails(parsedUserID)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Bad request"})
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err})
+		ctx.Abort()
 		return
 	}
 
@@ -48,25 +51,29 @@ func (c *UserController) GetUserAccountDetails(ctx *gin.Context) {
 func (c *UserController) UpdateUserAccountDetails(ctx *gin.Context) {
 	userID := ctx.Param("user_id")
 	if userID == "" {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Bad request"})
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "No User ID has been provided!"})
+		ctx.Abort()
 		return
 	}
 
 	parsedUserID, err := utils.ParseUUID(userID)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Bad request"})
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "Invalid User ID for this session!"})
+		ctx.Abort()
 		return
 	}
 
 	var req models.UpdateUserAccountDetailsRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Bad request"})
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "Wrong inputs passed to the request!"})
+		ctx.Abort()
 		return
 	}
 
 	err = c.UserService.UpdateUserAccountDetails(parsedUserID, req.Email, req.Username, req.OldPassword, req.NewPassword)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err})
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err})
+		ctx.Abort()
 		return
 	}
 
@@ -76,22 +83,31 @@ func (c *UserController) UpdateUserAccountDetails(ctx *gin.Context) {
 }
 
 func (c *UserController) DeleteUserAccount(ctx *gin.Context) {
-
 	userID := ctx.Param("user_id")
 	if userID == "" {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Bad request"})
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "No User ID has been provided!"})
+		ctx.Abort()
 		return
 	}
 
 	parsedUserID, err := utils.ParseUUID(userID)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Bad request"})
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "Invalid User ID for this session!"})
+		ctx.Abort()
 		return
 	}
 
-	err = c.UserService.DeleteUserAccount(parsedUserID)
+	password, ok := ctx.GetQuery("password")
+	if !ok {
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "No password inserted!"})
+		ctx.Abort()
+		return
+	}
+
+	err = c.UserService.DeleteUserAccount(parsedUserID, password)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "User account not found"})
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err})
+		ctx.Abort()
 		return
 	}
 

@@ -18,11 +18,14 @@ func (s *UserService) GetUserAccountDetails(userID models.UUID) (*models.User, e
 	}
 }
 
-func (s *UserService) DeleteUserAccount(userID models.UUID) error {
-
+func (s *UserService) DeleteUserAccount(userID models.UUID, password string) error {
 	user, ok := s.UserRepo.FindByID(userID)
 	if !ok {
 		return models.ErrUserNotFound
+	}
+
+	if err := utils.CompareHashPassword([]byte(password), user.PasswordHash); err != nil {
+		return models.ErrInvalidPassword
 	}
 
 	if ok := s.UserRepo.Delete(user); !ok {

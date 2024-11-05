@@ -5,14 +5,15 @@
         <title>Beetle Quest</title>
         <link rel="stylesheet" href="/static/styles.css" />
         <script src="/static/scripts/htmx.min.js"></script>
+        <script src="/static/scripts/response-targets.js"></script>
         <script src="/static/scripts/json-enc.js"></script>
     </head>
 
     <body>
-        <div class="container" id="auth-container">
+        <div class="container" id="auth-container" hx-ext="response-targets">
             <div hx-get="/api/v1/check_session" hx-target="closest #auth-container" hx-swap="outerHTML" hx-trigger="load"></div>
 
-            <form hx-post="/api/v1/login" hx-target="closest #auth-container" hx-swap="outerHTML" hx-ext="json-enc">
+            <form hx-post="/api/v1/login" hx-target="closest #auth-container" hx-target-4xx="#auth-response" hx-swap="outerHTML" hx-ext="json-enc">
                 <h2>Login</h2>
                 <label for="login-username">Username:</label>
                 <input type="text" id="login-username" name="username" required />
@@ -21,7 +22,7 @@
                 <button type="submit">Login</button>
             </form>
 
-            <form hx-post="/api/v1/register" hx-target="#auth-response" hx-swap="innerHTML" hx-ext="json-enc">
+            <form hx-post="/api/v1/register" hx-target="#auth-response" hx-target-4xx="#auth-response" hx-swap="innerHTML" hx-ext="json-enc">
                 <h2>Register</h2>
                 <label for="register-username">Username:</label>
                 <input type="text" id="register-username" name="username" required />

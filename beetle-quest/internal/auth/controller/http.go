@@ -17,12 +17,14 @@ type AuthController struct {
 func (c *AuthController) Register(ctx *gin.Context) {
 	var registerData models.RegisterRequest
 	if err := ctx.ShouldBindJSON(&registerData); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "email or password is missing"})
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "email or password is missing"})
+		ctx.Abort()
 		return
 	}
 
 	if err := c.AuthService.Register(registerData.Email, registerData.Username, registerData.Password); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err})
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err})
+		ctx.Abort()
 		return
 	}
 
@@ -32,19 +34,22 @@ func (c *AuthController) Register(ctx *gin.Context) {
 func (c *AuthController) Login(ctx *gin.Context) {
 	var loginData models.LoginRequest
 	if err := ctx.ShouldBindJSON(&loginData); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "email or password is missing"})
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "username or password is missing"})
+		ctx.Abort()
 		return
 	}
 
 	user, err := c.AuthService.Login(loginData.Username, loginData.Password)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err})
+		ctx.Abort()
 		return
 	}
 
 	session := sessions.Default(ctx)
 	if session.Get("session_id") != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "already logged in!"})
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "already logged in!"})
+		ctx.Abort()
 		return
 	}
 
