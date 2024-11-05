@@ -70,6 +70,14 @@ button:hover {
     background-color: #004494;
 }
 
+.delete-button {
+    background-color: red;
+}
+
+.delete-button:hover {
+    background-color: crimson;
+}
+
 /* Message bar styling */
 .message-bar {
     width: 100%; /* Full width of the container */
@@ -78,7 +86,7 @@ button:hover {
     border-radius: 0 0 8px 8px; /* Rounded corners on the bottom */
     text-align: center;
     font-weight: bold;
-    color: white;
+    /* color: white; */
     box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
 }
 

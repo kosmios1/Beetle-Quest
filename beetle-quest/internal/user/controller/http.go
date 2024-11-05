@@ -16,29 +16,27 @@ type UserController struct {
 func (c *UserController) GetUserAccountDetails(ctx *gin.Context) {
 	userID := ctx.Param("user_id")
 	if userID == "" {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Bad request"})
-		ctx.Abort()
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Bad request"})
 		return
 	}
 
 	parsedUserID, err := utils.ParseUUID(userID)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Bad request"})
-		ctx.Abort()
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Bad request"})
 		return
 	}
 
 	user, err := c.UserService.GetUserAccountDetails(parsedUserID)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Bad request"})
-		ctx.Abort()
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Bad request"})
 		return
 	}
 
 	// TODO: Get user's gacha list
 	// TODO: Get user's transaction history
 
-	ctx.HTML(http.StatusOK, "userInfo.tmpl", models.GetUserAccountDetailsResponse{
+	ctx.HTML(http.StatusOK, "userInfo.tmpl", models.GetUserAccountDetailsTemplatesData{
+		UserID:       user.UserID.String(),
 		Username:     user.Username,
 		Email:        user.Email,
 		Currency:     user.Currency,
@@ -50,59 +48,56 @@ func (c *UserController) GetUserAccountDetails(ctx *gin.Context) {
 func (c *UserController) UpdateUserAccountDetails(ctx *gin.Context) {
 	userID := ctx.Param("user_id")
 	if userID == "" {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Bad request"})
-		ctx.Abort()
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Bad request"})
 		return
 	}
 
 	parsedUserID, err := utils.ParseUUID(userID)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Bad request"})
-		ctx.Abort()
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Bad request"})
 		return
 	}
 
 	var req models.UpdateUserAccountDetailsRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Bad request"})
-		ctx.Abort()
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Bad request"})
 		return
 	}
 
 	err = c.UserService.UpdateUserAccountDetails(parsedUserID, req.Email, req.Username, req.OldPassword, req.NewPassword)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err})
-		ctx.Abort()
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"message": "User account updated successfully"})
+	ctx.HTML(http.StatusOK, "successMsg.tmpl", gin.H{
+		"Message": "User account updated successfully",
+	})
 }
 
 func (c *UserController) DeleteUserAccount(ctx *gin.Context) {
 
 	userID := ctx.Param("user_id")
 	if userID == "" {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Bad request"})
-		ctx.Abort()
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Bad request"})
 		return
 	}
 
 	parsedUserID, err := utils.ParseUUID(userID)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Bad request"})
-		ctx.Abort()
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Bad request"})
 		return
 	}
 
 	err = c.UserService.DeleteUserAccount(parsedUserID)
 	if err != nil {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "User account not found"})
-		ctx.Abort()
+		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "User account not found"})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"message": "User account deleted successfully"})
+	ctx.HTML(http.StatusOK, "successMsg.tmpl", gin.H{
+		"Message": "User account deleted successfully!",
+	})
 }
 
 func (c *UserController) GetUserGachaList(ctx *gin.Context) {

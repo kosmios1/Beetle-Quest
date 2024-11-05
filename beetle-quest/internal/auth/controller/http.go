@@ -26,7 +26,7 @@ func (c *AuthController) Register(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"message": "user registered"})
+	ctx.HTML(http.StatusOK, "successMsg.tmpl", gin.H{"Message": "User registered successfully!"})
 }
 
 func (c *AuthController) Login(ctx *gin.Context) {

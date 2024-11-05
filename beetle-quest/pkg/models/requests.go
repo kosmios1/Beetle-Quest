@@ -15,7 +15,8 @@ type LoginRequest struct {
 
 // User ======================================
 
-type GetUserAccountDetailsResponse struct {
+type GetUserAccountDetailsTemplatesData struct {
+	UserID       string        `json:"user_id"`
 	Username     string        `json:"username"`
 	Email        string        `json:"email"`
 	Currency     int64         `json:"currency"`

@@ -15,4 +15,27 @@
             <img src="/static/images/coin.webp" class="coin-image" alt="Currency Icon">
         </div>
     </div>
+
+    <form hx-patch="/api/v1/user/account/{{ .UserID }}" hx-target="#update-response" hx-swap="innerHTML" class="account-form" hx-ext="json-enc">
+        <label for="username">New Username:</label>
+        <input type="text" id="username" name="username" placeholder="Enter new username">
+
+        <label for="email">New Email:</label>
+        <input type="email" id="email" name="email" placeholder="Enter new email">
+
+        <label for="password">New Password:</label>
+        <input type="password" id="password" name="new_password" placeholder="Enter new password">
+
+
+        <label for="password">Old Password:</label>
+        <input type="password" id="password" name="old_password" placeholder="Enter new password">
+
+        <button type="submit">Update Account</button>
+    </form>
+
+    <button hx-delete="/api/v1/user/account/{{ .UserID }}" hx-target="#update-response" hx-swap="innerHTML" hx-confirm="Are you sure you want to delete your account? This action cannot be undone." class="delete-button">
+            Delete Account
+    </button>
+
+    <div id="update-response" class="message-bar"></div>
 </div>
