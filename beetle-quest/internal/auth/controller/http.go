@@ -72,6 +72,17 @@ func (c *AuthController) CheckSession(ctx *gin.Context) {
 	ctx.HTML(http.StatusOK, "home.tmpl", gin.H{"UserID": session.Get("user_id")})
 }
 
+func (c *AuthController) Authorize(ctx *gin.Context) {
+	session := sessions.Default(ctx)
+
+	if session.Get("session_id") == nil {
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	ctx.Status(http.StatusOK)
+}
+
 func (c *AuthController) Logout(ctx *gin.Context) {
 	session := sessions.Default(ctx)
 

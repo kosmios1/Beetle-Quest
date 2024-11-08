@@ -14,13 +14,34 @@ x-common-services-environments: &common-services-environments
     GIN_MODE: release
 
 services:
-    # MICROSERVICES SECTION =============================================================================================================================================================================
+    traefik:
+        image: traefik:v3.2.0
+        container_name: traefik
+        command:
+            - "--api.insecure=true"
+            - "--api.dashboard=true"
+            - "--providers.docker=true"
+            - "--entrypoints.web.address=:80"
+        ports:
+            - "80:80"
+            - "8080:8080" # Traefik dashboard
+        volumes:
+            - "/var/run/docker.sock:/var/run/docker.sock:ro"
+        networks:
+            - mynet
+
+    # MICROSERVICES SECTION ==============================================================================================================================================================================
+
+    # For now its ok but we need oath2, the security is based on a simple token and http header,
+    # not beautiful, only to test how to use traefik forwardauth middleware
     auth-service:
         build:
             context: ../
             dockerfile: deploy/auth/Dockerfile
-        ports:
-            - "8080:8080"
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.auth-service.rule=PathPrefix(`/api/v1/auth`)"
+            - "traefik.http.routers.auth-service.entrypoints=web"
         depends_on:
             - auth-redis
             - monolith-db
@@ -28,8 +49,6 @@ services:
             - mynet
         environment:
             <<: [*postgres-environments, *common-services-environments]
-
-            # Redis specific environment variables
             REDIS_HOST: auth-redis
             REDIS_PORT: 6379
             REDIS_PASSWD: secret
@@ -40,18 +59,11 @@ services:
         build:
             context: ../
             dockerfile: deploy/user/Dockerfile
-        # deploy: # This deploy two instances of the service
-        #     replicas: 2
-        #     mode: replicated
-        #     endpoint_mode: vip # Virtual IP, front-end for services, client know nothing about how many replicas are running
-        # resources:
-        #     limits: # max
-        #         pids: 10
-        #         cpus: "0.25"
-        #         memory: 50M
-        #     reservations: # at least
-        #         cpus: "0.05"
-        #         memory: 20M
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.user-service.rule=PathPrefix(`/api/v1/user`)"
+            - "traefik.http.routers.user-service.entrypoints=web"
+            - "traefik.http.middlewares.test-auth.forwardauth.address=https://auth-service/api/v1/auth/authorize"
         networks:
             - mynet
         environment:
@@ -61,18 +73,11 @@ services:
         build:
             context: ../
             dockerfile: deploy/gacha/Dockerfile
-        # deploy: # This deploy two instances of the service
-        #     replicas: 2
-        #     mode: replicated
-        #     endpoint_mode: vip # Virtual IP, front-end for services, client know nothing about how many replicas are running
-        # resources:
-        #     limits: # max
-        #         pids: 10
-        #         cpus: "0.25"
-        #         memory: 50M
-        #     reservations: # at least
-        #         cpus: "0.05"
-        #         memory: 20M
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.gacha-service.rule=PathPrefix(`/api/v1/gacha`)"
+            - "traefik.http.routers.gacha-service.entrypoints=web"
+            - "traefik.http.middlewares.test-auth.forwardauth.address=https://auth-service/api/v1/auth/authorize"
         networks:
             - mynet
         environment:
@@ -82,6 +87,10 @@ services:
         build:
             context: ../
             dockerfile: deploy/static/Dockerfile
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.static-service.rule=PathPrefix(`/static`)"
+            - "traefik.http.routers.static-service.entrypoints=web"
         networks:
             - mynet
         environment:

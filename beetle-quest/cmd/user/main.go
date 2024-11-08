@@ -2,7 +2,6 @@ package main
 
 import (
 	"beetle-quest/internal/user/controller"
-	"beetle-quest/internal/user/middleware"
 	"beetle-quest/internal/user/service"
 	repository "beetle-quest/pkg/repositories/impl"
 
@@ -38,7 +37,6 @@ func main() {
 	basePath := r.Group("/api/v1/user")
 	{
 		accountGroup := basePath.Group("/account")
-		accountGroup.Use(middleware.CheckUserIDCorrespondWithSessionID())
 		{
 			accountGroup.GET("/:user_id", cnt.GetUserAccountDetails)
 			accountGroup.PATCH("/:user_id", cnt.UpdateUserAccountDetails)

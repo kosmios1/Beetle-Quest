@@ -4,7 +4,7 @@
         <a hx-get="/api/v1/user/account/{{ .UserID }}" hx-target="#content" hx-swap="innerHTML" hx-trigger="click">Account</a>
         <a hx-get="/api/v1/market" hx-target="#content" hx-swap="innerHTML" hx-trigger="click">Market</a>
         <a hx-get="/api/v1/gacha/list" hx-target="#content" hx-swap="innerHTML" hx-trigger="click">Gachas</a>
-        <a hx-get="/api/v1/logout" hx-target="closest #app" hx-swap="outerHTML" hx-trigger="click">Logout</a>
+        <a hx-get="/api/v1/auth/logout" hx-target="closest #app" hx-swap="outerHTML" hx-trigger="click">Logout</a>
     </div>
 
     <div id="content"></div>
