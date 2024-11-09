@@ -30,7 +30,7 @@ var (
 		},
 	}
 
-	jwtSecretKey = utils.PanicIfError[[]byte](hex.DecodeString(os.Getenv("JWT_KEY_SECRET")))
+	jwtSecretKey = utils.PanicIfError[[]byte](hex.DecodeString(os.Getenv("JWT_SECRET_KEY")))
 )
 
 func (c *AuthController) Register(ctx *gin.Context) {
@@ -124,7 +124,7 @@ func (c *AuthController) Oauth2Callback(ctx *gin.Context) {
 func (c *AuthController) Logout(ctx *gin.Context) {
 	// TODO: Client side logout. The token, for the oauth2 server, is still valid.
 	ctx.SetCookie("access_token", "", -1, "/", "", true, true)
-	ctx.Redirect(http.StatusFound, "/")
+	ctx.Redirect(http.StatusFound, "/static/")
 }
 
 func (c *AuthController) CheckSession(ctx *gin.Context) {

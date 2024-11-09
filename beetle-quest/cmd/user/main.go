@@ -3,6 +3,7 @@ package main
 import (
 	"beetle-quest/internal/user/controller"
 	"beetle-quest/internal/user/service"
+	"beetle-quest/pkg/middleware"
 	repository "beetle-quest/pkg/repositories/impl"
 
 	"github.com/gin-gonic/gin"
@@ -35,8 +36,10 @@ func main() {
 	}
 
 	basePath := r.Group("/api/v1/user")
+	basePath.Use(middleware.CheckJWTAuthorizationToken())
 	{
 		accountGroup := basePath.Group("/account")
+		// accountGroup.Use() // TODO: Verify that :user_id is the same as the user_id in the JWT token
 		{
 			accountGroup.GET("/:user_id", cnt.GetUserAccountDetails)
 			accountGroup.PATCH("/:user_id", cnt.UpdateUserAccountDetails)

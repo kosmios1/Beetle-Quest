@@ -3,6 +3,7 @@ package main
 import (
 	"beetle-quest/internal/gacha/controller"
 	"beetle-quest/internal/gacha/service"
+	"beetle-quest/pkg/middleware"
 	repository "beetle-quest/pkg/repositories/impl"
 
 	"github.com/gin-gonic/gin"
@@ -35,6 +36,7 @@ func main() {
 	}
 
 	basePath := r.Group("/api/v1/gacha")
+	basePath.Use(middleware.CheckJWTAuthorizationToken())
 	{
 		basePath.POST("/roll", cnt.Roll)
 		basePath.GET("/list", cnt.List)

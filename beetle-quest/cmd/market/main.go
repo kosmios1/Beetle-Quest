@@ -3,6 +3,7 @@ package main
 import (
 	"beetle-quest/internal/market/controller"
 	"beetle-quest/internal/market/service"
+	"beetle-quest/pkg/middleware"
 	repository "beetle-quest/pkg/repositories/impl"
 
 	"github.com/gin-gonic/gin"
@@ -37,6 +38,7 @@ func main() {
 	}
 
 	basePath := r.Group("/api/v1/market")
+	basePath.Use(middleware.CheckJWTAuthorizationToken())
 	{
 		basePath.POST("/bugscoin/buy", cnt.BuyBugscoin)
 		basePath.GET("/gacha/:gacha_id/buy", nil)

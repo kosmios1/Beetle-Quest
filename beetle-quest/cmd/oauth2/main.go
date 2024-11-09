@@ -20,7 +20,7 @@ var (
 	clientSecret = os.Getenv("OAUTH2_CLIENT_SECRET")
 	clientDomain = os.Getenv("OAUTH2_CLIENT_DOMAIN")
 
-	jwtKeySecret = utils.PanicIfError[[]byte](hex.DecodeString(os.Getenv("JWT_KEY_SECRET")))
+	jwtKeySecret = utils.PanicIfError[[]byte](hex.DecodeString(os.Getenv("JWT_SECRET_KEY")))
 )
 
 func main() {
