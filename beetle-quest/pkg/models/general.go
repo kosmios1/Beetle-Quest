@@ -37,3 +37,7 @@ const (
 	MarketEv
 	GameEv
 )
+
+func (t EventType) String() string {
+	return [...]string{"Auction", "Market", "Game"}[t]
+}

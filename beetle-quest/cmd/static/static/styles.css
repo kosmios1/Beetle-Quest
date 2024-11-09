@@ -192,27 +192,27 @@ button:hover {
     color: #555;
 }
 
-.gacha-item.legendary {
+.gacha-item.Legendary {
     background-color: #f9f3c2;
     border-left: 5px solid #ffcc00;
 }
 
-.gacha-item.epic {
+.gacha-item.Epic {
     background-color: #d6d6f7;
     border-left: 5px solid #7f7fff;
 }
 
-.gacha-item.rare {
+.gacha-item.Rare {
     background-color: #d4f1f4;
     border-left: 5px solid #00aaff;
 }
 
-.gacha-item.uncommon {
+.gacha-item.Uncommon {
     background-color: #e2f7e2;
     border-left: 5px solid #4caf50;
 }
 
-.gacha-item.common {
+.gacha-item.Common {
     background-color: #e2e2e2;
     border-left: 5px solid #777;
 }

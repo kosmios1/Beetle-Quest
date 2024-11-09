@@ -3,9 +3,14 @@ FROM golang:1.23 as build
 
 WORKDIR /go/src/app
 
-COPY --exclude=deploy --exclude=api --exclude=static \
-    --exclude=cmd/auth/* --exclude=internal/auth/* \
-    --exclude=cmd/user/* --exclude=internal/user/* \
+
+COPY --exclude=deploy --exclude=api \
+    --exclude=cmd/market/*  --exclude=internal/market/* \
+    --exclude=cmd/user/*    --exclude=internal/user/* \
+    --exclude=cmd/auth/*    --exclude=internal/auth/* \
+    --exclude=cmd/admin/*   --exclude=internal/admin/* \
+    --exclude=cmd/report/*  --exclude=internal/report/* \
+    --exclude=cmd/static/* \
     ./go.mod ./go.mod
 
 RUN go mod download

@@ -1,15 +1,14 @@
 package main
 
 import (
-	"beetle-quest/internal/auth/controller"
-	"beetle-quest/internal/auth/service"
+	"beetle-quest/internal/market/controller"
+	"beetle-quest/internal/market/service"
 	repository "beetle-quest/pkg/repositories/impl"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	// This will connect to redis and return a store object used by the session middleware to store session data
 	r := gin.Default()
 	r.Use(gin.Recovery())
 	// TODO: Uncomment this when having a valid SSL certificate
@@ -28,19 +27,28 @@ func main() {
 	// }))
 
 	r.LoadHTMLGlob("templates/*")
-	basePath := r.Group("/api/v1/auth")
-	{
-		cnt := controller.AuthController{
-			AuthService: service.AuthService{
-				UserRepo: repository.NewUserRepo(),
-			},
-		}
-		basePath.GET("/logout", cnt.Logout)
-		basePath.POST("/login", cnt.Login)
-		basePath.POST("/register", cnt.Register)
-		basePath.GET("/oauth2", cnt.Oauth2Callback)
 
-		basePath.GET("/check_session", cnt.CheckSession)
+	cnt := controller.MarketController{
+		MarketService: service.MarketService{
+			UserRepo:  repository.NewUserRepo(),
+			GachaRepo: repository.NewGachaRepo(),
+			// AuctionRepo: repository.AuctionRepo(),
+		},
+	}
+
+	basePath := r.Group("/api/v1/market")
+	{
+		basePath.POST("/bugscoin/buy", cnt.BuyBugscoin)
+		basePath.GET("/gacha/:gacha_id/buy", nil)
+
+		auctionPath := r.Group("/auction")
+		{
+			auctionPath.POST("/", cnt.CreateAuction)
+			auctionPath.GET("/list", cnt.AuctionList)
+			auctionPath.GET("/:auction_id", cnt.AuctionDetail)
+			auctionPath.DELETE("/:auction_id", cnt.AuctionDelete)
+			auctionPath.POST("/:auction_id/bid", cnt.BidTOAuction)
+		}
 	}
 
 	r.Run()

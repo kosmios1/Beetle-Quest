@@ -8,6 +8,15 @@ COPY --exclude=deploy --exclude=api --exclude=static \
     --exclude=cmd/auth/* --exclude=internal/auth/* \
     ./go.mod ./go.mod
 
+COPY --exclude=deploy --exclude=api \
+    --exclude=cmd/gacha/*   --exclude=internal/gacha/* \
+    --exclude=cmd/market/*  --exclude=internal/market/* \
+    --exclude=cmd/auth/*    --exclude=internal/auth/* \
+    --exclude=cmd/admin/*   --exclude=internal/admin/* \
+    --exclude=cmd/report/*  --exclude=internal/report/* \
+    --exclude=cmd/static/* \
+    ./go.mod ./go.mod
+
 RUN go mod download
 
 COPY --exclude=deploy --exclude=api . .

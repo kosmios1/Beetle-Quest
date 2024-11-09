@@ -9,6 +9,10 @@ const (
 	Withdraw
 )
 
+func (t TransactionType) String() string {
+	return [...]string{"Deposit", "Withdraw"}[t]
+}
+
 type Transaction struct {
 	TransactionID UUID            `json:"transaction_id"`
 	Type          TransactionType `json:"transaction_type"`

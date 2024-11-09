@@ -4,5 +4,5 @@ ENV POSTGRES_DB ''
 ENV POSTGRES_USER ''
 ENV POSTGRES_PASSWORD ''
 
-COPY load-extensions.sh /docker-entrypoint-initdb.d/
-COPY load-gacha.sql     /docker-entrypoint-initdb.d/
+COPY 1.load-extensions.sh /docker-entrypoint-initdb.d/
+COPY gacha-table.sql      /docker-entrypoint-initdb.d/

@@ -7,7 +7,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func GenerateRandomID(byte_size int) ([]byte, error) {
+func GenerateRandomSalt(byte_size int) ([]byte, error) {
 	bytes := make([]byte, byte_size)
 	if _, err := rand.Read(bytes); err != nil {
 		return nil, err

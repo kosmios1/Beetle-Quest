@@ -4,15 +4,34 @@ import (
 	"beetle-quest/internal/auth/service"
 	"beetle-quest/pkg/models"
 	"beetle-quest/pkg/utils"
+	"context"
+	"encoding/hex"
 	"net/http"
+	"os"
+	"time"
 
-	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/oauth2"
 )
 
 type AuthController struct {
 	service.AuthService
 }
+
+var (
+	oauth2Config = &oauth2.Config{
+		ClientID:     os.Getenv("OAUTH2_CLIENT_ID"),
+		ClientSecret: os.Getenv("OAUTH2_CLIENT_SECRET"),
+		RedirectURL:  os.Getenv("OAUTH2_REDIRECT_URL"),
+		Scopes:       []string{"user"},
+		Endpoint: oauth2.Endpoint{
+			AuthURL:  os.Getenv("OAUTH2_AUTH_ENDPOINT"),
+			TokenURL: os.Getenv("OAUTH2_TOKEN_ENDPOINT"),
+		},
+	}
+
+	jwtSecretKey = utils.PanicIfError[[]byte](hex.DecodeString(os.Getenv("JWT_KEY_SECRET")))
+)
 
 func (c *AuthController) Register(ctx *gin.Context) {
 	var registerData models.RegisterRequest
@@ -46,53 +65,80 @@ func (c *AuthController) Login(ctx *gin.Context) {
 		return
 	}
 
-	session := sessions.Default(ctx)
-	if session.Get("session_id") != nil {
-		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "already logged in!"})
+	state, err := utils.GenerateRandomSalt(32)
+	if err != nil {
+		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": "internal server error"})
+		ctx.Abort()
+		return
+	}
+	stateHex := hex.EncodeToString(state)
+
+	url := oauth2Config.AuthCodeURL(
+		stateHex,
+		oauth2.SetAuthURLParam("user_id", user.UserID.String()),
+	)
+	ctx.Redirect(http.StatusFound, url)
+}
+
+func (c *AuthController) Oauth2Callback(ctx *gin.Context) {
+	if err := ctx.Request.ParseForm(); err != nil {
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "invalid request"})
 		ctx.Abort()
 		return
 	}
 
-	sessionID := utils.GenerateUUID()
-	session.Set("user_id", user.UserID.String())
-	session.Set("session_id", sessionID.String())
-	session.Save()
-
-	ctx.HTML(http.StatusOK, "home.tmpl", gin.H{"UserID": user.UserID.String()})
-}
-
-func (c *AuthController) CheckSession(ctx *gin.Context) {
-	session := sessions.Default(ctx)
-
-	if session.Get("session_id") == nil {
-		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+	state := ctx.Request.Form.Get("state")
+	// TODO: How to validate state?
+	if state == "" {
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "state invalid!"})
+		ctx.Abort()
 		return
 	}
 
-	ctx.HTML(http.StatusOK, "home.tmpl", gin.H{"UserID": session.Get("user_id")})
-}
+	code := ctx.Request.Form.Get("code")
+	if code == "" {
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "code not found!"})
+		ctx.Abort()
+	}
 
-func (c *AuthController) Authorize(ctx *gin.Context) {
-	session := sessions.Default(ctx)
-
-	if session.Get("session_id") == nil {
-		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+	token, err := oauth2Config.Exchange(context.Background(), code)
+	if err != nil {
+		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": "internal server error"})
+		ctx.Abort()
 		return
 	}
 
-	ctx.Status(http.StatusOK)
+	claims, err := utils.VerifyJWTToken(token.AccessToken, jwtSecretKey)
+	if err != nil {
+		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": "internal server error"})
+		ctx.Abort()
+		return
+	}
+
+	maxAge := int(token.Expiry.Sub(time.Now()).Seconds())
+	// TODO: Secure when https
+	ctx.SetCookie("access_token", token.AccessToken, maxAge, "/", "", false, true)
+	ctx.HTML(http.StatusOK, "home.tmpl", gin.H{"UserID": claims["sub"]})
 }
 
 func (c *AuthController) Logout(ctx *gin.Context) {
-	session := sessions.Default(ctx)
+	// TODO: Client side logout. The token, for the oauth2 server, is still valid.
+	ctx.SetCookie("access_token", "", -1, "/", "", true, true)
+	ctx.Redirect(http.StatusFound, "/")
+}
 
-	if session.Get("session_id") == nil {
-		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+func (c *AuthController) CheckSession(ctx *gin.Context) {
+	cookie, err := ctx.Request.Cookie("access_token")
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusNotFound)
 		return
 	}
 
-	session.Clear()
-	session.Save()
+	claims, err := utils.VerifyJWTToken(cookie.Value, jwtSecretKey)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
 
-	ctx.Redirect(http.StatusSeeOther, "/")
+	ctx.HTML(http.StatusOK, "home.tmpl", gin.H{"UserID": claims["sub"]})
 }
