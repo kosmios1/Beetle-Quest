@@ -1,0 +1,135 @@
+tosca_definitions_version: micro_tosca_yaml_1.1
+description: beetle-quest-architecture-microfreshener
+imports:
+- micro: https://di-unipi-socc.github.io/microTOSCA/1.1/microTOSCA.yaml
+topology_template:
+  node_templates:
+    traefik (GATEWAY/LB/CB):
+      type: micro.nodes.MessageRouter
+      requirements:
+      - interaction: user-service
+      - interaction: gacha-service
+      - interaction: market-service
+      - interaction: auth-service
+      - interaction: admin-service
+      - interaction: report-service
+    user-service:
+      type: micro.nodes.Service
+      requirements:
+      - interaction:
+          node: gacha-service
+          relationship: cd
+      - interaction:
+          node: market-service
+          relationship: cd
+      - interaction:
+          node: user-db
+          relationship: td
+    admin-service:
+      type: micro.nodes.Service
+    gacha-service:
+      type: micro.nodes.Service
+      requirements:
+      - interaction:
+          node: user-gacha-db
+          relationship: td
+      - interaction:
+          node: gacha-db
+          relationship: td
+      - interaction:
+          node: market-service
+          relationship: cd
+    auth-service:
+      type: micro.nodes.Service
+      requirements:
+      - interaction:
+          node: oauth2-server
+          relationship: cd
+    oauth2-server:
+      type: micro.nodes.Service
+      requirements:
+      - interaction:
+          node: auth-service
+          relationship: cd
+      - interaction:
+          node: session-db
+          relationship: td
+    market-service:
+      type: micro.nodes.Service
+      requirements:
+      - interaction:
+          node: transaction-db
+          relationship: td
+      - interaction:
+          node: auction-db
+          relationship: td
+      - interaction:
+          node: gacha-service
+          relationship: cd
+      - interaction:
+          node: user-service
+          relationship: cd
+      - interaction:
+          node: bid-db
+          relationship: td
+    user-db:
+      type: micro.nodes.Datastore
+    user-gacha-db:
+      type: micro.nodes.Datastore
+    gacha-db:
+      type: micro.nodes.Datastore
+    transaction-db:
+      type: micro.nodes.Datastore
+    auction-db:
+      type: micro.nodes.Datastore
+    session-db:
+      type: micro.nodes.Datastore
+    bid-db:
+      type: micro.nodes.Datastore
+    report-service:
+      type: micro.nodes.Service
+      requirements:
+      - interaction:
+          node: report-db
+          relationship: td
+    report-db:
+      type: micro.nodes.Datastore
+  groups:
+    Edge:
+      type: micro.groups.Edge
+      members:
+      - traefik (GATEWAY/LB/CB)
+  relationship_templates:
+    t:
+      type: micro.relationships.InteractsWith
+      properties:
+        timeout: true
+    c:
+      type: micro.relationships.InteractsWith
+      properties:
+        circuit_breaker: true
+    d:
+      type: micro.relationships.InteractsWith
+      properties:
+        dynamic_discovery: true
+    tc:
+      type: micro.relationships.InteractsWith
+      properties:
+        timeout: true
+        circuit_breaker: true
+    td:
+      type: micro.relationships.InteractsWith
+      properties:
+        timeout: true
+        dynamic_discovery: true
+    cd:
+      type: micro.relationships.InteractsWith
+      properties:
+        circuit_breaker: true
+        dynamic_discovery: true
+    tcd:
+      type: micro.relationships.InteractsWith
+      properties:
+        timeout: true
+        circuit_breaker: true
+        dynamic_discovery: true
