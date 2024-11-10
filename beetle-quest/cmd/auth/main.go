@@ -2,6 +2,7 @@ package main
 
 import (
 	"beetle-quest/internal/auth/controller"
+	internalRepo "beetle-quest/internal/auth/repository"
 	"beetle-quest/internal/auth/service"
 	repository "beetle-quest/pkg/repositories/impl"
 
@@ -32,7 +33,8 @@ func main() {
 	{
 		cnt := controller.AuthController{
 			AuthService: service.AuthService{
-				UserRepo: repository.NewUserRepo(),
+				UserRepo:   repository.NewUserRepo(),
+				Oauth2Repo: internalRepo.NewOauth2Repo(),
 			},
 		}
 		basePath.GET("/logout", cnt.Logout)

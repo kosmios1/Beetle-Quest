@@ -4,7 +4,6 @@ import (
 	"beetle-quest/internal/auth/service"
 	"beetle-quest/pkg/models"
 	"beetle-quest/pkg/utils"
-	"bytes"
 	"context"
 	"encoding/hex"
 	"net/http"
@@ -12,7 +11,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"golang.org/x/oauth2"
 )
 
 type AuthController struct {
@@ -20,20 +18,6 @@ type AuthController struct {
 }
 
 var (
-	oauth2Config = &oauth2.Config{
-		ClientID:     os.Getenv("OAUTH2_CLIENT_ID"),
-		ClientSecret: os.Getenv("OAUTH2_CLIENT_SECRET"),
-		RedirectURL:  os.Getenv("OAUTH2_REDIRECT_URL"),
-		Scopes:       []string{"user"},
-		Endpoint: oauth2.Endpoint{
-			AuthURL:  os.Getenv("OAUTH2_AUTH_ENDPOINT"),
-			TokenURL: os.Getenv("OAUTH2_TOKEN_ENDPOINT"),
-		},
-	}
-
-	revokeTokenEndpoint string = os.Getenv("OAUTH2_REVOKE_TOKEN_ENDPOINT")
-	verifyTokenEndpoint string = os.Getenv("OAUTH2_VERIFY_TOKEN_ENDPOINT")
-
 	jwtSecretKey = utils.PanicIfError[[]byte](hex.DecodeString(os.Getenv("JWT_SECRET_KEY")))
 )
 
@@ -77,10 +61,13 @@ func (c *AuthController) Login(ctx *gin.Context) {
 	}
 	stateHex := hex.EncodeToString(state)
 
-	url := oauth2Config.AuthCodeURL(
-		stateHex,
-		oauth2.SetAuthURLParam("user_id", user.UserID.String()),
-	)
+	url := c.AuthCodeURL(stateHex, user.UserID.String())
+	if url == "" {
+		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": "internal server error"})
+		ctx.Abort()
+		return
+	}
+
 	ctx.Redirect(http.StatusFound, url)
 }
 
@@ -105,7 +92,7 @@ func (c *AuthController) Oauth2Callback(ctx *gin.Context) {
 		ctx.Abort()
 	}
 
-	token, err := oauth2Config.Exchange(context.Background(), code)
+	token, err := c.Exchange(context.Background(), code)
 	if err != nil {
 		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": "internal server error"})
 		ctx.Abort()
@@ -132,9 +119,11 @@ func (c *AuthController) Logout(ctx *gin.Context) {
 		return
 	}
 
-	// TODO: insert it into a repository and add circuit breaker
-	reqBody := []byte("token=" + token)
-	http.Post(revokeTokenEndpoint, "application/x-www-form-urlencoded", bytes.NewBuffer(reqBody))
+	if _, err := c.RevokeToken(token); err != nil {
+		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": "internal server error"})
+		ctx.Abort()
+		return
+	}
 
 	ctx.SetCookie("access_token", "", -1, "/", "", true, true)
 	ctx.Redirect(http.StatusFound, "/static/")
@@ -147,9 +136,7 @@ func (c *AuthController) Verify(ctx *gin.Context) {
 		return
 	}
 
-	// TODO: insert it into a repository and add circuit breaker
-	reqBody := []byte("token=" + token)
-	resp, err := http.Post(verifyTokenEndpoint, "application/x-www-form-urlencoded", bytes.NewBuffer(reqBody))
+	resp, err := c.VerifyToken(token)
 	if err != nil {
 		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": "internal server error"})
 		ctx.Abort()
@@ -171,9 +158,7 @@ func (c *AuthController) CheckSession(ctx *gin.Context) {
 		return
 	}
 
-	// TODO: insert it into a repository and add circuit breaker
-	reqBody := []byte("token=" + token)
-	resp, err := http.Post(verifyTokenEndpoint, "application/x-www-form-urlencoded", bytes.NewBuffer(reqBody))
+	resp, err := c.VerifyToken(token)
 	if err != nil {
 		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": "internal server error"})
 		ctx.Abort()
