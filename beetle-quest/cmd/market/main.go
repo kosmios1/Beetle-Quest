@@ -4,7 +4,9 @@ import (
 	"beetle-quest/internal/market/controller"
 	"beetle-quest/internal/market/service"
 	"beetle-quest/pkg/middleware"
-	repository "beetle-quest/pkg/repositories/httpImpl"
+	arepo "beetle-quest/pkg/repositories/serviceHttp/auction"
+	grepo "beetle-quest/pkg/repositories/serviceHttp/gacha"
+	urepo "beetle-quest/pkg/repositories/serviceHttp/user"
 
 	"github.com/gin-gonic/gin"
 )
@@ -31,9 +33,9 @@ func main() {
 
 	cnt := controller.MarketController{
 		MarketService: service.MarketService{
-			UserRepo:    repository.NewUserRepo(),
-			GachaRepo:   repository.NewGachaRepo(),
-			AuctionRepo: repository.NewAuctionRepo(),
+			UserRepo:    urepo.NewUserRepo(),
+			GachaRepo:   grepo.NewGachaRepo(),
+			AuctionRepo: arepo.NewAuctionRepo(),
 		},
 	}
 

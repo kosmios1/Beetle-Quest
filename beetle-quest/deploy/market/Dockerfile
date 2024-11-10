@@ -13,9 +13,15 @@ COPY --exclude=deploy --exclude=api \
     ./go.mod ./go.mod
 
 RUN go mod download
-
 COPY --exclude=deploy --exclude=api . .
-RUN CGO_ENABLED=0 go build  -o /go/bin/app ./cmd/market/main.go
+
+ARG CGO_ENABLED=0
+ARG GOOS=linux
+ARG LD_FLAGS='-s -w'
+ARG BUILD_FLAGS='-a'
+
+RUN CGO_ENABLED=${CGO_ENABLED} GOOS=${GOOS} go build -o /go/bin/app ${BUILD_FLAGS} -ldflags="${LD_FLAGS}" ./cmd/market/main.go
+
 
 FROM gcr.io/distroless/base-debian12
 COPY --from=build /go/bin/app /

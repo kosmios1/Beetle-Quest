@@ -3,7 +3,7 @@ package main
 import (
 	"beetle-quest/internal/auth/controller"
 	"beetle-quest/internal/auth/service"
-	"beetle-quest/internal/user/repository"
+	repository "beetle-quest/pkg/repositories/serviceHttp/user"
 
 	internalRepo "beetle-quest/internal/auth/repository"
 
