@@ -52,6 +52,12 @@ services:
             <<: [*common-services-environments, *common-oauth2-environments]
             OAUTH_CLIENT_DOMAIN: http://auth-service
 
+            REDIS_HOST: oauth2-redis
+            REDIS_PORT: 6379
+            REDIS_USERNAME: beetle
+            REDIS_PASSWORD: secret
+            REDIS_DB: 0
+
     auth-service:
         build:
             context: ../
@@ -112,11 +118,13 @@ services:
             <<: [*common-services-environments]
 
     # DB SERVICES SECTION ===============================================================================================================================================================================
-    # auth-redis:
-    #     image: redis:7.4.1-alpine3.20
-    #     command: redis-server --bind auth-redis --requirepass secret --maxmemory 256mb --maxmemory-policy allkeys-lru
-    #     networks:
-    #         - mynet
+    oauth2-redis:
+        image: redis:8.0-M02-alpine3.20
+        command: "redis-server /usr/local/etc/redis/redis.conf"
+        volumes:
+            - ./oauth2/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+        networks:
+            - oauth2
 
     monolith-db:
         build:

@@ -5,6 +5,8 @@ import (
 	"encoding/hex"
 	"net/http"
 	"os"
+	"strconv"
+	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
@@ -14,19 +16,35 @@ import (
 	"github.com/go-oauth2/oauth2/v4/models"
 	"github.com/go-oauth2/oauth2/v4/server"
 	"github.com/go-oauth2/oauth2/v4/store"
+
+	oredis "github.com/go-oauth2/redis/v4"
+	"github.com/go-redis/redis/v8"
 )
 
 var (
-	clientID     = os.Getenv("OAUTH2_CLIENT_ID")
-	clientSecret = os.Getenv("OAUTH2_CLIENT_SECRET")
-	clientDomain = os.Getenv("OAUTH2_CLIENT_DOMAIN")
+	clientID     string = os.Getenv("OAUTH2_CLIENT_ID")
+	clientSecret string = os.Getenv("OAUTH2_CLIENT_SECRET")
+	clientDomain string = os.Getenv("OAUTH2_CLIENT_DOMAIN")
 
-	jwtKeySecret = utils.PanicIfError[[]byte](hex.DecodeString(os.Getenv("JWT_SECRET_KEY")))
+	jwtKeySecret []byte = utils.PanicIfError[[]byte](hex.DecodeString(os.Getenv("JWT_SECRET_KEY")))
+
+	redisHost     string = os.Getenv("REDIS_HOST")
+	redisPort     string = os.Getenv("REDIS_PORT")
+	redisPassword string = os.Getenv("REDIS_PASSWORD")
+	redisUsername string = os.Getenv("REDIS_USERNAME")
+	redisDB       int    = utils.PanicIfError[int](strconv.Atoi(os.Getenv("REDIS_DB")))
 )
 
 func main() {
 	manager := manage.NewDefaultManager()
-	manager.MustTokenStorage(store.NewMemoryTokenStore())
+	manager.MapTokenStorage(oredis.NewRedisStore(&redis.Options{
+		DB:              redisDB,
+		Addr:            redisHost + ":" + redisPort,
+		Username:        redisUsername,
+		Password:        redisPassword,
+		MinRetryBackoff: time.Second * 5,
+		MaxRetryBackoff: time.Minute * 2,
+	}))
 
 	// Set up JWT access token generation
 	// kid : key id, used to distinguish multiple keys

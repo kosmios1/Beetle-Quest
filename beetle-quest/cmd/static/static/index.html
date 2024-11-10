@@ -13,7 +13,7 @@
         <div class="container" id="auth-container" hx-ext="response-targets">
             <div hx-get="/api/v1/auth/check_session" hx-target="closest #auth-container" hx-swap="outerHTML" hx-trigger="load"></div>
 
-            <form hx-post="/api/v1/auth/login" hx-target="closest #auth-container" hx-target-4xx="#auth-response" hx-swap="outerHTML" hx-ext="json-enc">
+            <form hx-post="/api/v1/auth/login" hx-target="closest #auth-container" hx-target-error="#auth-response" hx-swap="outerHTML" hx-ext="json-enc">
                 <h2>Login</h2>
                 <label for="login-username">Username:</label>
                 <input type="text" id="login-username" name="username" required />
@@ -22,7 +22,7 @@
                 <button type="submit">Login</button>
             </form>
 
-            <form hx-post="/api/v1/auth/register" hx-target="#auth-response" hx-target-4xx="#auth-response" hx-swap="innerHTML" hx-ext="json-enc">
+            <form hx-post="/api/v1/auth/register" hx-target="#auth-response" hx-target-error="#auth-response" hx-swap="innerHTML" hx-ext="json-enc">
                 <h2>Register</h2>
                 <label for="register-username">Username:</label>
                 <input type="text" id="register-username" name="username" required />
