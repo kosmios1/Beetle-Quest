@@ -4,7 +4,6 @@ import (
 	"beetle-quest/pkg/utils"
 	"encoding/hex"
 	"net/http"
-	"os"
 	"strconv"
 	"time"
 
@@ -22,17 +21,17 @@ import (
 )
 
 var (
-	clientID     string = os.Getenv("OAUTH2_CLIENT_ID")
-	clientSecret string = os.Getenv("OAUTH2_CLIENT_SECRET")
-	clientDomain string = os.Getenv("OAUTH2_CLIENT_DOMAIN")
+	clientID     string = utils.FindEnv("OAUTH2_CLIENT_ID")
+	clientSecret string = utils.FindEnv("OAUTH2_CLIENT_SECRET")
+	clientDomain string = utils.FindEnv("OAUTH2_CLIENT_DOMAIN")
 
-	jwtKeySecret []byte = utils.PanicIfError[[]byte](hex.DecodeString(os.Getenv("JWT_SECRET_KEY")))
+	jwtKeySecret []byte = utils.PanicIfError[[]byte](hex.DecodeString(utils.FindEnv("JWT_SECRET_KEY")))
 
-	redisHost     string = os.Getenv("REDIS_HOST")
-	redisPort     string = os.Getenv("REDIS_PORT")
-	redisPassword string = os.Getenv("REDIS_PASSWORD")
-	redisUsername string = os.Getenv("REDIS_USERNAME")
-	redisDB       int    = utils.PanicIfError[int](strconv.Atoi(os.Getenv("REDIS_DB")))
+	redisHost     string = utils.FindEnv("REDIS_HOST")
+	redisPort     string = utils.FindEnv("REDIS_PORT")
+	redisPassword string = utils.FindEnv("REDIS_PASSWORD")
+	redisUsername string = utils.FindEnv("REDIS_USERNAME")
+	redisDB       int    = utils.PanicIfError[int](strconv.Atoi(utils.FindEnv("REDIS_DB")))
 )
 
 func main() {

@@ -1,11 +1,11 @@
 package repository
 
 import (
+	"beetle-quest/pkg/utils"
 	"bytes"
 	"context"
 	"errors"
 	"net/http"
-	"os"
 
 	"github.com/sony/gobreaker/v2"
 	"golang.org/x/oauth2"
@@ -19,18 +19,18 @@ type Oauth2Repo struct {
 
 var (
 	oauth2Config = &oauth2.Config{
-		ClientID:     os.Getenv("OAUTH2_CLIENT_ID"),
-		ClientSecret: os.Getenv("OAUTH2_CLIENT_SECRET"),
-		RedirectURL:  os.Getenv("OAUTH2_REDIRECT_URL"),
+		ClientID:     utils.FindEnv("OAUTH2_CLIENT_ID"),
+		ClientSecret: utils.FindEnv("OAUTH2_CLIENT_SECRET"),
+		RedirectURL:  utils.FindEnv("OAUTH2_REDIRECT_URL"),
 		Scopes:       []string{"user"},
 		Endpoint: oauth2.Endpoint{
-			AuthURL:  os.Getenv("OAUTH2_AUTH_ENDPOINT"),
-			TokenURL: os.Getenv("OAUTH2_TOKEN_ENDPOINT"),
+			AuthURL:  utils.FindEnv("OAUTH2_AUTH_ENDPOINT"),
+			TokenURL: utils.FindEnv("OAUTH2_TOKEN_ENDPOINT"),
 		},
 	}
 
-	revokeTokenEndpoint string = os.Getenv("OAUTH2_REVOKE_TOKEN_ENDPOINT")
-	verifyTokenEndpoint string = os.Getenv("OAUTH2_VERIFY_TOKEN_ENDPOINT")
+	revokeTokenEndpoint string = utils.FindEnv("OAUTH2_REVOKE_TOKEN_ENDPOINT")
+	verifyTokenEndpoint string = utils.FindEnv("OAUTH2_VERIFY_TOKEN_ENDPOINT")
 )
 
 func NewOauth2Repo() Oauth2Repo {

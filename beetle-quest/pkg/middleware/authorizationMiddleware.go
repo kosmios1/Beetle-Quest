@@ -4,13 +4,12 @@ import (
 	"beetle-quest/pkg/utils"
 	"encoding/hex"
 	"net/http"
-	"os"
 
 	"github.com/gin-gonic/gin"
 )
 
 var (
-	jwtSecretKey = utils.PanicIfError[[]byte](hex.DecodeString(os.Getenv("JWT_SECRET_KEY")))
+	jwtSecretKey = utils.PanicIfError[[]byte](hex.DecodeString(utils.FindEnv("JWT_SECRET_KEY")))
 )
 
 func CheckJWTAuthorizationToken() gin.HandlerFunc {

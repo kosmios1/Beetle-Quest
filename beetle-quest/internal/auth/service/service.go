@@ -7,14 +7,13 @@ import (
 	"beetle-quest/pkg/utils"
 	"context"
 	"encoding/hex"
-	"os"
 
 	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/oauth2"
 )
 
 var (
-	jwtSecretKey = utils.PanicIfError[[]byte](hex.DecodeString(os.Getenv("JWT_SECRET_KEY")))
+	jwtSecretKey = utils.PanicIfError[[]byte](hex.DecodeString(utils.FindEnv("JWT_SECRET_KEY")))
 )
 
 type AuthService struct {
