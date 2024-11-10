@@ -75,5 +75,4 @@ func (s *UserService) UpdateUserAccountDetails(userID models.UUID, newEmail, new
 		return models.ErrCouldNotUpdate
 	}
 	return nil
-
 }

@@ -2,9 +2,9 @@ package main
 
 import (
 	"beetle-quest/internal/auth/controller"
+	"beetle-quest/internal/auth/repository"
 	internalRepo "beetle-quest/internal/auth/repository"
 	"beetle-quest/internal/auth/service"
-	repository "beetle-quest/pkg/repositories/impl"
 
 	"github.com/gin-gonic/gin"
 )

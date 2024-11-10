@@ -2,9 +2,11 @@ package main
 
 import (
 	"beetle-quest/internal/user/controller"
+	"beetle-quest/internal/user/repository"
 	"beetle-quest/internal/user/service"
 	"beetle-quest/pkg/middleware"
-	repository "beetle-quest/pkg/repositories/impl"
+
+	internalMiddleware "beetle-quest/internal/user/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -39,7 +41,7 @@ func main() {
 	basePath.Use(middleware.CheckJWTAuthorizationToken())
 	{
 		accountGroup := basePath.Group("/account")
-		// accountGroup.Use() // TODO: Verify that :user_id is the same as the user_id in the JWT token
+		accountGroup.Use(internalMiddleware.CheckUserID())
 		{
 			accountGroup.GET("/:user_id", cnt.GetUserAccountDetails)
 			accountGroup.PATCH("/:user_id", cnt.UpdateUserAccountDetails)
@@ -48,6 +50,14 @@ func main() {
 
 		basePath.GET("/:user_id/gacha", cnt.GetUserGachaList)
 		basePath.GET("/:user_id/gacha/:gacha_id", cnt.GetUserGachaDetails)
+	}
+
+	internalPath := r.Group("/api/v1/internal/user")
+	// TODO: This can be reached only within the microservices network
+	{
+		internalPath.POST("/create", cnt.CreateUser)
+		internalPath.POST("/find_by_id", cnt.FindByID)
+		internalPath.POST("/find_by_username", cnt.FindByUsername)
 	}
 
 	r.Run()

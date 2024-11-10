@@ -1,7 +1,16 @@
 name: beetle-quest
 
-x-postgres-common-envs: &postgres-environments
-    POSTGRES_HOST: monolith-db
+x-user-db-environments: &user-db-environments
+    POSTGRES_HOST: user-db
+    POSTGRES_PORT: 5432
+    POSTGRES_SSLMODE: disable
+    POSTGRES_TIMEZONE: Europe/Rome
+    POSTGRES_USER: beetle
+    POSTGRES_PASSWORD: secret
+    POSTGRES_DB: beetle-quest-main-db
+
+x-gacha-db-environments: &gacha-db-environments
+    POSTGRES_HOST: gacha-db
     POSTGRES_PORT: 5432
     POSTGRES_SSLMODE: disable
     POSTGRES_TIMEZONE: Europe/Rome
@@ -70,13 +79,18 @@ services:
             - mynet
             - oauth2
         environment:
-            <<: [*common-oauth2-environments, *postgres-environments, *common-services-environments]
+            # TODO: Remove user-db-environments
+            <<: [*common-oauth2-environments, *user-db-environments, *common-services-environments]
             OAUTH2_REDIRECT_URL: http://localhost/api/v1/auth/oauth2
             OAUTH2_AUTH_ENDPOINT: http://localhost/oauth2/authorize
             OAUTH2_TOKEN_ENDPOINT: http://oauth2-server:8080/oauth2/token
 
             OAUTH2_REVOKE_TOKEN_ENDPOINT: http://oauth2-server:8080/oauth2/token/revoke
             OAUTH2_VERIFY_TOKEN_ENDPOINT: http://oauth2-server:8080/oauth2/token/verify
+
+            CREATE_USER_ENDPOINT: http://user-service:8080/api/v1/internal/user/create
+            FIND_USER_BY_ID_ENDPOINT: http://user-service:8080/api/v1/internal/user/find_by_id
+            FIND_USER_BY_USERNAME_ENDPOINT: http://user-service:8080/api/v1/internal/user/find_by_username
 
     user-service:
         build:
@@ -89,7 +103,7 @@ services:
         networks:
             - mynet
         environment:
-            <<: [*common-services-environments, *postgres-environments]
+            <<: [*common-services-environments, *user-db-environments]
 
     gacha-service:
         build:
@@ -102,7 +116,20 @@ services:
         networks:
             - mynet
         environment:
-            <<: [*common-services-environments, *postgres-environments]
+            <<: [*common-services-environments, *gacha-db-environments]
+
+    # market-service:
+    #     build:
+    #         context: ../
+    #         dockerfile: deploy/market/Dockerfile
+    #     labels:
+    #         - "traefik.enable=true"
+    #         - "traefik.http.routers.gacha-service.rule=PathPrefix(`/api/v1/market`)"
+    #         - "traefik.http.routers.gacha-service.entrypoints=web"
+    #     networks:
+    #         - mynet
+    #     environment:
+    #         <<: [*common-services-environments]
 
     static-service:
         build:
@@ -126,16 +153,32 @@ services:
         networks:
             - oauth2
 
-    monolith-db:
+    user-db:
         build:
-            context: ./postgres
+            context: ./user/postgres
             dockerfile: ./Dockerfile
-        volumes:
-            - ../../assets/images/:/images/
         networks:
             - mynet
         environment:
-            <<: *postgres-environments
+            <<: *user-db-environments
+
+    gacha-db:
+        build:
+            context: ./gacha/postgres
+            dockerfile: ./Dockerfile
+        networks:
+            - mynet
+        environment:
+            <<: *gacha-db-environments
+
+    # transaction-db:
+    #     build:
+    #         context: ./market/postgres
+    #         dockerfile: ./Dockerfile
+    #     networks:
+    #         - mynet
+    #     environment:
+    #         <<: *postgres-environments
 
 networks:
     oauth2:

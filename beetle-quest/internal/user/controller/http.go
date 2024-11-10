@@ -111,6 +111,8 @@ func (c *UserController) DeleteUserAccount(ctx *gin.Context) {
 		return
 	}
 
+	// TODO: Invalidate user's token
+
 	ctx.HTML(http.StatusOK, "successMsg.tmpl", gin.H{
 		"Message": "User account deleted successfully!",
 	})
@@ -122,4 +124,61 @@ func (c *UserController) GetUserGachaList(ctx *gin.Context) {
 
 func (c *UserController) GetUserGachaDetails(ctx *gin.Context) {
 	ctx.JSON(200, gin.H{"message": "EHEHEHEH NOT IMPLEMENTED YET!"})
+}
+
+// Internal API ==========================================================================
+
+func (c *UserController) CreateUser(ctx *gin.Context) {
+	var req models.CreateUserData
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "Wrong inputs passed to the request!"})
+		return
+	}
+
+	if ok := c.UserService.Create(req.Email, req.Username, req.HashedPassword, req.Currency); !ok {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Error": "internal server error!"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"Message": "User created successfully"})
+}
+
+func (c *UserController) FindByID(ctx *gin.Context) {
+	var req models.FindUserByIDData
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "Wrong inputs passed to the request!"})
+		ctx.Abort()
+		return
+	}
+
+	id, err := utils.ParseUUID(req.UserID)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "Invalid User ID!"})
+		return
+	}
+
+	user, exits := c.UserService.FindByID(id)
+	if !exits {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "User not found!"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, user)
+}
+
+func (c *UserController) FindByUsername(ctx *gin.Context) {
+	var req models.FindUserByUsernameData
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "Wrong inputs passed to the request!"})
+		ctx.Abort()
+		return
+	}
+
+	user, exits := c.UserService.FindByUsername(req.Username)
+	if !exits {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "User not found!"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, user)
 }

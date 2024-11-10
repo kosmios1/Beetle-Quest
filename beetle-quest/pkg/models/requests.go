@@ -31,6 +31,21 @@ type UpdateUserAccountDetailsRequest struct {
 	NewPassword string `json:"new_password"`
 }
 
+type CreateUserData struct {
+	Email          string `json:"email"`
+	Username       string `json:"username"`
+	HashedPassword []byte `json:"password"`
+	Currency       int64  `json:"currency"`
+}
+
+type FindUserByIDData struct {
+	UserID string `json:"user_id"`
+}
+
+type FindUserByUsernameData struct {
+	Username string `json:"username"`
+}
+
 // Gacha =====================================
 
 type GetGachaDetailsResponse struct {

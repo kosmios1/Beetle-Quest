@@ -95,6 +95,7 @@ func (r *Oauth2Repo) RevokeToken(token string) (*http.Response, error) {
 
 		return resp, nil
 	})
+	defer resp.Body.Close()
 
 	if err != nil {
 		return nil, err
@@ -118,6 +119,7 @@ func (r *Oauth2Repo) VerifyToken(token string) (*http.Response, error) {
 
 		return resp, nil
 	})
+	defer resp.Body.Close()
 
 	if err != nil {
 		return nil, err

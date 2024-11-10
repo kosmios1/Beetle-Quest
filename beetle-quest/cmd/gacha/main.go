@@ -2,9 +2,9 @@ package main
 
 import (
 	"beetle-quest/internal/gacha/controller"
+	"beetle-quest/internal/gacha/repository"
 	"beetle-quest/internal/gacha/service"
 	"beetle-quest/pkg/middleware"
-	repository "beetle-quest/pkg/repositories/impl"
 
 	"github.com/gin-gonic/gin"
 )
