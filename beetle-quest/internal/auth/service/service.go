@@ -1,6 +1,7 @@
 package service
 
 import (
+	"beetle-quest/internal/auth/repository"
 	"beetle-quest/pkg/models"
 	"beetle-quest/pkg/repositories"
 	"beetle-quest/pkg/utils"
@@ -8,6 +9,7 @@ import (
 
 type AuthService struct {
 	UserRepo repositories.UserRepo
+	repository.Oauth2Repo
 }
 
 func (s *AuthService) Register(email, username, password string) error {

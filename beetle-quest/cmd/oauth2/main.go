@@ -8,6 +8,7 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+	"github.com/go-oauth2/oauth2/v4/errors"
 	"github.com/go-oauth2/oauth2/v4/generates"
 	"github.com/go-oauth2/oauth2/v4/manage"
 	"github.com/go-oauth2/oauth2/v4/models"
@@ -45,19 +46,67 @@ func main() {
 	srv.SetUserAuthorizationHandler(userAuthorizeHandler)
 
 	r := gin.Default()
-	r.Any("/oauth2/token", func(c *gin.Context) {
-		if err := srv.HandleTokenRequest(c.Writer, c.Request); err != nil {
-			c.AbortWithError(http.StatusBadRequest, err)
+
+	r.Any("/oauth2/authorize", func(ctx *gin.Context) {
+		if err := srv.HandleAuthorizeRequest(ctx.Writer, ctx.Request); err != nil {
+			ctx.AbortWithError(http.StatusBadRequest, err)
 			return
 		}
 	})
 
-	r.Any("/oauth2/authorize", func(c *gin.Context) {
-		if err := srv.HandleAuthorizeRequest(c.Writer, c.Request); err != nil {
-			c.AbortWithError(http.StatusBadRequest, err)
+	r.Any("/oauth2/token", func(ctx *gin.Context) {
+		if err := srv.HandleTokenRequest(ctx.Writer, ctx.Request); err != nil {
+			ctx.AbortWithError(http.StatusBadRequest, err)
 			return
 		}
 	})
+
+	r.POST("/oauth2/token/revoke", func(ctx *gin.Context) {
+		token := ctx.PostForm("token")
+		if token == "" {
+			ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "invalid_request"})
+			return
+		}
+
+		err := srv.Manager.RemoveAccessToken(ctx, token)
+		if err != nil {
+			if err == errors.ErrInvalidAccessToken {
+				ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "invalid_token"})
+			} else {
+				ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Error": "server_error"})
+			}
+			return
+		}
+
+		err = srv.Manager.RemoveRefreshToken(ctx, token)
+		if err != nil && err != errors.ErrInvalidRefreshToken {
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Error": "server_error"})
+			return
+		}
+
+		ctx.Status(http.StatusOK)
+	})
+
+	r.POST("/oauth2/token/verify", func(ctx *gin.Context) {
+		token := ctx.PostForm("token")
+		if token == "" {
+			ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "invalid_request"})
+			return
+		}
+
+		_, err := srv.Manager.LoadAccessToken(ctx, token)
+		if err != nil {
+			if err == errors.ErrInvalidAccessToken {
+				ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "invalid_token"})
+			} else {
+				ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Error": "server_error"})
+			}
+			return
+		}
+
+		ctx.Status(http.StatusOK)
+	})
+
 	r.Run()
 }
 

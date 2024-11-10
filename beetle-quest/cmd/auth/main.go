@@ -41,6 +41,7 @@ func main() {
 		basePath.GET("/oauth2", cnt.Oauth2Callback)
 
 		basePath.GET("/check_session", cnt.CheckSession)
+		basePath.Any("/traefik/verify", cnt.Verify)
 	}
 
 	r.Run()

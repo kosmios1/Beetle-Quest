@@ -4,6 +4,7 @@ import (
 	"beetle-quest/internal/auth/service"
 	"beetle-quest/pkg/models"
 	"beetle-quest/pkg/utils"
+	"bytes"
 	"context"
 	"encoding/hex"
 	"net/http"
@@ -29,6 +30,9 @@ var (
 			TokenURL: os.Getenv("OAUTH2_TOKEN_ENDPOINT"),
 		},
 	}
+
+	revokeTokenEndpoint string = os.Getenv("OAUTH2_REVOKE_TOKEN_ENDPOINT")
+	verifyTokenEndpoint string = os.Getenv("OAUTH2_VERIFY_TOKEN_ENDPOINT")
 
 	jwtSecretKey = utils.PanicIfError[[]byte](hex.DecodeString(os.Getenv("JWT_SECRET_KEY")))
 )
@@ -122,19 +126,66 @@ func (c *AuthController) Oauth2Callback(ctx *gin.Context) {
 }
 
 func (c *AuthController) Logout(ctx *gin.Context) {
-	// TODO: Client side logout. The token, for the oauth2 server, is still valid.
+	token, err := ctx.Cookie("access_token")
+	if err != nil {
+		ctx.Redirect(http.StatusFound, "/static/")
+		return
+	}
+
+	// TODO: insert it into a repository and add circuit breaker
+	reqBody := []byte("token=" + token)
+	http.Post(revokeTokenEndpoint, "application/x-www-form-urlencoded", bytes.NewBuffer(reqBody))
+
 	ctx.SetCookie("access_token", "", -1, "/", "", true, true)
 	ctx.Redirect(http.StatusFound, "/static/")
 }
 
+func (c *AuthController) Verify(ctx *gin.Context) {
+	token, err := ctx.Cookie("access_token")
+	if err != nil {
+		ctx.Redirect(http.StatusFound, "/static/")
+		return
+	}
+
+	// TODO: insert it into a repository and add circuit breaker
+	reqBody := []byte("token=" + token)
+	resp, err := http.Post(verifyTokenEndpoint, "application/x-www-form-urlencoded", bytes.NewBuffer(reqBody))
+	if err != nil {
+		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": "internal server error"})
+		ctx.Abort()
+		return
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		ctx.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
+	ctx.Status(resp.StatusCode)
+}
+
 func (c *AuthController) CheckSession(ctx *gin.Context) {
-	cookie, err := ctx.Request.Cookie("access_token")
+	token, err := ctx.Cookie("access_token")
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusNotFound)
 		return
 	}
 
-	claims, err := utils.VerifyJWTToken(cookie.Value, jwtSecretKey)
+	// TODO: insert it into a repository and add circuit breaker
+	reqBody := []byte("token=" + token)
+	resp, err := http.Post(verifyTokenEndpoint, "application/x-www-form-urlencoded", bytes.NewBuffer(reqBody))
+	if err != nil {
+		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": "internal server error"})
+		ctx.Abort()
+		return
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		ctx.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
+	claims, err := utils.VerifyJWTToken(token, jwtSecretKey)
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusInternalServerError)
 		return

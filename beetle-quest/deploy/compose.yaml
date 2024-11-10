@@ -19,7 +19,7 @@ x-common-oauth2-environments: &common-oauth2-environments
     OAUTH2_CLIENT_SECRET: secret
 
 services:
-    traefik:
+    traefik: # TODO: Add traefik auth middleware x req to: http://localhost/api/v1/auth/traefik/verify
         image: traefik:v3.2.0
         container_name: traefik
         command:
@@ -68,6 +68,9 @@ services:
             OAUTH2_REDIRECT_URL: http://localhost/api/v1/auth/oauth2
             OAUTH2_AUTH_ENDPOINT: http://localhost/oauth2/authorize
             OAUTH2_TOKEN_ENDPOINT: http://oauth2-server:8080/oauth2/token
+
+            OAUTH2_REVOKE_TOKEN_ENDPOINT: http://oauth2-server:8080/oauth2/token/revoke
+            OAUTH2_VERIFY_TOKEN_ENDPOINT: http://oauth2-server:8080/oauth2/token/verify
 
     user-service:
         build:
