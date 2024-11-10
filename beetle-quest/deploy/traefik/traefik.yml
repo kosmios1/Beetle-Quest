@@ -1,30 +1,22 @@
+global:
+  checkNewVersion: false
+  sendAnonymousUsage: false
+
+api:
+  disableDashboardAd: true
+  dashboard: true # TODO: do we want it?
+  insecure: true # FIXME: set to false
+  debug: true # FIXME: set to false
+
 log:
-    level: "DEBUG"
+  level: "DEBUG" # FIXME: remove me
 
 entryPoints:
-    web:
-        address: ":80"
-        middlewares:
-            - auth@file
-        transport:
-            keepAliveMaxRequests: 42
-            keepAliveMaxTime: 42s
-        # http:
-        #     redirections:
-        #         entryPoint:
-        #             to: websecure
-        #             scheme: https
-
-    websecure:
-        address: ":443"
-        middlewares:
-            - auth@file
-        http3: {}
-        transport:
-            keepAliveMaxRequests: 42
-            keepAliveMaxTime: 42s
+  web:
+    address: ":80"
 
 providers:
-    file:
-        filename: "./rules.yml"
-        watch: true
+  file:
+    filename: "/etc/traefik/rules.yml"
+    watch: true
+    debugLogGeneratedTemplate: true # FIXME: set to false
