@@ -59,7 +59,7 @@ services:
             - oauth2
         environment:
             <<: [*common-services-environments, *common-oauth2-environments]
-            OAUTH_CLIENT_DOMAIN: http://auth-service
+            OAUTH2_CLIENT_DOMAIN: http://auth-service
 
             REDIS_HOST: oauth2-redis
             REDIS_PORT: 6379

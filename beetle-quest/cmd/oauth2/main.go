@@ -49,6 +49,7 @@ func main() {
 	// kid : key id, used to distinguish multiple keys
 	manager.MapAccessGenerate(generates.NewJWTAccessGenerate("", jwtKeySecret, jwt.SigningMethodHS512))
 
+	clientDomain = "" // TODO: remove this line when the client domain is set up
 	clientStore := store.NewClientStore()
 	clientStore.Set(clientID, &models.Client{
 		ID:     clientID,

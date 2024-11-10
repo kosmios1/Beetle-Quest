@@ -49,7 +49,7 @@ func main() {
 			auctionPath.GET("/list", cnt.AuctionList)
 			auctionPath.GET("/:auction_id", cnt.AuctionDetail)
 			auctionPath.DELETE("/:auction_id", cnt.AuctionDelete)
-			auctionPath.POST("/:auction_id/bid", cnt.BidTOAuction)
+			auctionPath.POST("/:auction_id/bid", cnt.BidToAuction)
 		}
 	}
 
