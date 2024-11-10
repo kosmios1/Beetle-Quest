@@ -11,9 +11,9 @@ import (
 )
 
 var (
-	createUserEndpoint = utils.FindEnv("CREATE_USER_ENDPOINT")
-	findByID           = utils.FindEnv("FIND_USER_BY_ID_ENDPOINT")
-	findByUsername     = utils.FindEnv("FIND_USER_BY_USERNAME_ENDPOINT")
+	createUserEndpoint         string = utils.FindEnv("CREATE_USER_ENDPOINT")
+	findUserByIDEndpoint       string = utils.FindEnv("FIND_USER_BY_ID_ENDPOINT")
+	findUserByUsernameEndpoint string = utils.FindEnv("FIND_USER_BY_USERNAME_ENDPOINT")
 )
 
 type UserRepo struct {
@@ -77,7 +77,7 @@ func (r UserRepo) FindByID(id models.UUID) (*models.User, bool) {
 
 	resp, err := r.cb.Execute(func() (*http.Response, error) {
 		resp, err := http.Post(
-			findByID,
+			findUserByIDEndpoint,
 			"application/json",
 			bytes.NewBuffer(jsonData),
 		)
@@ -119,7 +119,7 @@ func (r UserRepo) FindByUsername(username string) (*models.User, bool) {
 
 	resp, err := r.cb.Execute(func() (*http.Response, error) {
 		resp, err := http.Post(
-			findByUsername,
+			findUserByUsernameEndpoint,
 			"application/json",
 			bytes.NewBuffer(jsonData),
 		)
@@ -149,7 +149,7 @@ func (r UserRepo) FindByUsername(username string) (*models.User, bool) {
 	return &user, true
 }
 
-// Not necessary for this service
+// NOTE: Never necessary, so not implemented
 func (r UserRepo) FindByEmail(email string) (*models.User, bool) {
 	return nil, false
 }

@@ -2,9 +2,10 @@ package main
 
 import (
 	"beetle-quest/internal/auth/controller"
-	"beetle-quest/internal/auth/repository"
-	internalRepo "beetle-quest/internal/auth/repository"
 	"beetle-quest/internal/auth/service"
+	"beetle-quest/internal/user/repository"
+
+	internalRepo "beetle-quest/internal/auth/repository"
 
 	"github.com/gin-gonic/gin"
 )
@@ -31,12 +32,10 @@ func main() {
 	r.LoadHTMLGlob("templates/*")
 	basePath := r.Group("/api/v1/auth")
 	{
-		cnt := controller.AuthController{
-			AuthService: service.AuthService{
-				UserRepo:   repository.NewUserRepo(),
-				Oauth2Repo: internalRepo.NewOauth2Repo(),
-			},
-		}
+		cnt := controller.NewAuthController(
+			service.NewAuthService(repository.NewUserRepo(), internalRepo.NewOauth2Repo()),
+		)
+
 		basePath.GET("/logout", cnt.Logout)
 		basePath.POST("/login", cnt.Login)
 		basePath.POST("/register", cnt.Register)

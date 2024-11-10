@@ -33,8 +33,8 @@ var (
 	verifyTokenEndpoint string = os.Getenv("OAUTH2_VERIFY_TOKEN_ENDPOINT")
 )
 
-func NewOauth2Repo() *Oauth2Repo {
-	return &Oauth2Repo{
+func NewOauth2Repo() Oauth2Repo {
+	return Oauth2Repo{
 		cb:      gobreaker.NewCircuitBreaker[*http.Response](gobreaker.Settings{}),
 		authCb:  gobreaker.NewCircuitBreaker[string](gobreaker.Settings{}),
 		tokenCb: gobreaker.NewCircuitBreaker[*oauth2.Token](gobreaker.Settings{}),
@@ -80,7 +80,7 @@ func (r *Oauth2Repo) Exchange(ctx context.Context, code string) (*oauth2.Token, 
 	return token, nil
 }
 
-func (r *Oauth2Repo) RevokeToken(token string) (*http.Response, error) {
+func (r *Oauth2Repo) RevokeToken(token string) error {
 	resp, err := r.cb.Execute(func() (*http.Response, error) {
 		reqBody := []byte("token=" + token)
 		resp, err := http.Post(
@@ -98,13 +98,13 @@ func (r *Oauth2Repo) RevokeToken(token string) (*http.Response, error) {
 	defer resp.Body.Close()
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return resp, nil
+	return nil
 }
 
-func (r *Oauth2Repo) VerifyToken(token string) (*http.Response, error) {
+func (r *Oauth2Repo) VerifyToken(token string) error {
 	resp, err := r.cb.Execute(func() (*http.Response, error) {
 		reqBody := []byte("token=" + token)
 		resp, err := http.Post(
@@ -122,8 +122,8 @@ func (r *Oauth2Repo) VerifyToken(token string) (*http.Response, error) {
 	defer resp.Body.Close()
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return resp, nil
+	return nil
 }

@@ -10,7 +10,13 @@ import (
 )
 
 type UserController struct {
-	service.UserService
+	srv service.UserService
+}
+
+func NewUserController(service service.UserService) UserController {
+	return UserController{
+		service,
+	}
 }
 
 func (c *UserController) GetUserAccountDetails(ctx *gin.Context) {
@@ -28,7 +34,7 @@ func (c *UserController) GetUserAccountDetails(ctx *gin.Context) {
 		return
 	}
 
-	user, err := c.UserService.GetUserAccountDetails(parsedUserID)
+	user, err := c.srv.GetUserAccountDetails(parsedUserID)
 	if err != nil {
 		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err})
 		ctx.Abort()
@@ -70,7 +76,7 @@ func (c *UserController) UpdateUserAccountDetails(ctx *gin.Context) {
 		return
 	}
 
-	err = c.UserService.UpdateUserAccountDetails(parsedUserID, req.Email, req.Username, req.OldPassword, req.NewPassword)
+	err = c.srv.UpdateUserAccountDetails(parsedUserID, req.Email, req.Username, req.OldPassword, req.NewPassword)
 	if err != nil {
 		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err})
 		ctx.Abort()
@@ -104,7 +110,7 @@ func (c *UserController) DeleteUserAccount(ctx *gin.Context) {
 		return
 	}
 
-	err = c.UserService.DeleteUserAccount(parsedUserID, password)
+	err = c.srv.DeleteUserAccount(parsedUserID, password)
 	if err != nil {
 		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err})
 		ctx.Abort()
@@ -135,7 +141,7 @@ func (c *UserController) CreateUser(ctx *gin.Context) {
 		return
 	}
 
-	if ok := c.UserService.Create(req.Email, req.Username, req.HashedPassword, req.Currency); !ok {
+	if ok := c.srv.Create(req.Email, req.Username, req.HashedPassword, req.Currency); !ok {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Error": "internal server error!"})
 		return
 	}
@@ -151,13 +157,7 @@ func (c *UserController) FindByID(ctx *gin.Context) {
 		return
 	}
 
-	id, err := utils.ParseUUID(req.UserID)
-	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "Invalid User ID!"})
-		return
-	}
-
-	user, exits := c.UserService.FindByID(id)
+	user, exits := c.srv.FindByID(req.UserID)
 	if !exits {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "User not found!"})
 		return
@@ -174,7 +174,7 @@ func (c *UserController) FindByUsername(ctx *gin.Context) {
 		return
 	}
 
-	user, exits := c.UserService.FindByUsername(req.Username)
+	user, exits := c.srv.FindByUsername(req.Username)
 	if !exits {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "User not found!"})
 		return

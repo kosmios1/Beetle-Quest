@@ -3,8 +3,6 @@ package controller
 import (
 	"beetle-quest/internal/gacha/service"
 	"beetle-quest/pkg/models"
-	"beetle-quest/pkg/utils"
-	"html/template"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -12,7 +10,12 @@ import (
 
 type GachaController struct {
 	service.GachaService
-	templates *template.Template
+}
+
+func NewGachaController(s service.GachaService) GachaController {
+	return GachaController{
+		GachaService: s,
+	}
 }
 
 func (c *GachaController) Roll(ctx *gin.Context) {
@@ -47,14 +50,8 @@ func (c *GachaController) GetGachaDetails(ctx *gin.Context) {
 		return
 	}
 
-	gachaID, err := utils.ParseUUID(id)
+	gacha, err := c.FindByID(id)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": models.ErrInvalidGachaID})
-		return
-	}
-
-	gacha, ok := c.GachaService.FindByID(gachaID)
-	if !ok {
 		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": models.ErrGachaNotFound})
 		return
 	}

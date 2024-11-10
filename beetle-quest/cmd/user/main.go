@@ -31,11 +31,9 @@ func main() {
 
 	r.LoadHTMLGlob("templates/*")
 
-	cnt := controller.UserController{
-		UserService: service.UserService{
-			UserRepo: repository.NewUserRepo(),
-		},
-	}
+	cnt := controller.NewUserController(
+		service.NewUserService(repository.NewUserRepo()),
+	)
 
 	basePath := r.Group("/api/v1/user")
 	basePath.Use(middleware.CheckJWTAuthorizationToken())

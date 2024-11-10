@@ -29,11 +29,9 @@ func main() {
 
 	r.LoadHTMLGlob("templates/*")
 
-	cnt := controller.GachaController{
-		GachaService: service.GachaService{
-			GachaRepo: repository.NewGachaRepo(),
-		},
-	}
+	cnt := controller.NewGachaController(
+		service.NewGachaService(repository.NewGachaRepo()),
+	)
 
 	basePath := r.Group("/api/v1/gacha")
 	basePath.Use(middleware.CheckJWTAuthorizationToken())

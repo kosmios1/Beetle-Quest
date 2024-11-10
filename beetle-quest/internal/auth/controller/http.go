@@ -3,23 +3,21 @@ package controller
 import (
 	"beetle-quest/internal/auth/service"
 	"beetle-quest/pkg/models"
-	"beetle-quest/pkg/utils"
-	"context"
-	"encoding/hex"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
 type AuthController struct {
-	service.AuthService
+	srv service.AuthService
 }
 
-var (
-	jwtSecretKey = utils.PanicIfError[[]byte](hex.DecodeString(os.Getenv("JWT_SECRET_KEY")))
-)
+func NewAuthController(srv service.AuthService) AuthController {
+	return AuthController{
+		srv: srv,
+	}
+}
 
 func (c *AuthController) Register(ctx *gin.Context) {
 	var registerData models.RegisterRequest
@@ -29,7 +27,7 @@ func (c *AuthController) Register(ctx *gin.Context) {
 		return
 	}
 
-	if err := c.AuthService.Register(registerData.Email, registerData.Username, registerData.Password); err != nil {
+	if err := c.srv.Register(registerData.Email, registerData.Username, registerData.Password); err != nil {
 		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err})
 		ctx.Abort()
 		return
@@ -46,23 +44,15 @@ func (c *AuthController) Login(ctx *gin.Context) {
 		return
 	}
 
-	user, err := c.AuthService.Login(loginData.Username, loginData.Password)
+	user, err := c.srv.Login(loginData.Username, loginData.Password)
 	if err != nil {
 		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err})
 		ctx.Abort()
 		return
 	}
 
-	state, err := utils.GenerateRandomSalt(32)
+	url, err := c.srv.MakeAuthRequest(string(user.UserID.String()))
 	if err != nil {
-		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": "internal server error"})
-		ctx.Abort()
-		return
-	}
-	stateHex := hex.EncodeToString(state)
-
-	url := c.AuthCodeURL(stateHex, user.UserID.String())
-	if url == "" {
 		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": "internal server error"})
 		ctx.Abort()
 		return
@@ -90,16 +80,10 @@ func (c *AuthController) Oauth2Callback(ctx *gin.Context) {
 	if code == "" {
 		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "code not found!"})
 		ctx.Abort()
-	}
-
-	token, err := c.Exchange(context.Background(), code)
-	if err != nil {
-		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": "internal server error"})
-		ctx.Abort()
 		return
 	}
 
-	claims, err := utils.VerifyJWTToken(token.AccessToken, jwtSecretKey)
+	token, claims, err := c.srv.ExchangeCodeForToken(code)
 	if err != nil {
 		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": "internal server error"})
 		ctx.Abort()
@@ -119,7 +103,7 @@ func (c *AuthController) Logout(ctx *gin.Context) {
 		return
 	}
 
-	if _, err := c.RevokeToken(token); err != nil {
+	if ok := c.srv.RevokeToken(token); !ok {
 		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": "internal server error"})
 		ctx.Abort()
 		return
@@ -136,19 +120,13 @@ func (c *AuthController) Verify(ctx *gin.Context) {
 		return
 	}
 
-	resp, err := c.VerifyToken(token)
-	if err != nil {
+	if _, ok := c.srv.VerifyToken(token); !ok {
 		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": "internal server error"})
 		ctx.Abort()
 		return
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		ctx.AbortWithStatus(http.StatusUnauthorized)
-		return
-	}
-
-	ctx.Status(resp.StatusCode)
+	ctx.Status(http.StatusOK)
 }
 
 func (c *AuthController) CheckSession(ctx *gin.Context) {
@@ -158,21 +136,10 @@ func (c *AuthController) CheckSession(ctx *gin.Context) {
 		return
 	}
 
-	resp, err := c.VerifyToken(token)
-	if err != nil {
+	claims, ok := c.srv.VerifyToken(token)
+	if !ok {
 		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": "internal server error"})
 		ctx.Abort()
-		return
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		ctx.AbortWithStatus(http.StatusUnauthorized)
-		return
-	}
-
-	claims, err := utils.VerifyJWTToken(token, jwtSecretKey)
-	if err != nil {
-		ctx.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
 
