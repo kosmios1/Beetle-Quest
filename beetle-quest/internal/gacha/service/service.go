@@ -16,20 +16,27 @@ func NewGachaService(repo repositories.GachaRepo) *GachaService {
 	}
 }
 
-func (s *GachaService) FindByID(id string) (*models.Gacha, error) {
+func (s *GachaService) FindByID(id string) (*models.Gacha, bool) {
 	gachaID, err := utils.ParseUUID(id)
 	if err != nil {
-		return nil, models.ErrInvalidGachaID
+		return nil, false
 	}
 
 	gacha, ok := s.gachaRepo.FindByID(gachaID)
 	if !ok {
-		return nil, models.ErrCouldNotFindResourceByUUID
+		return nil, false
 	}
 
-	return gacha, nil
+	return gacha, true
 }
 
 func (s *GachaService) GetAll() ([]models.Gacha, bool) {
 	return s.gachaRepo.GetAll()
+}
+
+func (s *GachaService) AddGachaToUser(userID, gachaID models.UUID) error {
+	if ok := s.gachaRepo.AddGachaToUser(userID, gachaID); !ok {
+		return models.ErrCouldNotBuyGacha
+	}
+	return nil
 }

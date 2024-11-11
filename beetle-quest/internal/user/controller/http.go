@@ -149,6 +149,21 @@ func (c *UserController) CreateUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"Message": "User created successfully"})
 }
 
+func (c *UserController) UpdateUser(ctx *gin.Context) {
+	var req models.User
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "Wrong inputs passed to the request!"})
+		return
+	}
+
+	if ok := c.srv.Update(&req); !ok {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Error": "internal server error!"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"Message": "User updated successfully"})
+}
+
 func (c *UserController) FindByID(ctx *gin.Context) {
 	var req models.FindUserByIDData
 	if err := ctx.ShouldBindJSON(&req); err != nil {

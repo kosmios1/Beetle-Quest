@@ -54,6 +54,8 @@ func main() {
 	// TODO: This can be reached only within the microservices network
 	{
 		internalPath.POST("/create", cnt.CreateUser)
+		internalPath.POST("/update", cnt.UpdateUser)
+
 		internalPath.POST("/find_by_id", cnt.FindByID)
 		internalPath.POST("/find_by_username", cnt.FindByUsername)
 	}

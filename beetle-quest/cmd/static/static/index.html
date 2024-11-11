@@ -22,7 +22,7 @@
                 <button type="submit">Login</button>
             </form>
 
-            <form hx-post="/api/v1/auth/register" hx-target="#auth-response" hx-target-error="#auth-response" hx-swap="innerHTML" hx-ext="json-enc">
+            <form hx-post="/api/v1/auth/register" hx-target="#notification-popup" hx-target-error="#notification-popup" hx-swap="innerHTML" hx-ext="json-enc">
                 <h2>Register</h2>
                 <label for="register-username">Username:</label>
                 <input type="text" id="register-username" name="username" required />
@@ -35,4 +35,6 @@
             <div id="auth-response" class="message-bar"></div>
         </div>
     </body>
+
+    <div id="notification-popup" class="notification-popup"></div>
 </html>

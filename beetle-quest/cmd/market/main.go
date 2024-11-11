@@ -7,7 +7,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	arepo "beetle-quest/pkg/repositories/serviceHttp/auction"
 	grepo "beetle-quest/pkg/repositories/serviceHttp/gacha"
 	urepo "beetle-quest/pkg/repositories/serviceHttp/user"
 )
@@ -36,15 +35,16 @@ func main() {
 		service.NewMarketService(
 			urepo.NewUserRepo(),
 			grepo.NewGachaRepo(),
-			arepo.NewAuctionRepo(),
+			nil, // TODO: Not yet implemented
 		),
 	)
 
 	basePath := r.Group("/api/v1/market")
 	basePath.Use(middleware.CheckJWTAuthorizationToken())
 	{
+		basePath.GET("/", cnt.Market)
 		basePath.POST("/bugscoin/buy", cnt.BuyBugscoin)
-		basePath.GET("/gacha/:gacha_id/buy", nil)
+		basePath.GET("/gacha/:gacha_id/buy", cnt.BuyGacha)
 
 		auctionPath := r.Group("/auction")
 		{

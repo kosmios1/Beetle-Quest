@@ -1,74 +1,74 @@
 http:
-  routers:
-    oauth2-server:
-      rule: "PathPrefix(`/oauth2`)"
-      entryPoints:
-        - web
-      service: oauth2-server
-      priority: 1
+    routers:
+        oauth2-server:
+            rule: "PathPrefix(`/oauth2`)"
+            entryPoints:
+                - web
+            service: oauth2-server
+            priority: 1
 
-    auth-service:
-      rule: "PathPrefix(`/api/v1/auth`)"
-      entryPoints:
-        - web
-      service: auth-service
-      priority: 1
+        auth-service:
+            rule: "PathPrefix(`/api/v1/auth`)"
+            entryPoints:
+                - web
+            service: auth-service
+            priority: 1
 
-    user-service:
-      rule: "PathPrefix(`/api/v1/user`)"
-      entryPoints:
-        - web
-      service: user-service
-      priority: 1
+        user-service:
+            rule: "PathPrefix(`/api/v1/user`)"
+            entryPoints:
+                - web
+            service: user-service
+            priority: 1
 
-    gacha-service:
-      rule: "PathPrefix(`/api/v1/gacha`)"
-      entryPoints:
-        - web
-      service: gacha-service
-      priority: 1
+        gacha-service:
+            rule: "PathPrefix(`/api/v1/gacha`)"
+            entryPoints:
+                - web
+            service: gacha-service
+            priority: 1
 
-    static-service:
-      rule: "PathPrefix(`/static`)"
-      entryPoints:
-        - web
-      service: static-service
-      priority: 1
+        static-service:
+            rule: "PathPrefix(`/static`)"
+            entryPoints:
+                - web
+            service: static-service
+            priority: 1
 
-    # market-service:
-    #   rule: "PathPrefix(`/api/v1/market`)"
-    #   entryPoints:
-    #     - web
-    #   service: market-service
-    #   priority: 1
+        market-service:
+            rule: "PathPrefix(`/api/v1/market`)"
+            entryPoints:
+                - web
+            service: market-service
+            priority: 1
 
-  services:
-    oauth2-server:
-      loadBalancer:
-        servers:
-          - url: "http://oauth2-server:8080"
+    services:
+        oauth2-server:
+            loadBalancer:
+                servers:
+                    - url: "http://oauth2-server:8080"
 
-    auth-service:
-      loadBalancer:
-        servers:
-          - url: "http://auth-service:8080"
+        auth-service:
+            loadBalancer:
+                servers:
+                    - url: "http://auth-service:8080"
 
-    user-service:
-      loadBalancer:
-        servers:
-          - url: "http://user-service:8080"
+        user-service:
+            loadBalancer:
+                servers:
+                    - url: "http://user-service:8080"
 
-    gacha-service:
-      loadBalancer:
-        servers:
-          - url: "http://gacha-service:8080"
+        gacha-service:
+            loadBalancer:
+                servers:
+                    - url: "http://gacha-service:8080"
 
-    static-service:
-      loadBalancer:
-        servers:
-          - url: "http://static-service:8080"
+        static-service:
+            loadBalancer:
+                servers:
+                    - url: "http://static-service:8080"
 
-    # market-service:
-    #   loadBalancer:
-    #     servers:
-    #       - url: "http://market-service:8080"
+        market-service:
+            loadBalancer:
+                servers:
+                    - url: "http://market-service:8080"

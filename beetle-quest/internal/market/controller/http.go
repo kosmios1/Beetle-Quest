@@ -16,26 +16,55 @@ func NewMarketController(srv *service.MarketService) *MarketController {
 	return &MarketController{srv: srv}
 }
 
+func (c *MarketController) Market(ctx *gin.Context) {
+	ctx.HTML(http.StatusOK, "market.tmpl", gin.H{"userID": ctx.MustGet("userID")})
+}
+
 func (c *MarketController) BuyBugscoin(ctx *gin.Context) {
 	var buyBugscoinRequest models.BuyBugscoinRequest
-	if err := ctx.ShouldBindJSON(buyBugscoinRequest); err != nil {
-		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"error": err.Error()})
+	if err := ctx.ShouldBindJSON(&buyBugscoinRequest); err != nil {
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "wrong request format!"})
+		ctx.Abort()
 		return
 	}
 
-	// TODO: Steps to implement
-	// -. Receive amount of bugscoin to add
-	// 2. Get user_id by the gin context
-	// 3. Call userRepo to add bugscoin to the user
+	userId, ok := ctx.Get("user_id")
+	if !ok {
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "user_id not correct!"})
+		ctx.Abort()
+		return
+	}
+
+	if err := c.srv.AddBugsCoin(userId.(string), buyBugscoinRequest.Amount); err != nil {
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
+		ctx.Abort()
+		return
+	}
+	ctx.HTML(http.StatusOK, "successMsg.tmpl", gin.H{"Message": "Bugscoin added successfully"})
 }
 
 func (c *MarketController) BuyGacha(ctx *gin.Context) {
-	// TODO: Steps to implement
-	// 1. Receive the gacha's id to buy
-	// 2. Get user_id by the gin context
-	// 3. Check gacha's price - user's bugscoin > 0
-	// 4. Subtract gacha's price from user's bugscoin
-	// 5. Add gacha to user's inventory
+	gachaId := ctx.Param("gacha_id")
+	if gachaId == "" {
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "gacha_id not correct!"})
+		ctx.Abort()
+		return
+	}
+
+	userId, ok := ctx.Get("user_id")
+	if !ok {
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "user_id not correct!"})
+		ctx.Abort()
+		return
+	}
+
+	if err := c.srv.BuyGacha(userId.(string), gachaId); err != nil {
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
+		ctx.Abort()
+		return
+	}
+
+	ctx.HTML(http.StatusOK, "successMsg.tmpl", gin.H{"Message": "Gacha bought successfully"})
 }
 
 func (c *MarketController) CreateAuction(ctx *gin.Context) {

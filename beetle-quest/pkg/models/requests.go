@@ -31,6 +31,35 @@ type UpdateUserAccountDetailsRequest struct {
 	NewPassword string `json:"new_password"`
 }
 
+// Gacha =====================================
+
+type GetGachaDetailsResponse struct {
+	GachaID   string `json:"gacha_id"`
+	Name      string `json:"name"`
+	Rarity    string `json:"rarity"`
+	Price     int64  `json:"price"`
+	ImagePath string `json:"image_path"`
+}
+
+type GetGachaListResponse struct {
+	Gachas []GetGachaDetailsResponse `json:"gachas"`
+}
+
+// Market ===================================
+type BuyBugscoinRequest struct {
+	Amount int64 `json:"amount"`
+}
+
+type CreateAuctionRequest struct {
+	GachaID string `json:"gacha_id"`
+	EndTime string `json:"end_time"`
+}
+
+// ============================================
+// Internal models
+// ============================================
+
+// User
 type CreateUserData struct {
 	Email          string `json:"email"`
 	Username       string `json:"username"`
@@ -46,27 +75,16 @@ type FindUserByUsernameData struct {
 	Username string `json:"username"`
 }
 
-// Gacha =====================================
-
-type GetGachaDetailsResponse struct {
-	GachaID   string `json:"gacha_id"`
-	Name      string `json:"name"`
-	Rarity    string `json:"rarity"`
-	Price     uint64 `json:"price"`
-	ImagePath string `json:"image_path"`
+type FindUserByEmailData struct {
+	Email string `json:"email"`
 }
 
-type GetGachaListResponse struct {
-	Gachas []GetGachaDetailsResponse `json:"gachas"`
+// Gacha
+type AddGachaToUserData struct {
+	UserID  UUID `json:"user_id"`
+	GachaID UUID `json:"gacha_id"`
 }
 
-// Auction ===================================
-
-type BuyBugscoinRequest struct {
-	Amount uint64 `json:"amount"`
-}
-
-type CreateAuctionRequest struct {
-	GachaUUID string `json:"gacha_uuid"`
-	EndTime   string `json:"end_time"`
+type FindGachaByIDData struct {
+	GachaID string `json:"gacha_id"`
 }

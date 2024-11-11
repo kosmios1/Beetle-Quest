@@ -11,9 +11,13 @@ import (
 )
 
 var (
-	createUserEndpoint         string = utils.FindEnv("CREATE_USER_ENDPOINT")
+	createUserEndpoint string = utils.FindEnv("CREATE_USER_ENDPOINT")
+	updateUserEndpoint string = utils.FindEnv("UPDATE_USER_ENDPOINT")
+	deleteUserEndpoint string = utils.FindEnv("DELETE_USER_ENDPOINT")
+
 	findUserByIDEndpoint       string = utils.FindEnv("FIND_USER_BY_ID_ENDPOINT")
 	findUserByUsernameEndpoint string = utils.FindEnv("FIND_USER_BY_USERNAME_ENDPOINT")
+	findUserByEmailEndpoint    string = utils.FindEnv("FIND_USER_BY_EMAIL_ENDPOINT")
 )
 
 type UserRepo struct {
@@ -63,6 +67,41 @@ func (r UserRepo) Create(email, username string, hashedPassword []byte, currency
 	} else {
 		return true
 	}
+}
+
+func (r UserRepo) Update(user *models.User) bool {
+	jsonData, err := json.Marshal(user)
+	if err != nil {
+		return false
+	}
+
+	resp, err := r.cb.Execute(func() (*http.Response, error) {
+		resp, err := http.Post(
+			updateUserEndpoint,
+			"application/json",
+			bytes.NewBuffer(jsonData),
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		return resp, nil
+	})
+	defer resp.Body.Close()
+
+	if err != nil {
+		return false
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return false
+	}
+	return true
+}
+
+func (r UserRepo) Delete(user *models.User) bool {
+	return false
 }
 
 func (r UserRepo) FindByID(id models.UUID) (*models.User, bool) {
@@ -149,15 +188,44 @@ func (r UserRepo) FindByUsername(username string) (*models.User, bool) {
 	return &user, true
 }
 
-// NOTE: Never necessary, so not implemented
 func (r UserRepo) FindByEmail(email string) (*models.User, bool) {
-	return nil, false
-}
+	requestData := models.FindUserByEmailData{
+		Email: email,
+	}
 
-func (r UserRepo) Update(user *models.User) bool {
-	return false
-}
+	jsonData, err := json.Marshal(requestData)
+	if err != nil {
+		return nil, false
+	}
 
-func (r UserRepo) Delete(user *models.User) bool {
-	return false
+	resp, err := r.cb.Execute(func() (*http.Response, error) {
+		resp, err := http.Post(
+			findUserByEmailEndpoint,
+			"application/json",
+			bytes.NewBuffer(jsonData),
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		return resp, nil
+	})
+	defer resp.Body.Close()
+
+	if err != nil {
+		return nil, false
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, false
+	}
+
+	var user models.User
+	err = json.NewDecoder(resp.Body).Decode(&user)
+	if err != nil {
+		return nil, false
+	}
+
+	return &user, true
 }

@@ -3,7 +3,6 @@ package repository
 import (
 	"beetle-quest/pkg/models"
 	"beetle-quest/pkg/utils"
-	"errors"
 	"net/http"
 
 	"github.com/sony/gobreaker/v2"
@@ -17,16 +16,16 @@ type AuctionRepo struct {
 	cb *gobreaker.CircuitBreaker[*http.Response]
 }
 
-func NewAuctionRepo() *AuctionRepo {
+func NewGachaRepo() *AuctionRepo {
 	return &AuctionRepo{
 		cb: gobreaker.NewCircuitBreaker[*http.Response](gobreaker.Settings{}),
 	}
 }
 
-func (a AuctionRepo) FindByID(models.UUID) (*models.Auction, bool) {
+func (r AuctionRepo) FindByID(aid models.UUID) (*models.Auction, bool) {
 	return nil, false
 }
 
-func (a AuctionRepo) AddAuction(*models.Auction) error {
-	return errors.New("Not implemented")
+func (r AuctionRepo) AddAuction(auction *models.Auction) error {
+	return nil
 }

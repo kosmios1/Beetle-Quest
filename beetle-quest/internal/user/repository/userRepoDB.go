@@ -13,7 +13,7 @@ import (
 )
 
 type UserRepo struct {
-	DB *gorm.DB
+	db *gorm.DB
 }
 
 var (
@@ -27,10 +27,6 @@ var (
 )
 
 func NewUserRepo() *UserRepo {
-	if dbHost == "" || dbUserName == "" || dbUserPassword == "" || dbName == "" || dbPort == "" || dbSSLMode == "" || dbTimeZone == "" {
-		log.Fatalf("Either POSTGRES_HOST, POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB, POSTGRES_PORT, POSTGRES_SSLMODE or POSTGRES_TIMEZONE is not set")
-	}
-
 	var repo = &UserRepo{}
 	for {
 		dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s timezone=%s", dbHost, dbUserName, dbUserPassword, dbName, dbPort, dbSSLMode, dbTimeZone)
@@ -39,13 +35,13 @@ func NewUserRepo() *UserRepo {
 			log.Printf("Failed to connect to the Database: %v", err)
 			time.Sleep(1 * time.Second)
 		} else {
-			repo.DB = db
+			repo.db = db
 			break
 		}
 	}
 
 	// This will create the table if it does not exist and will keep the schema updated
-	err := repo.DB.AutoMigrate(&models.User{})
+	err := repo.db.AutoMigrate(&models.User{})
 	if err != nil {
 		log.Printf("Failed to migrate the database: %v", err)
 	}
@@ -54,7 +50,7 @@ func NewUserRepo() *UserRepo {
 }
 
 func (r UserRepo) Create(email, username string, hashedPassword []byte, currency int64) bool {
-	result := r.DB.Create(&models.User{
+	result := r.db.Table("users").Create(&models.User{
 		Username:     username,
 		Email:        email,
 		PasswordHash: hashedPassword,
@@ -63,7 +59,7 @@ func (r UserRepo) Create(email, username string, hashedPassword []byte, currency
 
 	if result.Error != nil {
 		if strings.Contains(result.Error.Error(), "duplicate key") {
-			// User with that email/Username already exists
+			// TODO: Maybe return error
 			return false
 		}
 		// result.Error.Error()
@@ -73,7 +69,7 @@ func (r UserRepo) Create(email, username string, hashedPassword []byte, currency
 }
 
 func (r UserRepo) Update(user *models.User) bool {
-	result := r.DB.Save(user)
+	result := r.db.Table("users").Save(user)
 	if result.Error != nil {
 		return false
 	}
@@ -81,7 +77,7 @@ func (r UserRepo) Update(user *models.User) bool {
 }
 
 func (r UserRepo) Delete(user *models.User) bool {
-	result := r.DB.Delete(user)
+	result := r.db.Table("users").Delete(user)
 	if result.Error != nil {
 		return false
 	}
@@ -90,7 +86,7 @@ func (r UserRepo) Delete(user *models.User) bool {
 
 func (r UserRepo) FindByUsername(username string) (*models.User, bool) {
 	var user models.User
-	result := r.DB.First(&user, models.User{Username: username})
+	result := r.db.Table("users").First(&user, models.User{Username: username})
 	if result.Error != nil {
 		// No user with that username exists
 		return nil, false
@@ -100,7 +96,7 @@ func (r UserRepo) FindByUsername(username string) (*models.User, bool) {
 
 func (r UserRepo) FindByID(id models.UUID) (*models.User, bool) {
 	var user models.User
-	result := r.DB.First(&user, models.User{UserID: id})
+	result := r.db.Table("users").First(&user, models.User{UserID: id})
 	if result.Error != nil {
 		return nil, false
 	}
@@ -109,7 +105,7 @@ func (r UserRepo) FindByID(id models.UUID) (*models.User, bool) {
 
 func (r UserRepo) FindByEmail(email string) (*models.User, bool) {
 	var user models.User
-	result := r.DB.First(&user, models.User{Email: email})
+	result := r.db.Table("users").First(&user, models.User{Email: email})
 	if result.Error != nil {
 		// No user with that email exists
 		return nil, false

@@ -50,8 +50,8 @@ func (c *GachaController) GetGachaDetails(ctx *gin.Context) {
 		return
 	}
 
-	gacha, err := c.srv.FindByID(id)
-	if err != nil {
+	gacha, ok := c.srv.FindByID(id)
+	if !ok {
 		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": models.ErrGachaNotFound})
 		return
 	}
@@ -63,4 +63,38 @@ func (c *GachaController) GetGachaDetails(ctx *gin.Context) {
 		Price:     gacha.Price,
 		ImagePath: gacha.ImagePath,
 	})
+}
+
+// Internal API ============================================================================================================
+
+func (c *GachaController) AddGachaToUser(ctx *gin.Context) {
+	var data models.AddGachaToUserData
+	if err := ctx.ShouldBindJSON(&data); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "Invalid data submitted!"})
+		return
+	}
+
+	if err := c.srv.AddGachaToUser(data.UserID, data.GachaID); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Error": err.Error()})
+		return
+	}
+
+	ctx.Status(http.StatusOK)
+}
+
+func (c *GachaController) FindByID(ctx *gin.Context) {
+	var req models.FindGachaByIDData
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "Wrong inputs passed to the request!"})
+		ctx.Abort()
+		return
+	}
+
+	gacha, ok := c.srv.FindByID(req.GachaID)
+	if !ok {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": models.ErrGachaNotFound})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gacha)
 }

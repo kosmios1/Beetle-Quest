@@ -41,5 +41,11 @@ func main() {
 		basePath.GET("/:gacha_id", cnt.GetGachaDetails)
 	}
 
+	internalPath := r.Group("/api/v1/internal/gacha")
+	{
+		internalPath.POST("/add_gacha_to_user", cnt.AddGachaToUser)
+		internalPath.POST("/find_by_id", cnt.FindByID)
+	}
+
 	r.Run()
 }

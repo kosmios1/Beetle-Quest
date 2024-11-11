@@ -87,6 +87,10 @@ func (s *UserService) Create(email, username string, hashedPassword []byte, curr
 	return s.repo.Create(email, username, hashedPassword, currency)
 }
 
+func (s *UserService) Update(user *models.User) bool {
+	return s.repo.Update(user)
+}
+
 func (s *UserService) FindByID(userId string) (*models.User, bool) {
 	id, err := utils.ParseUUID(userId)
 	if err != nil {

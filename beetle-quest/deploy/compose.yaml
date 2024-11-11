@@ -79,7 +79,10 @@ services:
             OAUTH2_VERIFY_TOKEN_ENDPOINT: http://oauth2-server:8080/oauth2/token/verify
 
             CREATE_USER_ENDPOINT: http://user-service:8080/api/v1/internal/user/create
+            UPDATE_USER_ENDPOINT: http://user-service:8080/api/v1/internal/user/update
+            DELETE_USER_ENDPOINT: http://user-service:8080/api/v1/internal/user/delete
             FIND_USER_BY_ID_ENDPOINT: http://user-service:8080/api/v1/internal/user/find_by_id
+            FIND_USER_BY_EMAIL_ENDPOINT: http://user-service:8080/api/v1/internal/user/find_by_email
             FIND_USER_BY_USERNAME_ENDPOINT: http://user-service:8080/api/v1/internal/user/find_by_username
 
     user-service:
@@ -118,23 +121,34 @@ services:
         environment:
             <<: [*common-services-environments, *gacha-db-environments]
 
-    # market-service:
-    #     build:
-    #         context: ../
-    #         dockerfile: deploy/market/Dockerfile
-    #         args:
-    #             <<: *services-go-build-flags
-    #     networks:
-    #         - internal
-    #     deploy:
-    #         # mode: replicated
-    #         # replicas: 2
-    #         resources:
-    #             limits:
-    #                 cpus: "1"
-    #                 memory: 50M
-    #     environment:
-    #         <<: [*common-services-environments]
+    market-service:
+        build:
+            context: ../
+            dockerfile: deploy/market/Dockerfile
+            args:
+                <<: *services-go-build-flags
+        networks:
+            - internal
+        deploy:
+            # mode: replicated
+            # replicas: 2
+            resources:
+                limits:
+                    cpus: "1"
+                    memory: 50M
+        environment:
+            <<: [*common-services-environments]
+
+            CREATE_USER_ENDPOINT: http://user-service:8080/api/v1/internal/user/create
+            UPDATE_USER_ENDPOINT: http://user-service:8080/api/v1/internal/user/update
+            DELETE_USER_ENDPOINT: http://user-service:8080/api/v1/internal/user/delete
+            FIND_USER_BY_ID_ENDPOINT: http://user-service:8080/api/v1/internal/user/find_by_id
+            FIND_USER_BY_EMAIL_ENDPOINT: http://user-service:8080/api/v1/internal/user/find_by_email
+            FIND_USER_BY_USERNAME_ENDPOINT: http://user-service:8080/api/v1/internal/user/find_by_username
+
+            GET_ALL_GACHA_ENDPOINT: http://gacha-service:8080/api/v1/internal/gacha/get_all
+            FIND_GACHA_BY_ID_ENDPOINT: http://gacha-service:8080/api/v1/internal/gacha/find_by_id
+            ADD_GACHA_TO_USER_ENDPOINT: http://gacha-service:8080/api/v1/internal/gacha/add_gacha_to_user
 
     static-service:
         build:

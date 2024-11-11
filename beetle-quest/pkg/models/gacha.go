@@ -18,6 +18,6 @@ type Gacha struct {
 	GachaID   UUID   `json:"gacha_id"`
 	Name      string `json:"name"`
 	Rarity    Rarity `json:"rarity"`
-	Price     uint64 `json:"price"`
+	Price     int64  `json:"price"`
 	ImagePath string `json:"image_path"`
 }

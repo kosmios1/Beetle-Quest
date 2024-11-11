@@ -7,7 +7,6 @@ func (e constError) Error() string {
 }
 
 const (
-	// Services errors
 	ErrInternalServerError          constError = "internal server error"
 	ErrInvalidEndTime               constError = "invalid end time"
 	ErrInvalidUserID                constError = "invalid user id"
@@ -24,8 +23,10 @@ const (
 	ErrCouldNotUpdate               constError = "could not update user"
 	ErrUsernameAlreadyExists        constError = "username already exists"
 	ErrEmailAlreadyExists           constError = "email already exists"
+	ErrAmountNotValid               constError = "amount not valid"
+	ErrNotEnoughMoneyToBuyGacha     constError = "not enough money to buy gacha"
+	ErrCouldNotAddGachaToUser       constError = "could not add gacha to user"
 
-	// Controllers errors
 	ErrCouldNotParseTime          constError = "time format not correct"
 	ErrCouldNotDecodeUserID       constError = "could not decode user id"
 	ErrCouldNotDecodeGachaID      constError = "could not decode gacha id"
@@ -35,7 +36,9 @@ const (
 	ErrInvalidGachaID constError = "invalid gacha id"
 	ErrGachaNotFound  constError = "gacha not found"
 
-	// Repositories errors
 	ErrAuctionNotFound       constError = "auction not found"
 	ErrAuctionAltreadyExists constError = "auction already exists"
+
+	// Internal api errors
+	ErrCouldNotBuyGacha constError = "internal: could not buy gacha (db)"
 )
