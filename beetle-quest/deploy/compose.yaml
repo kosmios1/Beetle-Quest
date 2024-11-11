@@ -19,6 +19,7 @@ x-gacha-db-environments: &gacha-db-environments
     POSTGRES_DB: beetle-quest-main-db
 
 x-common-services-environments: &common-services-environments
+    GOMAXPROCS: 1
     LOG_LEVEL: debug
     GIN_MODE: release
     JWT_SECRET_KEY: e6df59f91871f2229a0296c6b5ffaf44cef6af30cd05057857b9f0a74b0d28c1
@@ -52,25 +53,6 @@ services:
             - ./traefik/rules.yml:/etc/traefik/rules.yml:ro
 
     # MICROSERVICES SECTION =============================================================================================================================================================================
-
-    oauth2-server:
-        build:
-            context: ../
-            dockerfile: deploy/oauth2/Dockerfile
-            args:
-                <<: *services-go-build-flags
-        networks:
-            - oauth2
-        environment:
-            <<: [*common-services-environments, *common-oauth2-environments]
-            OAUTH2_CLIENT_DOMAIN: http://auth-service
-
-            REDIS_HOST: oauth2-redis
-            REDIS_PORT: 6379
-            REDIS_USERNAME: beetle
-            REDIS_PASSWORD: secret
-            REDIS_DB: 0
-
     auth-service:
         build:
             context: ../
@@ -80,6 +62,13 @@ services:
         networks:
             - internal
             - oauth2
+        deploy:
+            # mode: replicated
+            # replicas: 2
+            resources:
+                limits:
+                    cpus: "1"
+                    memory: 50M
         environment:
             <<: [*common-oauth2-environments, *common-services-environments]
             OAUTH2_REDIRECT_URL: http://localhost/api/v1/auth/oauth2
@@ -101,6 +90,13 @@ services:
                 <<: *services-go-build-flags
         networks:
             - internal
+        deploy:
+            # mode: replicated
+            # replicas: 2
+            resources:
+                limits:
+                    cpus: "1"
+                    memory: 50M
         environment:
             <<: [*common-services-environments, *user-db-environments]
 
@@ -112,8 +108,33 @@ services:
                 <<: *services-go-build-flags
         networks:
             - internal
+        deploy:
+            # mode: replicated
+            # replicas: 2
+            resources:
+                limits:
+                    cpus: "1"
+                    memory: 50M
         environment:
             <<: [*common-services-environments, *gacha-db-environments]
+
+    # market-service:
+    #     build:
+    #         context: ../
+    #         dockerfile: deploy/market/Dockerfile
+    #         args:
+    #             <<: *services-go-build-flags
+    #     networks:
+    #         - internal
+    #     deploy:
+    #         # mode: replicated
+    #         # replicas: 2
+    #         resources:
+    #             limits:
+    #                 cpus: "1"
+    #                 memory: 50M
+    #     environment:
+    #         <<: [*common-services-environments]
 
     static-service:
         build:
@@ -123,8 +144,41 @@ services:
                 <<: *services-go-build-flags
         networks:
             - internal
+        deploy:
+            # mode: replicated
+            # replicas: 2
+            resources:
+                limits:
+                    cpus: "1"
+                    memory: 50M
         environment:
             <<: [*common-services-environments]
+
+    # OAUTH2 SECTION ======================================================================================================================================================================================
+    oauth2-server:
+        build:
+            context: ../
+            dockerfile: deploy/oauth2/Dockerfile
+            args:
+                <<: *services-go-build-flags
+        networks:
+            - oauth2
+        deploy:
+            # mode: replicated
+            # replicas: 2
+            resources:
+                limits:
+                    cpus: "1"
+                    memory: 50M
+        environment:
+            <<: [*common-services-environments, *common-oauth2-environments]
+            OAUTH2_CLIENT_DOMAIN: http://auth-service
+
+            REDIS_HOST: oauth2-redis
+            REDIS_PORT: 6379
+            REDIS_USERNAME: beetle
+            REDIS_PASSWORD: secret
+            REDIS_DB: 0
 
     # DB SERVICES SECTION ===============================================================================================================================================================================
     oauth2-redis:

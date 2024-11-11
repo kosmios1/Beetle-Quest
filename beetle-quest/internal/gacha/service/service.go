@@ -10,8 +10,8 @@ type GachaService struct {
 	gachaRepo repositories.GachaRepo
 }
 
-func NewGachaService(repo repositories.GachaRepo) GachaService {
-	return GachaService{
+func NewGachaService(repo repositories.GachaRepo) *GachaService {
+	return &GachaService{
 		gachaRepo: repo,
 	}
 }

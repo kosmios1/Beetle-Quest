@@ -9,12 +9,12 @@ import (
 )
 
 type GachaController struct {
-	service.GachaService
+	srv *service.GachaService
 }
 
-func NewGachaController(s service.GachaService) GachaController {
-	return GachaController{
-		GachaService: s,
+func NewGachaController(s *service.GachaService) *GachaController {
+	return &GachaController{
+		srv: s,
 	}
 }
 
@@ -23,7 +23,7 @@ func (c *GachaController) Roll(ctx *gin.Context) {
 }
 
 func (c *GachaController) List(ctx *gin.Context) {
-	gachas, ok := c.GachaService.GetAll()
+	gachas, ok := c.srv.GetAll()
 	if !ok {
 		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": models.ErrGachaNotFound})
 		return
@@ -50,7 +50,7 @@ func (c *GachaController) GetGachaDetails(ctx *gin.Context) {
 		return
 	}
 
-	gacha, err := c.FindByID(id)
+	gacha, err := c.srv.FindByID(id)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": models.ErrGachaNotFound})
 		return

@@ -17,8 +17,8 @@ type AuctionRepo struct {
 	cb *gobreaker.CircuitBreaker[*http.Response]
 }
 
-func NewAuctionRepo() AuctionRepo {
-	return AuctionRepo{
+func NewAuctionRepo() *AuctionRepo {
+	return &AuctionRepo{
 		cb: gobreaker.NewCircuitBreaker[*http.Response](gobreaker.Settings{}),
 	}
 }

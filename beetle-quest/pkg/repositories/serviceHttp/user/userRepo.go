@@ -20,8 +20,8 @@ type UserRepo struct {
 	cb *gobreaker.CircuitBreaker[*http.Response]
 }
 
-func NewUserRepo() UserRepo {
-	return UserRepo{
+func NewUserRepo() *UserRepo {
+	return &UserRepo{
 		cb: gobreaker.NewCircuitBreaker[*http.Response](gobreaker.Settings{}),
 	}
 }

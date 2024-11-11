@@ -18,11 +18,11 @@ var (
 
 type AuthService struct {
 	userRepo   repositories.UserRepo
-	oauth2Repo repository.Oauth2Repo
+	oauth2Repo *repository.Oauth2Repo
 }
 
-func NewAuthService(userRepo repositories.UserRepo, oauth2Repo repository.Oauth2Repo) AuthService {
-	return AuthService{
+func NewAuthService(userRepo repositories.UserRepo, oauth2Repo *repository.Oauth2Repo) *AuthService {
+	return &AuthService{
 		userRepo:   userRepo,
 		oauth2Repo: oauth2Repo,
 	}

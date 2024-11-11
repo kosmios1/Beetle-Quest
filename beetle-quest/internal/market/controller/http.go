@@ -9,7 +9,11 @@ import (
 )
 
 type MarketController struct {
-	service.MarketService
+	srv *service.MarketService
+}
+
+func NewMarketController(srv *service.MarketService) *MarketController {
+	return &MarketController{srv: srv}
 }
 
 func (c *MarketController) BuyBugscoin(ctx *gin.Context) {

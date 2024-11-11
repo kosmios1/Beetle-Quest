@@ -17,8 +17,8 @@ type GachaRepo struct {
 	cb *gobreaker.CircuitBreaker[*http.Response]
 }
 
-func NewGachaRepo() GachaRepo {
-	return GachaRepo{
+func NewGachaRepo() *GachaRepo {
+	return &GachaRepo{
 		cb: gobreaker.NewCircuitBreaker[*http.Response](gobreaker.Settings{}),
 	}
 }

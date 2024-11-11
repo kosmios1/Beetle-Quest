@@ -33,8 +33,8 @@ var (
 	verifyTokenEndpoint string = utils.FindEnv("OAUTH2_VERIFY_TOKEN_ENDPOINT")
 )
 
-func NewOauth2Repo() Oauth2Repo {
-	return Oauth2Repo{
+func NewOauth2Repo() *Oauth2Repo {
+	return &Oauth2Repo{
 		cb:      gobreaker.NewCircuitBreaker[*http.Response](gobreaker.Settings{}),
 		authCb:  gobreaker.NewCircuitBreaker[string](gobreaker.Settings{}),
 		tokenCb: gobreaker.NewCircuitBreaker[*oauth2.Token](gobreaker.Settings{}),

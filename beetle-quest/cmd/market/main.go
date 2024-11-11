@@ -4,11 +4,12 @@ import (
 	"beetle-quest/internal/market/controller"
 	"beetle-quest/internal/market/service"
 	"beetle-quest/pkg/middleware"
+
+	"github.com/gin-gonic/gin"
+
 	arepo "beetle-quest/pkg/repositories/serviceHttp/auction"
 	grepo "beetle-quest/pkg/repositories/serviceHttp/gacha"
 	urepo "beetle-quest/pkg/repositories/serviceHttp/user"
-
-	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -31,13 +32,13 @@ func main() {
 
 	r.LoadHTMLGlob("templates/*")
 
-	cnt := controller.MarketController{
-		MarketService: service.MarketService{
-			UserRepo:    urepo.NewUserRepo(),
-			GachaRepo:   grepo.NewGachaRepo(),
-			AuctionRepo: arepo.NewAuctionRepo(),
-		},
-	}
+	cnt := controller.NewMarketController(
+		service.NewMarketService(
+			urepo.NewUserRepo(),
+			grepo.NewGachaRepo(),
+			arepo.NewAuctionRepo(),
+		),
+	)
 
 	basePath := r.Group("/api/v1/market")
 	basePath.Use(middleware.CheckJWTAuthorizationToken())

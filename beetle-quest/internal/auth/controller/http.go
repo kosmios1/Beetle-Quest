@@ -10,11 +10,11 @@ import (
 )
 
 type AuthController struct {
-	srv service.AuthService
+	srv *service.AuthService
 }
 
-func NewAuthController(srv service.AuthService) AuthController {
-	return AuthController{
+func NewAuthController(srv *service.AuthService) *AuthController {
+	return &AuthController{
 		srv: srv,
 	}
 }
