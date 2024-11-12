@@ -8,14 +8,12 @@
                 <p>Gacha: {{ .GachaName }}</p>
                 <p>Start Time: {{.StartTime.Format "Jan 2, 2006 15:04 MST"}}</p>
                 <p>End Time: {{.EndTime.Format "Jan 2, 2006 15:04 MST"}}</p>
-                <p>Current Winner ID: {{ .WinnerID }}</p>
+                <p>Winner ID: {{ .WinnerID }}</p>
             </div>
             <img src="{{ .ImagePath }}" alt="{{ .GachaName }}" class="auction-image" />
         </div>
         <div>
-            <div class="auction-buttons">
-                <button class="buy-button">Place Bid</button>
-            </div>
+            <button hx-get="/api/v1/market/auction/{{ .AuctionID }}" hx-target="#app-content" hx-target-4xx="#notification-popup" hx-target-5*="#notification-popup" hx-swap="innerHTML" hx-trigger="click">View Details</button>
         </div>
     </div>
     {{end}}

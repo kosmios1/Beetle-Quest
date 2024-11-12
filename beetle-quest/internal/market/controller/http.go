@@ -109,7 +109,7 @@ func (c *MarketController) CreateAuction(ctx *gin.Context) {
 }
 
 func (c *MarketController) AuctionList(ctx *gin.Context) {
-	auctions, err := c.srv.GetAuctions()
+	auctions, err := c.srv.RetrieveAuctionTemplateList()
 	if err != nil {
 		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 		ctx.Abort()
@@ -120,10 +120,35 @@ func (c *MarketController) AuctionList(ctx *gin.Context) {
 }
 
 func (c *MarketController) AuctionDetail(ctx *gin.Context) {
-	// TODO: Steps to implement
-	// 1. Get auction's id
-	// 2. Get auction's detail
-	// 3. Return auction's detail
+	auctionId := ctx.Param("auction_id")
+	if auctionId == "" {
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": models.ErrInvalidData})
+		ctx.Abort()
+		return
+	}
+
+	auction, exists := c.srv.FindByID(auctionId)
+	if !exists {
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": models.ErrAuctionNotFound})
+		ctx.Abort()
+		return
+	}
+
+	bids, ok := c.srv.GetBidListOfAuctionID(auctionId)
+	if !ok {
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": models.ErrBidsNotFound})
+		ctx.Abort()
+		return
+	}
+
+	data := struct {
+		Auction *models.Auction
+		Bids    []models.Bid
+	}{
+		Auction: auction,
+		Bids:    bids,
+	}
+	ctx.HTML(http.StatusOK, "auctionDetails.tmpl", data)
 }
 
 func (c *MarketController) AuctionDelete(ctx *gin.Context) {
@@ -134,7 +159,9 @@ func (c *MarketController) AuctionDelete(ctx *gin.Context) {
 	// 4. Check that the auction is not expired
 	// 5. Check that no one bid to the auction
 	// 6. Check that the auction is open less than x time
-	// 7. Delete the auction
+	// 7. Refund the bidders
+	// 8. Delete the auction
+
 }
 
 func (c *MarketController) BidToAuction(ctx *gin.Context) {

@@ -145,7 +145,7 @@ func (s *MarketService) CreateAuction(userId, gachaId string, endTime time.Time)
 	return nil
 }
 
-func (s *MarketService) GetAuctions() ([]models.AuctionTemplate, error) {
+func (s *MarketService) RetrieveAuctionTemplateList() ([]models.AuctionTemplate, error) {
 	auctions, ok := s.arepo.GetAll()
 	if !ok {
 		return nil, models.ErrRetrievingAuctions
@@ -172,4 +172,30 @@ func (s *MarketService) GetAuctions() ([]models.AuctionTemplate, error) {
 	}
 
 	return data, nil
+}
+
+func (s *MarketService) FindByID(auctionId string) (*models.Auction, bool) {
+	aid, err := utils.ParseUUID(auctionId)
+	if err != nil {
+		return &models.Auction{}, false
+	}
+
+	auction, exists := s.arepo.FindByID(aid)
+	if !exists {
+		return &models.Auction{}, false
+	}
+	return auction, true
+}
+
+func (s *MarketService) GetBidListOfAuctionID(auctionId string) ([]models.Bid, bool) {
+	aid, err := utils.ParseUUID(auctionId)
+	if err != nil {
+		return []models.Bid{}, false
+	}
+
+	bids, ok := s.arepo.GetBidListOfAuction(aid)
+	if !ok {
+		return []models.Bid{}, false
+	}
+	return bids, true
 }

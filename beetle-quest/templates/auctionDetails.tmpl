@@ -1,0 +1,38 @@
+<div class="auction-details">
+    <h2>Auction Details</h2>
+    <p>Auction ID: {{ .Auction.AuctionID }}</p>
+    <p>Owner ID: {{ .Auction.OwnerID }}</p>
+    <p>Gacha ID: {{ .Auction.GachaID }}</p>
+    <p>Start Time: {{ .Auction.StartTime.Format "Jan 2, 2006 15:04 MST" }}</p>
+    <p>End Time: {{ .Auction.EndTime.Format "Jan 2, 2006 15:04 MST" }}</p>
+    <p>Winner ID: {{ .Auction.WinnerID }}</p>
+
+    <!-- Bids Section -->
+    <div class="bids-list">
+        <h3>Bids</h3>
+        {{ if .Bids }}
+        <ul>
+            {{ range .Bids }}
+            <li>
+                <p>Bid ID: {{ .UserID }}</p>
+                <p>Amount Spent: ${{ .AmountSpend }}</p>
+                <p>Time of Bid: {{ .TimeStamp.Format "Jan 2, 2006 15:04 MST" }}</p>
+            </li>
+            {{ end }}
+        </ul>
+        {{ else }}
+        <p>No bids have been placed yet.</p>
+        {{ end }}
+    </div>
+
+    <!-- Button to submit a bid -->
+    <form hx-post="/api/v1/bid" hx-include="input[name='auction_id']" hx-target=".auction-details" hx-swap="outerHTML">
+        <input type="hidden" name="auction_id" value="{{ .Auction.AuctionID }}">
+        <label for="amount">Bid Amount:</label>
+        <input type="number" name="amount" id="amount" required>
+        <button type="submit">Place Bid</button>
+    </form>
+    <!-- Button to go back to auction list -->
+    <a hx-get="/api/v1/market/auction/list" hx-target="#app-content" hx-target-4xx="#notification-popup" hx-target-5*="#notification-popup" hx-swap="innerHTML" hx-trigger="click">Market</a>
+
+</div>

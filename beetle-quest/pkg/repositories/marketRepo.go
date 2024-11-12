@@ -5,7 +5,11 @@ import (
 )
 
 type MarketRepo interface {
-	GetAll() ([]models.Auction, bool)
 	Create(*models.Auction) bool
+	Delete(*models.Auction) bool
+
+	GetAll() ([]models.Auction, bool)
+	GetBidListOfAuction(models.UUID) ([]models.Bid, bool)
+
 	FindByID(models.UUID) (*models.Auction, bool)
 }

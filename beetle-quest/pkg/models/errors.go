@@ -28,6 +28,7 @@ const (
 	ErrInvalidEndTime               constError = "invalid end time"
 	ErrCouldNotCreateAuction        constError = "could not create auction"
 	ErrRetrievingAuctions           constError = "could not retrieve auctions"
+	ErrBidsNotFound                 constError = "bids not found"
 
 	ErrCouldNotParseTime          constError = "time format not correct"
 	ErrCouldNotDecodeUserID       constError = "could not decode user id"
