@@ -22,10 +22,10 @@ func NewGachaRepo() *AuctionRepo {
 	}
 }
 
-func (r AuctionRepo) FindByID(aid models.UUID) (*models.Auction, bool) {
-	return nil, false
+func (r AuctionRepo) Create(auction *models.Auction) error {
+	return nil
 }
 
-func (r AuctionRepo) AddAuction(auction *models.Auction) error {
-	return nil
+func (r AuctionRepo) FindByID(aid models.UUID) (*models.Auction, bool) {
+	return nil, false
 }

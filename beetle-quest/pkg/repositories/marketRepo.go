@@ -4,7 +4,8 @@ import (
 	"beetle-quest/pkg/models"
 )
 
-type AuctionRepo interface {
-	AddAuction(*models.Auction) error
+type MarketRepo interface {
+	GetAll() ([]models.Auction, bool)
+	Create(*models.Auction) bool
 	FindByID(models.UUID) (*models.Auction, bool)
 }

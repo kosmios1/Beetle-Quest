@@ -8,7 +8,6 @@ func (e constError) Error() string {
 
 const (
 	ErrInternalServerError          constError = "internal server error"
-	ErrInvalidEndTime               constError = "invalid end time"
 	ErrInvalidUserID                constError = "invalid user id"
 	ErrInvalidAuctionID             constError = "invalid auction id"
 	ErrCouldNotGenerateAuction      constError = "could not generate auction"
@@ -26,12 +25,19 @@ const (
 	ErrAmountNotValid               constError = "amount not valid"
 	ErrNotEnoughMoneyToBuyGacha     constError = "not enough money to buy gacha"
 	ErrCouldNotAddGachaToUser       constError = "could not add gacha to user"
+	ErrInvalidEndTime               constError = "invalid end time"
+	ErrCouldNotCreateAuction        constError = "could not create auction"
+	ErrRetrievingAuctions           constError = "could not retrieve auctions"
 
 	ErrCouldNotParseTime          constError = "time format not correct"
 	ErrCouldNotDecodeUserID       constError = "could not decode user id"
 	ErrCouldNotDecodeGachaID      constError = "could not decode gacha id"
 	ErrCouldNotDecodeAuctionID    constError = "could not decode auction id"
 	ErrCouldNotFindResourceByUUID constError = "could not find resource by uuid"
+	ErrCouldNotRetrieveUserGachas constError = "could not retrieve user gachas"
+	ErrUserDoesNotOwnGacha        constError = "user does not own gacha"
+	ErrInvalidData                constError = "invalid data"
+	ErrInvalidTimeFormat          constError = "invalid time format"
 
 	ErrInvalidGachaID constError = "invalid gacha id"
 	ErrGachaNotFound  constError = "gacha not found"

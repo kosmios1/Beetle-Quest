@@ -60,8 +60,9 @@ label {
 input[type="text"],
 input[type="password"],
 input[type="email"],
-input[type="number"] {
-    width: 100%;
+input[type="number"],
+input[type="datetime-local"] {
+    width: 90%;
     padding: 8px;
     margin-bottom: 10px;
     border: 1px solid #ddd;
@@ -75,7 +76,7 @@ button {
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    width: 100%;
+    width: 95%;
 }
 
 button:hover {
@@ -90,7 +91,8 @@ button:hover {
     background-color: crimson;
 }
 
-.buy-button {
+.buy-button,
+.auction-button {
     background-color: #28a745; /* Green for buy action */
     color: white;
     padding: 10px 15px;
@@ -190,7 +192,7 @@ button:hover {
     padding: 15px;
     border-radius: 5px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    max-width: 200px;
+    min-width: 300px;
     margin: 5px;
 }
 
@@ -306,7 +308,7 @@ button:hover {
     justify-content: center;
 }
 
-/* Notification Popup Styling */
+/* =========================================================================== */
 .notification-popup {
     position: fixed;
     bottom: 20px;
@@ -325,4 +327,90 @@ button:hover {
 
 .notification-popup.hidden {
     display: none; /* Hide the notification when it’s cleared */
+}
+
+/* =========================================================================== */
+
+/* Auction List Styling */
+.auction-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5%;
+    margin: 4%;
+}
+
+.auction-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background-color: #f2f2f2;
+}
+
+.auction-info {
+    flex-grow: 1; /* Allows text block to fill space excluding the image */
+}
+
+.auction-info h3,
+.auction-info p {
+    margin: 5px 0;
+    color: #333; /* Dark text for better readability */
+}
+
+.auction-info p {
+    color: #555; /* Slightly lighter than the header for contrast */
+}
+
+.auction-info-img {
+    display: flex;
+}
+
+.auction-image {
+    width: 100px; /* Fixed width for the image */
+    height: 100px; /* Fixed height for the image */
+    margin-left: 15px; /* Space between text and image */
+    border-radius: 50%; /* Circular image */
+    border: 2px solid #000; /* Solid border around the image */
+}
+
+.auction-buttons button {
+    background-color: #0056b3; /* Blue background for primary action buttons */
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease-in-out; /* Smooth transition for hover effect */
+}
+
+.auction-buttons button:hover {
+    background-color: #004494; /* Darker blue on hover for interactive feedback */
+}
+
+/* Responsive Grid Adjustments */
+@media (max-width: 800px) {
+    .auction-list {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Adjust grid for smaller screens */
+    }
+}
+
+@media (max-width: 600px) {
+    .auction-list {
+        grid-template-columns: 1fr; /* Stack items vertically on very small screens */
+    }
+    .auction-item {
+        flex-direction: column; /* Stack information vertically on small devices */
+        align-items: center;
+    }
+    .auction-image {
+        margin-left: 0;
+        margin-top: 10px;
+    }
+}
+
+/* Highlight item on hover */
+.auction-item:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }

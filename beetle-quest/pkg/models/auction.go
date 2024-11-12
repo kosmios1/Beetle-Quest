@@ -13,11 +13,10 @@ type Auction struct {
 	EndTime   time.Time `json:"end_time"`
 
 	WinnerID UUID `json:"winner_id"`
-
-	Bids []*Bid `json:"bids"`
 }
 
 type Bid struct {
+	AuctionID   UUID      `json:"auction_id"`
 	UserID      UUID      `json:"owner_id"`
 	AmountSpend int64     `json:"amount_spend"`
 	TimeStamp   time.Time `json:"time_stamp"`

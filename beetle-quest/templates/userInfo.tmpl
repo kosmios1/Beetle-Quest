@@ -68,16 +68,21 @@
     <div>
         <h2 class="account-header">Own gachas</h2>
         <div class="gacha-account-list">
-        {{ range .GachaList }}
-        <div class="gacha-account-item {{ .Rarity }}">
-            <img src="{{ .ImagePath }}" alt="{{ .Name }}" class="gacha-account-image" />
-            <div class="gacha-info">
-                <h3>{{ .Name }}</h3>
-                <p class="rarity">{{ .Rarity }}</p>
-                <p class="price">Price: {{ .Price }} coins</p>
-            </div>
-        </div>
-        {{ end }}
+            {{ range .GachaList }}
+                <form method="post" action="/api/v1/market/auction" hx-post="/api/v1/market/auction" hx-target="#notification-popup" hx-target-4xx="#notification-popup" hx-target-5*="#notification-popup" hx-swap="innerHTML" hx-ext="json-enc">
+                    <div class="gacha-account-item {{ .Rarity }}">
+                        <img src="{{ .ImagePath }}" alt="{{ .Name }}" class="gacha-account-image" />
+                        <div class="gacha-info">
+                            <h3>{{ .Name }}</h3>
+                            <p class="rarity">{{ .Rarity }}</p>
+                            <p class="price">Price: {{ .Price }} coins</p>
+                            <input type="hidden" name="gacha_id" value="{{ .GachaID }}">
+                            <input type="datetime-local" name="end_time" id="end_time" required>
+                            <button type="submit" class="auction-button">Auction gacha</button>
+                        </div>
+                    </div>
+                </form>
+            {{ end }}
         </div>
     </div>
 </div>

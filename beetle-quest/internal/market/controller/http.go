@@ -5,6 +5,7 @@ import (
 	"beetle-quest/pkg/models"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -76,18 +77,46 @@ func (c *MarketController) BuyGacha(ctx *gin.Context) {
 }
 
 func (c *MarketController) CreateAuction(ctx *gin.Context) {
-	// TODO: Steps to implement
-	// 1. Receive the gacha's id to auction
-	// 2. Get user_id by the gin context
-	// 3. Check if user own gacha
-	// 4. Create auction
-	// 5. Add auction to the system
+	var data models.CreateAuctionRequest
+	if err := ctx.ShouldBindJSON(&data); err != nil {
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": models.ErrInvalidData})
+		ctx.Abort()
+		return
+	}
+
+	const layout = "2006-01-02T15:04"
+	endTime, err := time.Parse(layout, data.EndTime)
+	if err != nil {
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": models.ErrInvalidTimeFormat})
+		ctx.Abort()
+		return
+	}
+
+	uid, ok := ctx.Get("user_id")
+	if !ok {
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": models.ErrInvalidUserID})
+		ctx.Abort()
+		return
+	}
+
+	if err := c.srv.CreateAuction(uid.(string), data.GachaID, endTime); err != nil {
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
+		ctx.Abort()
+		return
+	}
+
+	ctx.HTML(http.StatusOK, "successMsg.tmpl", gin.H{"Message": "Auction created successfully"})
 }
 
 func (c *MarketController) AuctionList(ctx *gin.Context) {
-	// TODO: Steps to implement
-	// 1. Get all auctions
-	// 2. Return all auctions
+	auctions, err := c.srv.GetAuctions()
+	if err != nil {
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
+		ctx.Abort()
+		return
+	}
+
+	ctx.HTML(http.StatusOK, "market.tmpl", gin.H{"Auctions": auctions})
 }
 
 func (c *MarketController) AuctionDetail(ctx *gin.Context) {

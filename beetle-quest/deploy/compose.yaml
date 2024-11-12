@@ -18,6 +18,15 @@ x-gacha-db-environments: &gacha-db-environments
     POSTGRES_PASSWORD: secret
     POSTGRES_DB: beetle-quest-main-db
 
+x-market-db-environments: &market-db-environments
+    POSTGRES_HOST: market-db
+    POSTGRES_PORT: 5432
+    POSTGRES_SSLMODE: disable
+    POSTGRES_TIMEZONE: Europe/Rome
+    POSTGRES_USER: beetle
+    POSTGRES_PASSWORD: secret
+    POSTGRES_DB: beetle-quest-main-db
+
 x-common-services-environments: &common-services-environments
     GOMAXPROCS: 1
     LOG_LEVEL: debug
@@ -142,7 +151,7 @@ services:
                     cpus: "1"
                     memory: 50M
         environment:
-            <<: [*common-services-environments]
+            <<: [*common-services-environments, *market-db-environments]
 
             CREATE_USER_ENDPOINT: http://user-service:8080/api/v1/internal/user/create
             UPDATE_USER_ENDPOINT: http://user-service:8080/api/v1/internal/user/update
@@ -174,7 +183,7 @@ services:
         environment:
             <<: [*common-services-environments]
 
-    # OAUTH2 SECTION ======================================================================================================================================================================================
+    # OAUTH2 SECTION ===============================================================================================================================================================================
     oauth2-server:
         build:
             context: ../
@@ -226,6 +235,15 @@ services:
             - internal
         environment:
             <<: *gacha-db-environments
+
+    market-db:
+        build:
+            context: ./market/postgres
+            dockerfile: ./Dockerfile
+        networks:
+            - internal
+        environment:
+            <<: *market-db-environments
 
 networks:
     oauth2:

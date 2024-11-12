@@ -2,7 +2,7 @@
     <div class="navbar" id="navbar">
         <div class="logo">Beetle Quest</div>
         <a hx-get="/api/v1/user/account/{{ .UserID }}"  hx-target="#app-content" hx-target-4xx="#notification-popup" hx-target-5*="#notification-popup" hx-swap="innerHTML" hx-trigger="click">Account</a>
-        <a hx-get="/api/v1/market"                      hx-target="#app-content" hx-target-4xx="#notification-popup" hx-target-5*="#notification-popup" hx-swap="innerHTML" hx-trigger="click">Market</a>
+        <a hx-get="/api/v1/market/auction/list"         hx-target="#app-content" hx-target-4xx="#notification-popup" hx-target-5*="#notification-popup" hx-swap="innerHTML" hx-trigger="click">Market</a>
         <a hx-get="/api/v1/gacha/list"                  hx-target="#app-content" hx-target-4xx="#notification-popup" hx-target-5*="#notification-popup" hx-swap="innerHTML" hx-trigger="click">Gachas</a>
         <a hx-get="/api/v1/auth/logout"                 hx-target="body"                                                                                hx-swap="outerHTML" hx-trigger="click">Logout</a>
     </div>
