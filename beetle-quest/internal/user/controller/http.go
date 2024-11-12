@@ -41,16 +41,16 @@ func (c *UserController) GetUserAccountDetails(ctx *gin.Context) {
 		return
 	}
 
-	// TODO: Get user's gacha list
-	// TODO: Get user's transaction history
+	gachas := c.srv.GetUserGachaList(user.UserID.String())
 
+	// TODO: Get user's transaction history
 	ctx.HTML(http.StatusOK, "userInfo.tmpl", models.GetUserAccountDetailsTemplatesData{
-		UserID:       user.UserID.String(),
-		Username:     user.Username,
-		Email:        user.Email,
-		Currency:     user.Currency,
-		Gachas:       []models.Gacha{},
-		Transactions: []models.Transaction{},
+		UserID:          user.UserID.String(),
+		Username:        user.Username,
+		Email:           user.Email,
+		Currency:        user.Currency,
+		GachaList:       gachas,
+		TransactionList: []models.Transaction{},
 	})
 }
 

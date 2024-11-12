@@ -49,6 +49,8 @@ func (s *MarketService) BuyGacha(userId string, gachaId string) error {
 		return models.ErrInvalidGachaID
 	}
 
+	// TODO: Check if user has already bought the gacha
+
 	user, ok := s.urepo.FindByID(uid)
 	if !ok {
 		return models.ErrUserNotFound
@@ -64,6 +66,7 @@ func (s *MarketService) BuyGacha(userId string, gachaId string) error {
 	}
 
 	// TODO: How do i make this step consistent?
+	// Compensating transaction if one fails?
 	user.Currency -= gacha.Price
 	if ok := s.urepo.Update(user); !ok {
 		return models.ErrCouldNotUpdate

@@ -81,3 +81,12 @@ func (r GachaRepo) AddGachaToUser(uid models.UUID, gid models.UUID) bool {
 	}
 	return true
 }
+
+func (r GachaRepo) GetUserGachas(uid models.UUID) ([]models.Gacha, bool) {
+	var gachas []models.Gacha
+	result := r.db.Table("user_gacha").Select("gachas.*").Joins("JOIN gachas ON gachas.gacha_id = user_gacha.gacha_id").Where("user_gacha.user_id = ?", uid).Find(&gachas)
+	if result.Error != nil {
+		return nil, false
+	}
+	return gachas, true
+}

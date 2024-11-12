@@ -7,4 +7,6 @@ type GachaRepo interface {
 	FindByID(models.UUID) (*models.Gacha, bool)
 
 	AddGachaToUser(models.UUID, models.UUID) bool
+
+	GetUserGachas(models.UUID) ([]models.Gacha, bool)
 }

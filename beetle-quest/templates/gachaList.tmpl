@@ -7,7 +7,7 @@
             <h3>{{ .Name }}</h3>
             <p class="rarity">{{ .Rarity }}</p>
             <p class="price">Price: {{ .Price }} coins</p>
-            <button class="buy-button" hx-get="/api/v1/market/gacha/{{ .GachaID }}/buy" hx-target="#notification-popup" hx-swap="innerHTML">Buy</button>
+            <button class="buy-button" hx-get="/api/v1/market/gacha/{{ .GachaID }}/buy" hx-target="#notification-popup"  hx-target-4xx="#notification-popup" hx-target-5*="#notification-popup" hx-swap="innerHTML">Buy</button>
         </div>
     </div>
     {{ end }}

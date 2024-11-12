@@ -67,6 +67,22 @@ func (c *GachaController) GetGachaDetails(ctx *gin.Context) {
 
 // Internal API ============================================================================================================
 
+func (c *GachaController) GetUserGachas(ctx *gin.Context) {
+	var data models.GetUserGachasData
+	if err := ctx.ShouldBindJSON(&data); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "Invalid data submitted!"})
+		return
+	}
+
+	gachas, ok := c.srv.GetUserGachas(data.UserID)
+	if !ok {
+		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": models.ErrGachaNotFound})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"GachaList": gachas})
+}
+
 func (c *GachaController) AddGachaToUser(ctx *gin.Context) {
 	var data models.AddGachaToUserData
 	if err := ctx.ShouldBindJSON(&data); err != nil {

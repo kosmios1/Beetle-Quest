@@ -16,12 +16,12 @@ type LoginRequest struct {
 // User ======================================
 
 type GetUserAccountDetailsTemplatesData struct {
-	UserID       string        `json:"user_id"`
-	Username     string        `json:"username"`
-	Email        string        `json:"email"`
-	Currency     int64         `json:"currency"`
-	Gachas       []Gacha       `json:"gachas"`
-	Transactions []Transaction `json:"transactions"`
+	UserID          string        `json:"user_id"`
+	Username        string        `json:"username"`
+	Email           string        `json:"email"`
+	Currency        int64         `json:"currency"`
+	GachaList       []Gacha       `json:"gacha_list"`
+	TransactionList []Transaction `json:"transaction_list"`
 }
 
 type UpdateUserAccountDetailsRequest struct {
@@ -47,7 +47,7 @@ type GetGachaListResponse struct {
 
 // Market ===================================
 type BuyBugscoinRequest struct {
-	Amount int64 `json:"amount"`
+	Amount string `json:"amount"`
 }
 
 type CreateAuctionRequest struct {
@@ -80,6 +80,14 @@ type FindUserByEmailData struct {
 }
 
 // Gacha
+type GetUserGachasData struct {
+	UserID UUID `json:"user_id"`
+}
+
+type GetUserGachasDataResponse struct {
+	GachaList []Gacha `json:"GachaList"`
+}
+
 type AddGachaToUserData struct {
 	UserID  UUID `json:"user_id"`
 	GachaID UUID `json:"gacha_id"`

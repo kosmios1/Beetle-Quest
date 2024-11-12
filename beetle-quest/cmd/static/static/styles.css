@@ -59,7 +59,8 @@ label {
 
 input[type="text"],
 input[type="password"],
-input[type="email"] {
+input[type="email"],
+input[type="number"] {
     width: 100%;
     padding: 8px;
     margin-bottom: 10px;
@@ -127,14 +128,19 @@ button:hover {
 }
 
 /* Account View Section =========================================================================== */
+
 .account-container {
-    width: 100%;
-    max-width: 600px;
-    background-color: white;
+    display: grid;
+    grid-template-columns: 1fr 2fr;
     padding: 20px;
-    border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     margin: 20px auto;
+}
+
+.account-forms-container {
+    display: flex;
+    flex-direction: column;
+    margin: 20px;
 }
 
 .account-header {
@@ -169,6 +175,61 @@ button:hover {
 
 .coin-image {
     border-radius: 50%;
+}
+
+.gacha-account-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    justify-content: start;
+    padding: 1%;
+}
+
+.gacha-account-item {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    max-width: 200px;
+    margin: 5px;
+}
+
+.gacha-account-image {
+    width: 64px;
+    height: 64px;
+    margin-right: 15px;
+    border-radius: 50%;
+    border: 2px solid #000;
+}
+
+@media (max-width: 800) {
+    .account-container {
+        grid-template-columns: 1fr 2fr;
+    }
+
+    .gacha-account-list {
+        grid-template-columns: 1fr 1fr 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    .account-container {
+        grid-template-columns: 1fr 2fr;
+    }
+
+    .gacha-account-list {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 400px) {
+    .account-container {
+        grid-template-columns: 1fr;
+    }
+
+    .gacha-account-list {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* Gacha List =========================================================================== */
@@ -209,27 +270,27 @@ button:hover {
     color: #555;
 }
 
-.gacha-item.Legendary {
+.Legendary {
     background-color: #f9f3c2;
     border-left: 5px solid #ffcc00;
 }
 
-.gacha-item.Epic {
+.Epic {
     background-color: #d6d6f7;
     border-left: 5px solid #7f7fff;
 }
 
-.gacha-item.Rare {
+.Rare {
     background-color: #d4f1f4;
     border-left: 5px solid #00aaff;
 }
 
-.gacha-item.Uncommon {
+.Uncommon {
     background-color: #e2f7e2;
     border-left: 5px solid #4caf50;
 }
 
-.gacha-item.Common {
+.Common {
     background-color: #e2e2e2;
     border-left: 5px solid #777;
 }

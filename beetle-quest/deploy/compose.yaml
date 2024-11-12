@@ -103,6 +103,11 @@ services:
         environment:
             <<: [*common-services-environments, *user-db-environments]
 
+            GET_ALL_GACHA_ENDPOINT: http://gacha-service:8080/api/v1/internal/gacha/get_all
+            FIND_GACHA_BY_ID_ENDPOINT: http://gacha-service:8080/api/v1/internal/gacha/find_by_id
+            ADD_GACHA_TO_USER_ENDPOINT: http://gacha-service:8080/api/v1/internal/gacha/add_gacha_to_user
+            GET_USER_GACHAS_ENDPOINT: http://gacha-service:8080/api/v1/internal/gacha/get_user_gachas
+
     gacha-service:
         build:
             context: ../
@@ -149,6 +154,7 @@ services:
             GET_ALL_GACHA_ENDPOINT: http://gacha-service:8080/api/v1/internal/gacha/get_all
             FIND_GACHA_BY_ID_ENDPOINT: http://gacha-service:8080/api/v1/internal/gacha/find_by_id
             ADD_GACHA_TO_USER_ENDPOINT: http://gacha-service:8080/api/v1/internal/gacha/add_gacha_to_user
+            GET_USER_GACHAS_ENDPOINT: http://gacha-service:8080/api/v1/internal/gacha/get_user_gachas
 
     static-service:
         build:

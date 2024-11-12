@@ -4,54 +4,80 @@
     <a href="#transactions">Transactions</a>
 </div> -->
 
-<div class="account-container" hx-ext="response-targets">
-    <h2 class="account-header">User Account</h2>
-    <div class="account-info">
-        <p><strong>Username:</strong> {{ .Username }}</p>
-        <p><strong>Email:</strong> {{ .Email }}</p>
-        <div class="account-currency">
-            <strong>Currency:</strong>
-            <span>{{ .Currency }}</span>
-            <img src="/static/images/coin.webp" class="coin-image" alt="Currency Icon">
+<div class="account-container">
+    <div class="account-forms-container">
+        <h2 class="account-header">User Account</h2>
+        <div class="account-info">
+            <p><strong>Username:</strong> {{ .Username }}</p>
+            <p><strong>Email:</strong> {{ .Email }}</p>
+            <div class="account-currency">
+                <strong>Currency:</strong>
+                <span>{{ .Currency }}</span>
+                <img src="/static/images/coin.webp" class="coin-image" alt="Currency Icon">
+            </div>
         </div>
+
+        <form
+            hx-patch="/api/v1/user/account/{{ .UserID }}"
+            hx-target="#notification-popup"
+            hx-target-4xx="#notification-popup"
+            hx-target-5*="#notification-popup"
+            hx-swap="innerHTML"
+            hx-ext="json-enc"
+            class="account-form"
+        >
+            <label for="username">New Username:</label>
+            <input type="text" id="username" name="username" placeholder="Enter new username">
+
+            <label for="email">New Email:</label>
+            <input type="email" id="email" name="email" placeholder="Enter new email">
+
+            <label for="password">New Password:</label>
+            <input type="password" id="password" name="new_password" placeholder="Enter new password">
+
+            <input type="password" id="password" name="old_password" placeholder="Enter current password">
+            <button type="submit">Update Account</button>
+        </form>
+
+        <form id="buy-form"
+            hx-post="/api/v1/market/bugscoin/buy"
+            hx-target="#notification-popup"
+            hx-target-4xx="#notification-popup"
+            hx-target-5*="#notification-popup"
+            hx-swap="innerHTML"
+            hx-ext="json-enc"
+        >
+            <input type="number" id="amount" name="amount" placeholder="Enter amount of money to add to the account!">
+            <button type="submit">BUY</button>
+        </form>
+
+        <form
+            hx-delete="/api/v1/user/account/{{ .UserID }}"
+            hx-target="#notification-popup"
+            hx-target-4xx="#notification-popup"
+            hx-target-5*="#notification-popup"
+            hx-swap="innerHTML"
+            hx-confirm="Are you sure you want to delete your account? This action cannot be undone."
+            class="account-form"
+        >
+            <input type="password" id="password" name="password" placeholder="Enter password">
+            <button type="submit" class="delete-button">Delete Account</button>
+        </form>
     </div>
 
-    <form
-        hx-patch="/api/v1/user/account/{{ .UserID }}"
-        hx-target="#update-response"
-        hx-target-4xx="#update-response"
-        hx-swap="innerHTML"
-        hx-ext="json-enc"
-        class="account-form"
-    >
-        <label for="username">New Username:</label>
-        <input type="text" id="username" name="username" placeholder="Enter new username">
-
-        <label for="email">New Email:</label>
-        <input type="email" id="email" name="email" placeholder="Enter new email">
-
-        <label for="password">New Password:</label>
-        <input type="password" id="password" name="new_password" placeholder="Enter new password">
-
-        <!-- <label for="password">Password:</label> -->
-        <input type="password" id="password" name="old_password" placeholder="Enter current password">
-
-        <button type="submit">Update Account</button>
-    </form>
-
-
-    <form
-        hx-delete="/api/v1/user/account/{{ .UserID }}"
-        hx-target="#update-response"
-        hx-target-4xx="#update-response"
-        hx-swap="innerHTML"
-        hx-confirm="Are you sure you want to delete your account? This action cannot be undone."
-        class="account-form"
-    >
-        <input type="password" id="password" name="password" placeholder="Enter password">
-
-        <button type="submit" class="delete-button">Delete Account</button>
-    </form>
-
-    <div id="update-response" class="message-bar"></div>
+    <div>
+        <h2 class="account-header">Own gachas</h2>
+        <div class="gacha-account-list">
+        {{ range .GachaList }}
+        <div class="gacha-account-item {{ .Rarity }}">
+            <img src="{{ .ImagePath }}" alt="{{ .Name }}" class="gacha-account-image" />
+            <div class="gacha-info">
+                <h3>{{ .Name }}</h3>
+                <p class="rarity">{{ .Rarity }}</p>
+                <p class="price">Price: {{ .Price }} coins</p>
+            </div>
+        </div>
+        {{ end }}
+        </div>
+    </div>
 </div>

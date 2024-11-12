@@ -35,18 +35,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	r.Any("/", func(c *gin.Context) {
-		c.FileFromFS("static/index.html", http.FS(staticFS))
-	})
-
 	r.StaticFS("/static", http.FS(staticFS))
-
-	// imagesFS, err := fs.Sub(imageFiles, "images")
-	// if err != nil {
-	// 	log.Fatal("Failed to create sub filesystem for images: ", err)
-	// }
-	// r.StaticFS("/api/v1/static/images", http.FS(imagesFS))
-
 	r.Run()
 }

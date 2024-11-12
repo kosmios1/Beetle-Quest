@@ -40,3 +40,11 @@ func (s *GachaService) AddGachaToUser(userID, gachaID models.UUID) error {
 	}
 	return nil
 }
+
+func (s *GachaService) GetUserGachas(uid models.UUID) ([]models.Gacha, bool) {
+	gachas, ok := s.gachaRepo.GetUserGachas(uid)
+	if !ok {
+		return []models.Gacha{}, false
+	}
+	return gachas, true
+}

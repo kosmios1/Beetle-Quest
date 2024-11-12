@@ -14,6 +14,7 @@ var (
 	getAllEndpoint        = utils.FindEnv("GET_ALL_GACHA_ENDPOINT")
 	findGachaByIDEndpoint = utils.FindEnv("FIND_GACHA_BY_ID_ENDPOINT")
 
+	getUserGachasEndpoint  = utils.FindEnv("GET_USER_GACHAS_ENDPOINT")
 	addGachaToUserEndpoint = utils.FindEnv("ADD_GACHA_TO_USER_ENDPOINT")
 )
 
@@ -98,5 +99,54 @@ func (r GachaRepo) AddGachaToUser(uid models.UUID, gid models.UUID) bool {
 	})
 	defer resp.Body.Close()
 
+	if err != nil {
+		return false
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return false
+	}
+
 	return true
+}
+
+func (r GachaRepo) GetUserGachas(uid models.UUID) ([]models.Gacha, bool) {
+	requestData := models.GetUserGachasData{
+		UserID: uid,
+	}
+
+	jsonData, err := json.Marshal(requestData)
+	if err != nil {
+		return []models.Gacha{}, false
+	}
+	resp, err := r.cb.Execute(func() (*http.Response, error) {
+		resp, err := http.Post(
+			getUserGachasEndpoint,
+			"application/json",
+			bytes.NewBuffer(jsonData),
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		return resp, nil
+	})
+	defer resp.Body.Close()
+
+	if err != nil {
+		return []models.Gacha{}, false
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return []models.Gacha{}, false
+	}
+
+	var result models.GetUserGachasDataResponse
+	err = json.NewDecoder(resp.Body).Decode(&result)
+	if err != nil {
+		return []models.Gacha{}, false
+	}
+
+	return result.GachaList, true
 }

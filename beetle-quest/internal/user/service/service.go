@@ -7,17 +7,19 @@ import (
 )
 
 type UserService struct {
-	repo repositories.UserRepo
+	urepo repositories.UserRepo
+	grepo repositories.GachaRepo
 }
 
-func NewUserService(repo repositories.UserRepo) *UserService {
+func NewUserService(urepo repositories.UserRepo, grepo repositories.GachaRepo) *UserService {
 	return &UserService{
-		repo,
+		urepo,
+		grepo,
 	}
 }
 
 func (s *UserService) GetUserAccountDetails(userID models.UUID) (*models.User, error) {
-	if user, ok := s.repo.FindByID(userID); !ok {
+	if user, ok := s.urepo.FindByID(userID); !ok {
 		return nil, models.ErrUserNotFound
 	} else {
 		return user, nil
@@ -25,7 +27,7 @@ func (s *UserService) GetUserAccountDetails(userID models.UUID) (*models.User, e
 }
 
 func (s *UserService) DeleteUserAccount(userID models.UUID, password string) error {
-	user, ok := s.repo.FindByID(userID)
+	user, ok := s.urepo.FindByID(userID)
 	if !ok {
 		return models.ErrUserNotFound
 	}
@@ -34,20 +36,20 @@ func (s *UserService) DeleteUserAccount(userID models.UUID, password string) err
 		return models.ErrInvalidPassword
 	}
 
-	if ok := s.repo.Delete(user); !ok {
+	if ok := s.urepo.Delete(user); !ok {
 		return models.ErrCouldNotDelete
 	}
 	return nil
 }
 
 func (s *UserService) UpdateUserAccountDetails(userID models.UUID, newEmail, newUsername, oldPassword, newPassword string) error {
-	user, ok := s.repo.FindByID(userID)
+	user, ok := s.urepo.FindByID(userID)
 	if !ok {
 		return models.ErrUserNotFound
 	}
 
 	if newUsername != "" {
-		if _, ok = s.repo.FindByUsername(newUsername); ok {
+		if _, ok = s.urepo.FindByUsername(newUsername); ok {
 			return models.ErrUsernameAlreadyExists
 		} else {
 			user.Username = newUsername
@@ -55,7 +57,7 @@ func (s *UserService) UpdateUserAccountDetails(userID models.UUID, newEmail, new
 	}
 
 	if newEmail != "" {
-		if _, ok = s.repo.FindByEmail(newEmail); ok {
+		if _, ok = s.urepo.FindByEmail(newEmail); ok {
 			return models.ErrEmailAlreadyExists
 		} else {
 			user.Email = newEmail
@@ -77,18 +79,18 @@ func (s *UserService) UpdateUserAccountDetails(userID models.UUID, newEmail, new
 		}
 	}
 
-	if ok := s.repo.Update(user); !ok {
+	if ok := s.urepo.Update(user); !ok {
 		return models.ErrCouldNotUpdate
 	}
 	return nil
 }
 
 func (s *UserService) Create(email, username string, hashedPassword []byte, currency int64) bool {
-	return s.repo.Create(email, username, hashedPassword, currency)
+	return s.urepo.Create(email, username, hashedPassword, currency)
 }
 
 func (s *UserService) Update(user *models.User) bool {
-	return s.repo.Update(user)
+	return s.urepo.Update(user)
 }
 
 func (s *UserService) FindByID(userId string) (*models.User, bool) {
@@ -97,7 +99,7 @@ func (s *UserService) FindByID(userId string) (*models.User, bool) {
 		return nil, false
 	}
 
-	user, exits := s.repo.FindByID(id)
+	user, exits := s.urepo.FindByID(id)
 	if !exits {
 		return nil, false
 	}
@@ -106,10 +108,23 @@ func (s *UserService) FindByID(userId string) (*models.User, bool) {
 }
 
 func (s *UserService) FindByUsername(username string) (*models.User, bool) {
-	user, exits := s.repo.FindByUsername(username)
+	user, exits := s.urepo.FindByUsername(username)
 	if !exits {
 		return nil, false
 	}
 
 	return user, true
+}
+
+func (s *UserService) GetUserGachaList(userId string) []models.Gacha {
+	uid, err := utils.ParseUUID(userId)
+	if err != nil {
+		return []models.Gacha{}
+	}
+
+	gachas, ok := s.grepo.GetUserGachas(uid)
+	if !ok {
+		return []models.Gacha{}
+	}
+	return gachas
 }

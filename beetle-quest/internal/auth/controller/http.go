@@ -91,8 +91,8 @@ func (c *AuthController) Oauth2Callback(ctx *gin.Context) {
 	}
 
 	maxAge := int(token.Expiry.Sub(time.Now()).Seconds())
-	// TODO: Secure when https
 	ctx.SetCookie("access_token", token.AccessToken, maxAge, "/", "", false, true)
+
 	ctx.HTML(http.StatusOK, "home.tmpl", gin.H{"UserID": claims["sub"]})
 }
 

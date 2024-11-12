@@ -4,6 +4,7 @@ import (
 	service "beetle-quest/internal/market/service"
 	"beetle-quest/pkg/models"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -28,6 +29,13 @@ func (c *MarketController) BuyBugscoin(ctx *gin.Context) {
 		return
 	}
 
+	amount, err := strconv.Atoi(buyBugscoinRequest.Amount)
+	if err != nil {
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "amount not correct!"})
+		ctx.Abort()
+		return
+	}
+
 	userId, ok := ctx.Get("user_id")
 	if !ok {
 		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "user_id not correct!"})
@@ -35,7 +43,7 @@ func (c *MarketController) BuyBugscoin(ctx *gin.Context) {
 		return
 	}
 
-	if err := c.srv.AddBugsCoin(userId.(string), buyBugscoinRequest.Amount); err != nil {
+	if err := c.srv.AddBugsCoin(userId.(string), int64(amount)); err != nil {
 		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 		ctx.Abort()
 		return
