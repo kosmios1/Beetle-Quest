@@ -12,8 +12,8 @@ log:
   level: "DEBUG" # FIXME: remove me
 
 entryPoints:
-  web:
-    address: ":80"
+  websec:
+    address: :443
 
 providers:
   file:
