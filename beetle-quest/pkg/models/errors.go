@@ -29,6 +29,9 @@ const (
 	ErrCouldNotCreateAuction        constError = "could not create auction"
 	ErrRetrievingAuctions           constError = "could not retrieve auctions"
 	ErrBidsNotFound                 constError = "bids not found"
+	ErrUserAlreadyHasGacha          constError = "user already has gacha"
+	ErrCouldNotRollGacha            constError = "could not roll gacha"
+	ErrNotEnoughMoneyToRollGacha    constError = "not enough money to roll gacha"
 
 	ErrCouldNotParseTime          constError = "time format not correct"
 	ErrCouldNotDecodeUserID       constError = "could not decode user id"
@@ -39,6 +42,8 @@ const (
 	ErrUserDoesNotOwnGacha        constError = "user does not own gacha"
 	ErrInvalidData                constError = "invalid data"
 	ErrInvalidTimeFormat          constError = "invalid time format"
+	ErrFailedToRevokeToken        constError = "failed to revoke token"
+	ErrFailedToVerifyToken        constError = "failed to verify token"
 
 	ErrInvalidGachaID constError = "invalid gacha id"
 	ErrGachaNotFound  constError = "gacha not found"

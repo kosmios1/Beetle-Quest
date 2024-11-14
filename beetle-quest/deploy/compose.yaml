@@ -1,255 +1,271 @@
 name: beetle-quest
 
 x-user-db-environments: &user-db-environments
-  POSTGRES_HOST: user-db
-  POSTGRES_PORT: 5432
-  POSTGRES_SSLMODE: disable
-  POSTGRES_TIMEZONE: Europe/Rome
-  POSTGRES_USER: beetle
-  POSTGRES_PASSWORD: secret
-  POSTGRES_DB: beetle-quest-main-db
+    POSTGRES_HOST: user-db
+    POSTGRES_PORT: 5432
+    POSTGRES_SSLMODE: disable
+    POSTGRES_TIMEZONE: Europe/Rome
+    POSTGRES_USER: beetle
+    POSTGRES_PASSWORD: secret
+    POSTGRES_DB: beetle-quest-main-db
 
 x-gacha-db-environments: &gacha-db-environments
-  POSTGRES_HOST: gacha-db
-  POSTGRES_PORT: 5432
-  POSTGRES_SSLMODE: disable
-  POSTGRES_TIMEZONE: Europe/Rome
-  POSTGRES_USER: beetle
-  POSTGRES_PASSWORD: secret
-  POSTGRES_DB: beetle-quest-main-db
+    POSTGRES_HOST: gacha-db
+    POSTGRES_PORT: 5432
+    POSTGRES_SSLMODE: disable
+    POSTGRES_TIMEZONE: Europe/Rome
+    POSTGRES_USER: beetle
+    POSTGRES_PASSWORD: secret
+    POSTGRES_DB: beetle-quest-main-db
 
 x-market-db-environments: &market-db-environments
-  POSTGRES_HOST: market-db
-  POSTGRES_PORT: 5432
-  POSTGRES_SSLMODE: disable
-  POSTGRES_TIMEZONE: Europe/Rome
-  POSTGRES_USER: beetle
-  POSTGRES_PASSWORD: secret
-  POSTGRES_DB: beetle-quest-main-db
+    POSTGRES_HOST: market-db
+    POSTGRES_PORT: 5432
+    POSTGRES_SSLMODE: disable
+    POSTGRES_TIMEZONE: Europe/Rome
+    POSTGRES_USER: beetle
+    POSTGRES_PASSWORD: secret
+    POSTGRES_DB: beetle-quest-main-db
 
 x-common-services-environments: &common-services-environments
-  GOMAXPROCS: 1
-  LOG_LEVEL: debug
-  GIN_MODE: release
-  JWT_SECRET_KEY: e6df59f91871f2229a0296c6b5ffaf44cef6af30cd05057857b9f0a74b0d28c1
+    GOMAXPROCS: 1
+    LOG_LEVEL: debug
+    GIN_MODE: release
+    JWT_SECRET_KEY: e6df59f91871f2229a0296c6b5ffaf44cef6af30cd05057857b9f0a74b0d28c1
 
 x-common-oauth2-environments: &common-oauth2-environments
-  OAUTH2_CLIENT_ID: beetle-quest
-  OAUTH2_CLIENT_SECRET: secret
+    OAUTH2_CLIENT_ID: beetle-quest
+    OAUTH2_CLIENT_SECRET: secret
 
 # In release set them to:
 # CGO_ENABLED: 0
 # LD_FLAGS: "-s -w"
 # BUILD_FLAGS: "-a"
 x-services-go-build-flags: &services-go-build-flags
-  CGO_ENABLED: 1
-  LD_FLAGS: ""
-  BUILD_FLAGS: ""
+    CGO_ENABLED: 0
+    LD_FLAGS: "-s -w"
+    BUILD_FLAGS: "-a"
 
 services:
-  reverse-proxy:
-    image: traefik:v3.2
-    ports:
-      # The Web UI
-      - "127.0.0.1:8080:8080" # TODO: expose on 443
-      # Listening Port
-      - "127.0.0.1:443:443" # TODO: expose on 0.0.0.0:443:443
-    networks:
-      - internal
-      - oauth2
-    volumes:
-      - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
-      - ./traefik/rules.yml:/etc/traefik/rules.yml:ro
-      - ./traefik/certs/cert.pem:/certs/cert.pem:ro
-      - ./traefik/certs/key.pem:/certs/key.pem:ro
+    reverse-proxy:
+        image: traefik:v3.2
+        ports:
+            # The Web UI
+            - "127.0.0.1:8080:8080" # TODO: expose on 443
+            # Listening Port
+            - "127.0.0.1:443:443" # TODO: expose on 0.0.0.0:443:443
+        networks:
+            - internal
+            - oauth2
+        volumes:
+            - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+            - ./traefik/rules.yml:/etc/traefik/rules.yml:ro
 
-  # MICROSERVICES SECTION =============================================================================================================================================================================
-  auth-service:
-    build:
-      context: ../
-      dockerfile: deploy/auth/Dockerfile
-      args:
-        <<: *services-go-build-flags
-    networks:
-      - internal
-      - oauth2
-    deploy:
-      # mode: replicated
-      # replicas: 2
-      resources:
-        limits:
-          cpus: "1"
-          memory: 50M
-    environment:
-      <<: [*common-oauth2-environments, *common-services-environments]
-      OAUTH2_REDIRECT_URL: https://localhost/api/v1/auth/oauth2
-      OAUTH2_AUTH_ENDPOINT: https://localhost/oauth2/authorize
-      OAUTH2_TOKEN_ENDPOINT: http://oauth2-server:8080/oauth2/token
+            - ./traefik/certs/cert.pem:/certs/cert.pem:ro
+            - ./traefik/certs/key.pem:/certs/key.pem:ro
 
-      OAUTH2_REVOKE_TOKEN_ENDPOINT: http://oauth2-server:8080/oauth2/token/revoke
-      OAUTH2_VERIFY_TOKEN_ENDPOINT: http://oauth2-server:8080/oauth2/token/verify
+    # MICROSERVICES SECTION =============================================================================================================================================================================
+    auth-service:
+        build:
+            context: ../
+            dockerfile: deploy/auth/Dockerfile
+            args:
+                <<: *services-go-build-flags
+        networks:
+            - internal
+            - oauth2
+        volumes:
+            - ./cacerts/cert.pem:/certs/caCert.pem:ro
+            - ./cacerts/key.pem:/certs/caKey.pem:ro
+        deploy:
+            # mode: replicated
+            # replicas: 2
+            resources:
+                limits:
+                    cpus: "1"
+                    memory: 50M
+        environment:
+            <<: [*common-oauth2-environments, *common-services-environments]
+            OAUTH2_REDIRECT_URL: https://localhost/api/v1/auth/oauth2
+            OAUTH2_AUTH_ENDPOINT: https://localhost/oauth2/authorize
 
-      CREATE_USER_ENDPOINT: http://user-service:8080/api/v1/internal/user/create
-      UPDATE_USER_ENDPOINT: http://user-service:8080/api/v1/internal/user/update
-      DELETE_USER_ENDPOINT: http://user-service:8080/api/v1/internal/user/delete
-      FIND_USER_BY_ID_ENDPOINT: http://user-service:8080/api/v1/internal/user/find_by_id
-      FIND_USER_BY_EMAIL_ENDPOINT: http://user-service:8080/api/v1/internal/user/find_by_email
-      FIND_USER_BY_USERNAME_ENDPOINT: http://user-service:8080/api/v1/internal/user/find_by_username
+            OAUTH2_TOKEN_ENDPOINT: http://oauth2-server:8080/oauth2/token
+            OAUTH2_REVOKE_TOKEN_ENDPOINT: http://oauth2-server:8080/oauth2/token/revoke
+            OAUTH2_VERIFY_TOKEN_ENDPOINT: http://oauth2-server:8080/oauth2/token/verify
 
-  user-service:
-    build:
-      context: ../
-      dockerfile: deploy/user/Dockerfile
-      args:
-        <<: *services-go-build-flags
-    networks:
-      - internal
-    deploy:
-      # mode: replicated
-      # replicas: 2
-      resources:
-        limits:
-          cpus: "1"
-          memory: 50M
-    environment:
-      <<: [*common-services-environments, *user-db-environments]
+            CREATE_USER_ENDPOINT: https://user-service/api/v1/internal/user/create
+            UPDATE_USER_ENDPOINT: https://user-service/api/v1/internal/user/update
+            DELETE_USER_ENDPOINT: https://user-service/api/v1/internal/user/delete
+            FIND_USER_BY_ID_ENDPOINT: https://user-service/api/v1/internal/user/find_by_id
+            FIND_USER_BY_EMAIL_ENDPOINT: https://user-service/api/v1/internal/user/find_by_email
+            FIND_USER_BY_USERNAME_ENDPOINT: https://user-service/api/v1/internal/user/find_by_username
 
-      GET_ALL_GACHA_ENDPOINT: http://gacha-service:8080/api/v1/internal/gacha/get_all
-      FIND_GACHA_BY_ID_ENDPOINT: http://gacha-service:8080/api/v1/internal/gacha/find_by_id
-      ADD_GACHA_TO_USER_ENDPOINT: http://gacha-service:8080/api/v1/internal/gacha/add_gacha_to_user
-      GET_USER_GACHAS_ENDPOINT: http://gacha-service:8080/api/v1/internal/gacha/get_user_gachas
+    user-service:
+        build:
+            context: ../
+            dockerfile: deploy/user/Dockerfile
+            args:
+                <<: *services-go-build-flags
+        networks:
+            - internal
+        volumes:
+            - ./cacerts/cert.pem:/certs/caCert.pem:ro
+            - ./cacerts/key.pem:/certs/caKey.pem:ro
+        deploy:
+            # mode: replicated
+            # replicas: 2
+            resources:
+                limits:
+                    cpus: "1"
+                    memory: 50M
+        environment:
+            <<: [*common-services-environments, *user-db-environments]
 
-  gacha-service:
-    build:
-      context: ../
-      dockerfile: deploy/gacha/Dockerfile
-      args:
-        <<: *services-go-build-flags
-    networks:
-      - internal
-    deploy:
-      # mode: replicated
-      # replicas: 2
-      resources:
-        limits:
-          cpus: "1"
-          memory: 50M
-    environment:
-      <<: [*common-services-environments, *gacha-db-environments]
+            GET_ALL_GACHA_ENDPOINT: https://gacha-service/api/v1/internal/gacha/get_all
+            FIND_GACHA_BY_ID_ENDPOINT: https://gacha-service/api/v1/internal/gacha/find_by_id
+            ADD_GACHA_TO_USER_ENDPOINT: https://gacha-service/api/v1/internal/gacha/add_gacha_to_user
+            GET_USER_GACHAS_ENDPOINT: https://gacha-service/api/v1/internal/gacha/get_user_gachas
 
-  market-service:
-    build:
-      context: ../
-      dockerfile: deploy/market/Dockerfile
-      args:
-        <<: *services-go-build-flags
-    networks:
-      - internal
-    deploy:
-      # mode: replicated
-      # replicas: 2
-      resources:
-        limits:
-          cpus: "1"
-          memory: 50M
-    environment:
-      <<: [*common-services-environments, *market-db-environments]
+    gacha-service:
+        build:
+            context: ../
+            dockerfile: deploy/gacha/Dockerfile
+            args:
+                <<: *services-go-build-flags
+        networks:
+            - internal
+        volumes:
+            - ./cacerts/cert.pem:/certs/caCert.pem:ro
+            - ./cacerts/key.pem:/certs/caKey.pem:ro
+        deploy:
+            # mode: replicated
+            # replicas: 2
+            resources:
+                limits:
+                    cpus: "1"
+                    memory: 50M
+        environment:
+            <<: [*common-services-environments, *gacha-db-environments]
 
-      CREATE_USER_ENDPOINT: http://user-service:8080/api/v1/internal/user/create
-      UPDATE_USER_ENDPOINT: http://user-service:8080/api/v1/internal/user/update
-      DELETE_USER_ENDPOINT: http://user-service:8080/api/v1/internal/user/delete
-      FIND_USER_BY_ID_ENDPOINT: http://user-service:8080/api/v1/internal/user/find_by_id
-      FIND_USER_BY_EMAIL_ENDPOINT: http://user-service:8080/api/v1/internal/user/find_by_email
-      FIND_USER_BY_USERNAME_ENDPOINT: http://user-service:8080/api/v1/internal/user/find_by_username
+    market-service:
+        build:
+            context: ../
+            dockerfile: deploy/market/Dockerfile
+            args:
+                <<: *services-go-build-flags
+        networks:
+            - internal
+        volumes:
+            - ./cacerts/cert.pem:/certs/caCert.pem:ro
+            - ./cacerts/key.pem:/certs/caKey.pem:ro
+        deploy:
+            # mode: replicated
+            # replicas: 2
+            resources:
+                limits:
+                    cpus: "1"
+                    memory: 50M
+        environment:
+            <<: [*common-services-environments, *market-db-environments]
 
-      GET_ALL_GACHA_ENDPOINT: http://gacha-service:8080/api/v1/internal/gacha/get_all
-      FIND_GACHA_BY_ID_ENDPOINT: http://gacha-service:8080/api/v1/internal/gacha/find_by_id
-      ADD_GACHA_TO_USER_ENDPOINT: http://gacha-service:8080/api/v1/internal/gacha/add_gacha_to_user
-      GET_USER_GACHAS_ENDPOINT: http://gacha-service:8080/api/v1/internal/gacha/get_user_gachas
+            CREATE_USER_ENDPOINT: https://user-service/api/v1/internal/user/create
+            UPDATE_USER_ENDPOINT: https://user-service/api/v1/internal/user/update
+            DELETE_USER_ENDPOINT: https://user-service/api/v1/internal/user/delete
+            FIND_USER_BY_ID_ENDPOINT: https://user-service/api/v1/internal/user/find_by_id
+            FIND_USER_BY_EMAIL_ENDPOINT: https://user-service/api/v1/internal/user/find_by_email
+            FIND_USER_BY_USERNAME_ENDPOINT: https://user-service/api/v1/internal/user/find_by_username
 
-  static-service:
-    build:
-      context: ../
-      dockerfile: deploy/static/Dockerfile
-      args:
-        <<: *services-go-build-flags
-    networks:
-      - internal
-    deploy:
-      # mode: replicated
-      # replicas: 2
-      resources:
-        limits:
-          cpus: "1"
-          memory: 50M
-    environment:
-      <<: [*common-services-environments]
+            GET_ALL_GACHA_ENDPOINT: https://gacha-service/api/v1/internal/gacha/get_all
+            FIND_GACHA_BY_ID_ENDPOINT: https://gacha-service/api/v1/internal/gacha/find_by_id
+            ADD_GACHA_TO_USER_ENDPOINT: https://gacha-service/api/v1/internal/gacha/add_gacha_to_user
+            GET_USER_GACHAS_ENDPOINT: https://gacha-service/api/v1/internal/gacha/get_user_gachas
+
+    static-service:
+        build:
+            context: ../
+            dockerfile: deploy/static/Dockerfile
+            args:
+                <<: *services-go-build-flags
+        networks:
+            - internal
+        volumes:
+            - ./cacerts/cert.pem:/certs/caCert.pem:ro
+            - ./cacerts/key.pem:/certs/caKey.pem:ro
+        deploy:
+            # mode: replicated
+            # replicas: 2
+            resources:
+                limits:
+                    cpus: "1"
+                    memory: 50M
+        environment:
+            <<: [*common-services-environments]
 
     # OAUTH2 SECTION ====================================================================================================================================================================================
-  oauth2-server:
-    build:
-      context: ../
-      dockerfile: deploy/oauth2/Dockerfile
-      args:
-        <<: *services-go-build-flags
-    networks:
-      - oauth2
-    deploy:
-      # mode: replicated
-      # replicas: 2
-      resources:
-        limits:
-          cpus: "1"
-          memory: 50M
-    environment:
-      <<: [*common-services-environments, *common-oauth2-environments]
-      OAUTH2_CLIENT_DOMAIN: http://auth-service
-      REDIS_HOST: oauth2-redis
-      REDIS_PORT: 6379
-      REDIS_USERNAME: beetle
-      REDIS_PASSWORD: secret
-      REDIS_DB: 0
+    oauth2-server:
+        build:
+            context: ../
+            dockerfile: deploy/oauth2/Dockerfile
+            args:
+                <<: *services-go-build-flags
+        networks:
+            - oauth2
+        deploy:
+            # mode: replicated
+            # replicas: 2
+            resources:
+                limits:
+                    cpus: "1"
+                    memory: 50M
+        environment:
+            <<: [*common-services-environments, *common-oauth2-environments]
+            OAUTH2_CLIENT_DOMAIN: http://auth-service
+            REDIS_HOST: oauth2-redis
+            REDIS_PORT: 6379
+            REDIS_USERNAME: beetle
+            REDIS_PASSWORD: secret
+            REDIS_DB: 0
 
-  # DB SERVICES SECTION ===============================================================================================================================================================================
-  oauth2-redis:
-    image: redis:8.0-M02-alpine3.20
-    command: "redis-server /usr/local/etc/redis/redis.conf"
-    volumes:
-      - ./oauth2/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
-    networks:
-      - oauth2
+    # DB SERVICES SECTION ===============================================================================================================================================================================
+    oauth2-redis:
+        image: redis:8.0-M02-alpine3.20
+        command: "redis-server /usr/local/etc/redis/redis.conf"
+        volumes:
+            - ./oauth2/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+        networks:
+            - oauth2
 
-  user-db:
-    build:
-      context: ./user/postgres
-      dockerfile: ./Dockerfile
-    networks:
-      - internal
-    environment:
-      <<: *user-db-environments
+    user-db:
+        build:
+            context: ./user/postgres
+            dockerfile: ./Dockerfile
+        networks:
+            - internal
+        environment:
+            <<: *user-db-environments
 
-  gacha-db:
-    build:
-      context: ./gacha/postgres
-      dockerfile: ./Dockerfile
-    networks:
-      - internal
-    environment:
-      <<: *gacha-db-environments
+    gacha-db:
+        build:
+            context: ./gacha/postgres
+            dockerfile: ./Dockerfile
+        networks:
+            - internal
+        environment:
+            <<: *gacha-db-environments
 
-  market-db:
-    build:
-      context: ./market/postgres
-      dockerfile: ./Dockerfile
-    networks:
-      - internal
-    environment:
-      <<: *market-db-environments
+    market-db:
+        build:
+            context: ./market/postgres
+            dockerfile: ./Dockerfile
+        networks:
+            - internal
+        environment:
+            <<: *market-db-environments
 
 networks:
-  oauth2:
-    driver: bridge
-  internal:
-    driver: bridge
-  admin:
-    driver: bridge
+    oauth2:
+        driver: bridge
+    internal:
+        driver: bridge
+    admin:
+        driver: bridge

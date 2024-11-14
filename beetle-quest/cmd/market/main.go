@@ -4,7 +4,10 @@ import (
 	"beetle-quest/internal/market/controller"
 	"beetle-quest/internal/market/service"
 	"beetle-quest/pkg/middleware"
+	"beetle-quest/pkg/utils"
+	"log"
 
+	"github.com/gin-contrib/secure"
 	"github.com/gin-gonic/gin"
 
 	arepo "beetle-quest/internal/market/repository"
@@ -13,22 +16,23 @@ import (
 )
 
 func main() {
+	utils.GenOwnCertAndKey("market")
+
 	r := gin.Default()
 	r.Use(gin.Recovery())
-	// TODO: Uncomment this when having a valid SSL certificate
-	// r.Use(secure.New(secure.Config{
-	// 	SSLRedirect:           true,
-	// 	IsDevelopment:         false,
-	// 	STSSeconds:            315360000,
-	// 	STSIncludeSubdomains:  true,
-	// 	FrameDeny:             true,
-	// 	ContentTypeNosniff:    true,
-	// 	BrowserXssFilter:      true,
-	// 	ContentSecurityPolicy: "default-src 'self'",
-	// 	IENoOpen:              true,
-	// 	SSLProxyHeaders:       map[string]string{"X-Forwarded-Proto": "https"},
-	// 	AllowedHosts:          []string{},
-	// }))
+	r.Use(secure.New(secure.Config{
+		SSLRedirect:           true,
+		IsDevelopment:         false,
+		STSSeconds:            315360000,
+		STSIncludeSubdomains:  true,
+		FrameDeny:             true,
+		ContentTypeNosniff:    true,
+		BrowserXssFilter:      true,
+		ContentSecurityPolicy: "default-src 'self'",
+		IENoOpen:              true,
+		SSLProxyHeaders:       map[string]string{"X-Forwarded-Proto": "https"},
+		AllowedHosts:          []string{},
+	}))
 
 	r.LoadHTMLGlob("templates/*")
 
@@ -45,6 +49,7 @@ func main() {
 	{
 		basePath.GET("/", cnt.Market)
 		basePath.POST("/bugscoin/buy", cnt.BuyBugscoin)
+		basePath.GET("/gacha/roll", cnt.RollGacha)
 		basePath.GET("/gacha/:gacha_id/buy", cnt.BuyGacha)
 
 		auctionPath := basePath.Group("/auction")
@@ -57,5 +62,8 @@ func main() {
 		}
 	}
 
-	r.Run()
+	server := utils.SetupHTPPSServer(r)
+	if err := server.ListenAndServeTLS("/serverCert.pem", "/serverKey.pem"); err != nil {
+		log.Fatal("Failed to start server: ", err)
+	}
 }

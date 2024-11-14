@@ -5,6 +5,7 @@ import (
 	"beetle-quest/pkg/utils"
 	"bytes"
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/sony/gobreaker/v2"
@@ -21,12 +22,14 @@ var (
 )
 
 type UserRepo struct {
-	cb *gobreaker.CircuitBreaker[*http.Response]
+	client *http.Client
+	cb     *gobreaker.CircuitBreaker[*http.Response]
 }
 
 func NewUserRepo() *UserRepo {
 	return &UserRepo{
-		cb: gobreaker.NewCircuitBreaker[*http.Response](gobreaker.Settings{}),
+		client: utils.SetupHTTPSClient(),
+		cb:     gobreaker.NewCircuitBreaker[*http.Response](gobreaker.Settings{}),
 	}
 }
 
@@ -44,7 +47,7 @@ func (r UserRepo) Create(email, username string, hashedPassword []byte, currency
 	}
 
 	resp, err := r.cb.Execute(func() (*http.Response, error) {
-		resp, err := http.Post(
+		resp, err := r.client.Post(
 			createUserEndpoint,
 			"application/json",
 			bytes.NewBuffer(jsonData),
@@ -76,7 +79,7 @@ func (r UserRepo) Update(user *models.User) bool {
 	}
 
 	resp, err := r.cb.Execute(func() (*http.Response, error) {
-		resp, err := http.Post(
+		resp, err := r.client.Post(
 			updateUserEndpoint,
 			"application/json",
 			bytes.NewBuffer(jsonData),
@@ -101,6 +104,7 @@ func (r UserRepo) Update(user *models.User) bool {
 }
 
 func (r UserRepo) Delete(user *models.User) bool {
+	log.Println("[ERROR] Not implemented!")
 	return false
 }
 
@@ -115,7 +119,7 @@ func (r UserRepo) FindByID(id models.UUID) (*models.User, bool) {
 	}
 
 	resp, err := r.cb.Execute(func() (*http.Response, error) {
-		resp, err := http.Post(
+		resp, err := r.client.Post(
 			findUserByIDEndpoint,
 			"application/json",
 			bytes.NewBuffer(jsonData),
@@ -157,7 +161,7 @@ func (r UserRepo) FindByUsername(username string) (*models.User, bool) {
 	}
 
 	resp, err := r.cb.Execute(func() (*http.Response, error) {
-		resp, err := http.Post(
+		resp, err := r.client.Post(
 			findUserByUsernameEndpoint,
 			"application/json",
 			bytes.NewBuffer(jsonData),
@@ -199,7 +203,7 @@ func (r UserRepo) FindByEmail(email string) (*models.User, bool) {
 	}
 
 	resp, err := r.cb.Execute(func() (*http.Response, error) {
-		resp, err := http.Post(
+		resp, err := r.client.Post(
 			findUserByEmailEndpoint,
 			"application/json",
 			bytes.NewBuffer(jsonData),

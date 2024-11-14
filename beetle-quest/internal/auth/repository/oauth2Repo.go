@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"beetle-quest/pkg/models"
 	"beetle-quest/pkg/utils"
 	"bytes"
 	"context"
@@ -101,6 +102,10 @@ func (r *Oauth2Repo) RevokeToken(token string) error {
 		return err
 	}
 
+	if resp.StatusCode != http.StatusOK {
+		return models.ErrFailedToRevokeToken
+	}
+
 	return nil
 }
 
@@ -123,6 +128,10 @@ func (r *Oauth2Repo) VerifyToken(token string) error {
 
 	if err != nil {
 		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return models.ErrFailedToVerifyToken
 	}
 
 	return nil

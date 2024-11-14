@@ -84,6 +84,10 @@ type GetUserGachasData struct {
 	UserID UUID `json:"user_id"`
 }
 
+type GetAllGachasDataResponse struct {
+	GachaList []Gacha `json:"GachaList"`
+}
+
 type GetUserGachasDataResponse struct {
 	GachaList []Gacha `json:"GachaList"`
 }

@@ -4,6 +4,7 @@ import (
 	"beetle-quest/pkg/models"
 	"beetle-quest/pkg/repositories"
 	"beetle-quest/pkg/utils"
+	"math/rand/v2"
 	"time"
 )
 
@@ -39,6 +40,58 @@ func (s *MarketService) AddBugsCoin(userId string, amount int64) error {
 	return nil
 }
 
+func (s *MarketService) RollGacha(userId string) (string, error) {
+	uid, err := utils.ParseUUID(userId)
+	if err != nil {
+		return "", models.ErrInvalidUserID
+	}
+
+	user, exists := s.urepo.FindByID(uid)
+	if !exists {
+		return "", models.ErrUserNotFound
+	}
+
+	if user.Currency < 1000 {
+		return "", models.ErrNotEnoughMoneyToRollGacha
+	}
+
+	gachas, ok := s.grepo.GetAll()
+	if !ok {
+		return "", models.ErrInternalServerError
+	}
+	gid := gachas[rand.IntN(len(gachas))].GachaID
+
+	user.Currency -= 1000
+	if ok := s.urepo.Update(user); !ok {
+		return "", models.ErrInternalServerError
+	}
+
+	gachas, ok = s.grepo.GetUserGachas(uid)
+	if !ok {
+		user.Currency += 1000
+		_ = s.urepo.Update(user)
+		// TODO: What do i do here if it fails?
+		// - Report to admin
+		return "", models.ErrInternalServerError
+	}
+
+	for _, gacha := range gachas {
+		if gacha.GachaID == gid {
+			return "Opps you already have this gacha!", nil
+		}
+	}
+
+	if ok := s.grepo.AddGachaToUser(uid, gid); !ok {
+		user.Currency += 1000
+		_ = s.urepo.Update(user)
+		// TODO: What do i do here?
+		// - Report to admin
+		return "", models.ErrCouldNotAddGachaToUser
+	}
+
+	return "Gacha successfully obtained, check your inventory!", nil
+}
+
 func (s *MarketService) BuyGacha(userId string, gachaId string) error {
 	uid, err := utils.ParseUUID(userId)
 	if err != nil {
@@ -50,7 +103,16 @@ func (s *MarketService) BuyGacha(userId string, gachaId string) error {
 		return models.ErrInvalidGachaID
 	}
 
-	// TODO: Check if user has already bought the gacha
+	userGacha, ok := s.grepo.GetUserGachas(uid)
+	if !ok {
+		return models.ErrUserAlreadyHasGacha
+	}
+
+	for _, gacha := range userGacha {
+		if gid == gacha.GachaID {
+			return models.ErrUserAlreadyHasGacha
+		}
+	}
 
 	user, ok := s.urepo.FindByID(uid)
 	if !ok {
@@ -123,8 +185,8 @@ func (s *MarketService) CreateAuction(userId, gachaId string, endTime time.Time)
 		return models.ErrUserDoesNotOwnGacha
 	}
 
+	// TODO: time is not correct inside containers
 	startTime := time.Now()
-	// fmt.Printf("%v %v\n", startTime, endTime) // NOTE: time is not correct inside containers
 	if endTime.Before(startTime) || endTime.After(startTime.Add(time.Hour*24)) {
 		return models.ErrInvalidEndTime
 	}

@@ -18,10 +18,6 @@ func NewGachaController(s *service.GachaService) *GachaController {
 	}
 }
 
-func (c *GachaController) Roll(ctx *gin.Context) {
-	ctx.JSON(http.StatusNotFound, gin.H{"error": "Not implemented yet!"})
-}
-
 func (c *GachaController) List(ctx *gin.Context) {
 	gachas, ok := c.srv.GetAll()
 	if !ok {
@@ -67,6 +63,16 @@ func (c *GachaController) GetGachaDetails(ctx *gin.Context) {
 
 // Internal API ============================================================================================================
 
+func (c *GachaController) GetAll(ctx *gin.Context) {
+	gachas, ok := c.srv.GetAll()
+	if !ok {
+		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": models.ErrGachaNotFound})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, models.GetAllGachasDataResponse{GachaList: gachas})
+}
+
 func (c *GachaController) GetUserGachas(ctx *gin.Context) {
 	var data models.GetUserGachasData
 	if err := ctx.ShouldBindJSON(&data); err != nil {
@@ -80,7 +86,7 @@ func (c *GachaController) GetUserGachas(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"GachaList": gachas})
+	ctx.JSON(http.StatusOK, models.GetUserGachasDataResponse{GachaList: gachas})
 }
 
 func (c *GachaController) AddGachaToUser(ctx *gin.Context) {

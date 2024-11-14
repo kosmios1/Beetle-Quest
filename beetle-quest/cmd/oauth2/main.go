@@ -64,6 +64,20 @@ func main() {
 	srv.SetUserAuthorizationHandler(userAuthorizeHandler)
 
 	r := gin.Default()
+	// TODO: Uncomment this when having a valid SSL certificate
+	// r.Use(secure.New(secure.Config{
+	// 	SSLRedirect:           true,
+	// 	IsDevelopment:         false,
+	// 	STSSeconds:            315360000,
+	// 	STSIncludeSubdomains:  true,
+	// 	FrameDeny:             true,
+	// 	ContentTypeNosniff:    true,
+	// 	BrowserXssFilter:      true,
+	// 	ContentSecurityPolicy: "default-src 'self'",
+	// 	IENoOpen:              true,
+	// 	SSLProxyHeaders:       map[string]string{"X-Forwarded-Proto": "https"},
+	// 	AllowedHosts:          []string{},
+	// }))
 
 	r.Any("/oauth2/authorize", func(ctx *gin.Context) {
 		if err := srv.HandleAuthorizeRequest(ctx.Writer, ctx.Request); err != nil {

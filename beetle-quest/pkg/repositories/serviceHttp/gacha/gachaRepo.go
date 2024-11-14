@@ -19,17 +19,43 @@ var (
 )
 
 type GachaRepo struct {
-	cb *gobreaker.CircuitBreaker[*http.Response]
+	client *http.Client
+	cb     *gobreaker.CircuitBreaker[*http.Response]
 }
 
 func NewGachaRepo() *GachaRepo {
 	return &GachaRepo{
-		cb: gobreaker.NewCircuitBreaker[*http.Response](gobreaker.Settings{}),
+		client: utils.SetupHTTPSClient(),
+		cb:     gobreaker.NewCircuitBreaker[*http.Response](gobreaker.Settings{}),
 	}
 }
 
 func (r GachaRepo) GetAll() ([]models.Gacha, bool) {
-	return nil, false
+	resp, err := r.cb.Execute(func() (*http.Response, error) {
+		resp, err := r.client.Get(getAllEndpoint)
+
+		if err != nil {
+			return nil, err
+		}
+
+		return resp, nil
+	})
+	defer resp.Body.Close()
+
+	if err != nil {
+		return []models.Gacha{}, false
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return []models.Gacha{}, false
+	}
+
+	var result models.GetAllGachasDataResponse
+	err = json.NewDecoder(resp.Body).Decode(&result)
+	if err != nil {
+		return []models.Gacha{}, false
+	}
+	return result.GachaList, true
 }
 
 func (r GachaRepo) FindByID(gid models.UUID) (*models.Gacha, bool) {
@@ -43,7 +69,7 @@ func (r GachaRepo) FindByID(gid models.UUID) (*models.Gacha, bool) {
 	}
 
 	resp, err := r.cb.Execute(func() (*http.Response, error) {
-		resp, err := http.Post(
+		resp, err := r.client.Post(
 			findGachaByIDEndpoint,
 			"application/json",
 			bytes.NewBuffer(jsonData),
@@ -85,7 +111,7 @@ func (r GachaRepo) AddGachaToUser(uid models.UUID, gid models.UUID) bool {
 		return false
 	}
 	resp, err := r.cb.Execute(func() (*http.Response, error) {
-		resp, err := http.Post(
+		resp, err := r.client.Post(
 			addGachaToUserEndpoint,
 			"application/json",
 			bytes.NewBuffer(jsonData),
@@ -120,7 +146,7 @@ func (r GachaRepo) GetUserGachas(uid models.UUID) ([]models.Gacha, bool) {
 		return []models.Gacha{}, false
 	}
 	resp, err := r.cb.Execute(func() (*http.Response, error) {
-		resp, err := http.Post(
+		resp, err := r.client.Post(
 			getUserGachasEndpoint,
 			"application/json",
 			bytes.NewBuffer(jsonData),

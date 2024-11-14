@@ -52,6 +52,28 @@ func (c *MarketController) BuyBugscoin(ctx *gin.Context) {
 	ctx.HTML(http.StatusOK, "successMsg.tmpl", gin.H{"Message": "Bugscoin added successfully"})
 }
 
+func (c *MarketController) RollGacha(ctx *gin.Context) {
+	userId, ok := ctx.Get("user_id")
+	if !ok {
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": models.ErrUserNotFound})
+		ctx.Abort()
+		return
+	}
+
+	msg, err := c.srv.RollGacha(userId.(string))
+	if err != nil {
+		if err == models.ErrInternalServerError {
+			ctx.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
+		ctx.Abort()
+		return
+	}
+
+	ctx.HTML(http.StatusOK, "successMsg.tmpl", gin.H{"Message": msg})
+}
+
 func (c *MarketController) BuyGacha(ctx *gin.Context) {
 	gachaId := ctx.Param("gacha_id")
 	if gachaId == "" {
@@ -161,7 +183,6 @@ func (c *MarketController) AuctionDelete(ctx *gin.Context) {
 	// 6. Check that the auction is open less than x time
 	// 7. Refund the bidders
 	// 8. Delete the auction
-
 }
 
 func (c *MarketController) BidToAuction(ctx *gin.Context) {
