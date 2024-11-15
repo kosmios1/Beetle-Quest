@@ -32,6 +32,8 @@ const (
 	ErrUserAlreadyHasGacha          constError = "user already has gacha"
 	ErrCouldNotRollGacha            constError = "could not roll gacha"
 	ErrNotEnoughMoneyToRollGacha    constError = "not enough money to roll gacha"
+	ErrCouldNotRetrieveUserAuctions constError = "could not retrieve user auctions"
+	ErrGachaAlreadyAuctioned        constError = "gacha already auctioned"
 
 	ErrCouldNotParseTime          constError = "time format not correct"
 	ErrCouldNotDecodeUserID       constError = "could not decode user id"

@@ -185,6 +185,17 @@ func (s *MarketService) CreateAuction(userId, gachaId string, endTime time.Time)
 		return models.ErrUserDoesNotOwnGacha
 	}
 
+	auctions, ok := s.arepo.GetUserAuctions(uid)
+	if !ok {
+		return models.ErrCouldNotRetrieveUserAuctions
+	}
+
+	for _, a := range auctions {
+		if a.GachaID == gid {
+			return models.ErrGachaAlreadyAuctioned
+		}
+	}
+
 	// TODO: time is not correct inside containers
 	startTime := time.Now()
 	if endTime.Before(startTime) || endTime.After(startTime.Add(time.Hour*24)) {
