@@ -28,11 +28,9 @@ x-common-services-environments: &common-services-environments
     GOMAXPROCS: 1
     LOG_LEVEL: debug
     GIN_MODE: release
-    #JWT_SECRET_KEY: e6df59f91871f2229a0296c6b5ffaf44cef6af30cd05057857b9f0a74b0d28c1
 
 x-common-oauth2-environments: &common-oauth2-environments
     OAUTH2_CLIENT_ID: beetle-quest
-    OAUTH2_CLIENT_SECRET: secret
 
 # In release set them to:
 # CGO_ENABLED: 0
@@ -98,6 +96,7 @@ services:
             FIND_USER_BY_USERNAME_ENDPOINT: https://user-service/api/v1/internal/user/find_by_username
 
         env_file:
+            - ./secrets/oauth2.env
             - ./secrets/jwt.env
 
     user-service:
@@ -215,8 +214,8 @@ services:
                     memory: 50M
         environment:
             <<: [*common-services-environments]
-        env_file:
-            - ./secrets/jwt.env
+        # env_file:
+        #     - ./secrets/jwt.env
 
     # OAUTH2 SECTION ====================================================================================================================================================================================
     oauth2-server:
@@ -242,6 +241,7 @@ services:
             REDIS_USERNAME: beetle
             REDIS_DB: 0
         env_file:
+            - ./secrets/oauth2.env
             - ./secrets/redis.env
             - ./secrets/jwt.env
 
