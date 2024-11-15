@@ -481,98 +481,91 @@ func (s *MarketService) closeAuctionCallback(aid models.UUID) {
 	}
 
 	if len(bids) == 0 {
-		s.arepo.Delete(auction)
+		if ok = s.arepo.Delete(auction); !ok {
+			s.closeAuctionErrorCallback(models.ErrCouldNotDeleteAuction)
+		}
 		return
 	}
 
 	var maxBid int64 = 0
 	var maxBidder models.UUID
-	for _, bid := range bids {
-		if bid.AmountSpend > maxBid {
-			maxBid = bid.AmountSpend
-			maxBidder = bid.UserID
-		}
-	}
-
 	{ // Give back money to the losers
+		var totalUserBiddings map[models.UUID]int64 = make(map[models.UUID]int64)
 		for _, bid := range bids {
-			if bid.UserID == maxBidder {
+			if bid.AmountSpend > maxBid {
+				maxBid = bid.AmountSpend
+				maxBidder = bid.UserID
+			}
+			totalUserBiddings[bid.UserID] += bid.AmountSpend
+		}
+
+		for uid, totBidAmount := range totalUserBiddings {
+			if uid == maxBidder {
 				continue
 			}
 
-			user, exists := s.urepo.FindByID(bid.UserID)
-			if !exists { // NOTE: Should not be possible
+			user, exists := s.urepo.FindByID(uid)
+			if !exists {
 				s.closeAuctionErrorCallback(models.ErrUserNotFound)
-				return
+				continue
 			}
 
-			user.Currency += bid.AmountSpend
+			user.Currency += totBidAmount // NOTE: If we go over math.MaxInt64
 			if ok := s.urepo.Update(user); !ok {
 				s.closeAuctionErrorCallback(models.ErrCouldNotUpdate)
-				return
 			}
 		}
-	}
-
-	// Transfer the gacha to the winner
-	auction.WinnerID = maxBidder
-	if ok := s.arepo.Update(auction); !ok {
-		s.closeAuctionErrorCallback(models.ErrCouldNotUpdateAuction)
-		return
 	}
 
 	gacha, exists := s.grepo.FindByID(auction.GachaID)
-	if !exists { // NOTE: Should not be possible
-		s.closeAuctionErrorCallback(models.ErrGachaNotFound)
-		return
+	if !exists {
 	}
 
 	{ // Winner actions
+		auction.WinnerID = maxBidder
+		if ok := s.arepo.Update(auction); !ok {
+			// NOTE: If we do not find the auction, we still have informations to give gacha to the winner
+			s.closeAuctionErrorCallback(models.ErrCouldNotUpdateAuction)
+		}
+
 		user, exists := s.urepo.FindByID(maxBidder)
-		if !exists { // NOTE: Should not be possible
+		if !exists {
+			// NOTE: If the winner does not exist, we still have informations to give back the money to the owner
 			s.closeAuctionErrorCallback(models.ErrUserNotFound)
-			return
-		}
+		} else {
+			t := &models.Transaction{
+				TransactionID:   utils.GenerateUUID(),
+				TransactionType: models.Withdraw,
+				UserID:          user.UserID,
+				Amount:          maxBid,
+				DateTime:        time.Now(),
+				EventType:       models.AuctionEv,
+				EventID:         auction.AuctionID,
+			}
 
-		t := &models.Transaction{
-			TransactionID:   utils.GenerateUUID(),
-			TransactionType: models.Withdraw,
-			UserID:          user.UserID,
-			Amount:          maxBid,
-			DateTime:        time.Now(),
-			EventType:       models.AuctionEv,
-			EventID:         auction.AuctionID,
-		}
+			if ok := s.arepo.AddTransaction(t); !ok {
+				s.closeAuctionErrorCallback(models.ErrCouldNotAddTransaction)
+				return
+			}
 
-		if ok := s.arepo.AddTransaction(t); !ok {
-			s.closeAuctionErrorCallback(models.ErrCouldNotAddTransaction)
-			return
-		}
-
-		user.Currency -= maxBid
-		if ok := s.urepo.Update(user); !ok {
-			s.closeAuctionErrorCallback(models.ErrCouldNotUpdate)
-			return
-		}
-
-		if ok := s.grepo.AddGachaToUser(user.UserID, gacha.GachaID); !ok {
-			s.closeAuctionErrorCallback(models.ErrCouldNotAddGachaToUser)
-			return
+			if ok := s.grepo.AddGachaToUser(user.UserID, gacha.GachaID); !ok {
+				s.closeAuctionErrorCallback(models.ErrCouldNotAddGachaToUser)
+				return
+			}
 		}
 	}
 
 	{ // Auction owner actions
 		user, exists := s.urepo.FindByID(auction.OwnerID)
-		if !exists { // NOTE: Should not be possible
+		if !exists {
 			s.closeAuctionErrorCallback(models.ErrUserNotFound)
 			return
 		}
 
-		// TODO: Implement this
-		// if ok := s.grepo.RemoveGachaToUser(user.UserID, gacha.GachaID); !ok {
-		// 	s.closeAuctionErrorCallback(models.ErrCouldNotAddGachaToUser)
-		// 	return
-		// }
+		if ok := s.grepo.RemoveGachaFromUser(user.UserID, gacha.GachaID); !ok {
+			s.closeAuctionErrorCallback(models.ErrCouldNotAddGachaToUser)
+			return
+		}
 
 		t := &models.Transaction{
 			TransactionID:   utils.GenerateUUID(),
@@ -586,12 +579,12 @@ func (s *MarketService) closeAuctionCallback(aid models.UUID) {
 
 		if ok := s.arepo.AddTransaction(t); !ok {
 			s.closeAuctionErrorCallback(models.ErrCouldNotAddTransaction)
-			return
 		}
 
 		user.Currency += maxBid
 		if ok := s.urepo.Update(user); !ok {
 			s.closeAuctionErrorCallback(models.ErrCouldNotUpdate)
+			// NOTE: What should we do here ?
 			return
 		}
 	}

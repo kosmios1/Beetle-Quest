@@ -101,6 +101,11 @@ type AddGachaToUserData struct {
 	GachaID UUID `json:"gacha_id"`
 }
 
+type RemoveGachaFromUserData struct {
+	UserID  UUID `json:"user_id"`
+	GachaID UUID `json:"gacha_id"`
+}
+
 type FindGachaByIDData struct {
 	GachaID string `json:"gacha_id"`
 }

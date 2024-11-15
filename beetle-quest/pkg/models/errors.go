@@ -24,7 +24,6 @@ const (
 	ErrEmailAlreadyExists              constError = "email already exists"
 	ErrAmountNotValid                  constError = "amount not valid"
 	ErrNotEnoughMoneyToBuyGacha        constError = "not enough money to buy gacha"
-	ErrCouldNotAddGachaToUser          constError = "could not add gacha to user"
 	ErrInvalidEndTime                  constError = "invalid end time"
 	ErrCouldNotCreateAuction           constError = "could not create auction"
 	ErrRetrievingAuctions              constError = "could not retrieve auctions"
@@ -49,6 +48,8 @@ const (
 	ErrCouldNotUpdateAuction           constError = "could not update auction"
 	ErrCouldNotAddTransaction          constError = "could not add transaction"
 	ErrCouldNotAddEvent                constError = "could not add event"
+	ErrCouldNotAddGachaToUser          constError = "could not add gacha to user"
+	ErrCouldNotRemoveGachaFromUser     constError = "could not remove gacha from user"
 
 	ErrCouldNotParseTime          constError = "time format not correct"
 	ErrCouldNotDecodeUserID       constError = "could not decode user id"

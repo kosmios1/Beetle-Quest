@@ -36,7 +36,14 @@ func (s *GachaService) GetAll() ([]models.Gacha, bool) {
 
 func (s *GachaService) AddGachaToUser(userID, gachaID models.UUID) error {
 	if ok := s.gachaRepo.AddGachaToUser(userID, gachaID); !ok {
-		return models.ErrCouldNotBuyGacha
+		return models.ErrCouldNotAddGachaToUser
+	}
+	return nil
+}
+
+func (s *GachaService) RemoveGachaFromUser(userID models.UUID, gachaID models.UUID) error {
+	if ok := s.gachaRepo.RemoveGachaFromUser(userID, gachaID); !ok {
+		return models.ErrCouldNotRemoveGachaFromUser
 	}
 	return nil
 }

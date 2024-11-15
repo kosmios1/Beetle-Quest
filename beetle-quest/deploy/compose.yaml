@@ -122,6 +122,7 @@ services:
             GET_ALL_GACHA_ENDPOINT: https://gacha-service/api/v1/internal/gacha/get_all
             FIND_GACHA_BY_ID_ENDPOINT: https://gacha-service/api/v1/internal/gacha/find_by_id
             ADD_GACHA_TO_USER_ENDPOINT: https://gacha-service/api/v1/internal/gacha/add_gacha_to_user
+            REMOVE_GACHA_FROM_USER_ENDPOINT: https://gacha-service/api/v1/internal/gacha/remove_gacha_from_user
             GET_USER_GACHAS_ENDPOINT: https://gacha-service/api/v1/internal/gacha/get_user_gachas
         env_file:
             - ./secrets/postgress.env
@@ -172,6 +173,12 @@ services:
         environment:
             <<: [*common-services-environments, *market-db-environments]
 
+            REDIS_HOST: market-timed-events-redis
+            REDIS_PORT: 6379
+            REDIS_USERNAME: beetle
+            REDIS_PASSWORD: secret
+            REDIS_DB: 0
+
             CREATE_USER_ENDPOINT: https://user-service/api/v1/internal/user/create
             UPDATE_USER_ENDPOINT: https://user-service/api/v1/internal/user/update
             DELETE_USER_ENDPOINT: https://user-service/api/v1/internal/user/delete
@@ -179,15 +186,10 @@ services:
             FIND_USER_BY_EMAIL_ENDPOINT: https://user-service/api/v1/internal/user/find_by_email
             FIND_USER_BY_USERNAME_ENDPOINT: https://user-service/api/v1/internal/user/find_by_username
 
-            REDIS_HOST: market-timed-events-redis
-            REDIS_PORT: 6379
-            REDIS_USERNAME: beetle
-            REDIS_PASSWORD: secret
-            REDIS_DB: 0
-
             GET_ALL_GACHA_ENDPOINT: https://gacha-service/api/v1/internal/gacha/get_all
             FIND_GACHA_BY_ID_ENDPOINT: https://gacha-service/api/v1/internal/gacha/find_by_id
             ADD_GACHA_TO_USER_ENDPOINT: https://gacha-service/api/v1/internal/gacha/add_gacha_to_user
+            REMOVE_GACHA_FROM_USER_ENDPOINT: https://gacha-service/api/v1/internal/gacha/remove_gacha_from_user
             GET_USER_GACHAS_ENDPOINT: https://gacha-service/api/v1/internal/gacha/get_user_gachas
 
         env_file:

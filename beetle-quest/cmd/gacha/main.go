@@ -46,6 +46,7 @@ func main() {
 	{
 		internalPath.POST("/get_user_gachas", cnt.GetUserGachas)
 		internalPath.POST("/add_gacha_to_user", cnt.AddGachaToUser)
+		internalPath.POST("/remove_gacha_from_user", cnt.RemoveGachaFromUser)
 		internalPath.POST("/find_by_id", cnt.FindByID)
 		internalPath.GET("/get_all", cnt.GetAll)
 	}

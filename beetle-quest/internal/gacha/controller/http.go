@@ -104,6 +104,21 @@ func (c *GachaController) AddGachaToUser(ctx *gin.Context) {
 	ctx.Status(http.StatusOK)
 }
 
+func (c *GachaController) RemoveGachaFromUser(ctx *gin.Context) {
+	var data models.RemoveGachaFromUserData
+	if err := ctx.ShouldBindJSON(&data); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "Invalid data submitted!"})
+		return
+	}
+
+	if err := c.srv.RemoveGachaFromUser(data.UserID, data.GachaID); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Error": err.Error()})
+		return
+	}
+
+	ctx.Status(http.StatusOK)
+}
+
 func (c *GachaController) FindByID(ctx *gin.Context) {
 	var req models.FindGachaByIDData
 	if err := ctx.ShouldBindJSON(&req); err != nil {

@@ -14,8 +14,9 @@ var (
 	getAllEndpoint        = utils.FindEnv("GET_ALL_GACHA_ENDPOINT")
 	findGachaByIDEndpoint = utils.FindEnv("FIND_GACHA_BY_ID_ENDPOINT")
 
-	getUserGachasEndpoint  = utils.FindEnv("GET_USER_GACHAS_ENDPOINT")
-	addGachaToUserEndpoint = utils.FindEnv("ADD_GACHA_TO_USER_ENDPOINT")
+	getUserGachasEndpoint       = utils.FindEnv("GET_USER_GACHAS_ENDPOINT")
+	addGachaToUserEndpoint      = utils.FindEnv("ADD_GACHA_TO_USER_ENDPOINT")
+	removeGachaFromUserEndpoint = utils.FindEnv("REMOVE_GACHA_FROM_USER_ENDPOINT")
 )
 
 type GachaRepo struct {
@@ -113,6 +114,42 @@ func (r *GachaRepo) AddGachaToUser(uid models.UUID, gid models.UUID) bool {
 	resp, err := r.cb.Execute(func() (*http.Response, error) {
 		resp, err := r.client.Post(
 			addGachaToUserEndpoint,
+			"application/json",
+			bytes.NewBuffer(jsonData),
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		return resp, nil
+	})
+	defer resp.Body.Close()
+
+	if err != nil {
+		return false
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return false
+	}
+
+	return true
+}
+
+func (r *GachaRepo) RemoveGachaFromUser(uid models.UUID, gid models.UUID) bool {
+	requestData := models.RemoveGachaFromUserData{
+		UserID:  uid,
+		GachaID: gid,
+	}
+
+	jsonData, err := json.Marshal(requestData)
+	if err != nil {
+		return false
+	}
+	resp, err := r.cb.Execute(func() (*http.Response, error) {
+		resp, err := r.client.Post(
+			removeGachaFromUserEndpoint,
 			"application/json",
 			bytes.NewBuffer(jsonData),
 		)
