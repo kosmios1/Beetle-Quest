@@ -181,9 +181,11 @@ button:hover {
 
 .gacha-account-list {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     justify-content: start;
     padding: 1%;
+    margin: 0.5%;
+    gap: 1%;
 }
 
 .gacha-account-item {
@@ -192,8 +194,8 @@ button:hover {
     padding: 15px;
     border-radius: 5px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    min-width: 300px;
-    margin: 5px;
+    /* min-width: 300px; */
+    margin: 0.5%;
 }
 
 .gacha-account-image {
@@ -202,36 +204,6 @@ button:hover {
     margin-right: 15px;
     border-radius: 50%;
     border: 2px solid #000;
-}
-
-@media (max-width: 800) {
-    .account-container {
-        grid-template-columns: 1fr 2fr;
-    }
-
-    .gacha-account-list {
-        grid-template-columns: 1fr 1fr 1fr;
-    }
-}
-
-@media (max-width: 600px) {
-    .account-container {
-        grid-template-columns: 1fr 2fr;
-    }
-
-    .gacha-account-list {
-        grid-template-columns: 1fr 1fr;
-    }
-}
-
-@media (max-width: 400px) {
-    .account-container {
-        grid-template-columns: 1fr;
-    }
-
-    .gacha-account-list {
-        grid-template-columns: 1fr;
-    }
 }
 
 /* Gacha List =========================================================================== */
@@ -483,4 +455,34 @@ button:hover {
 
 .auction-details a:hover {
     background-color: #21618c;
+}
+
+.transactions-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    padding: 20px;
+}
+
+.transaction-card {
+    background-color: #f2f2f2;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.transaction-card h3 {
+    margin-top: 0;
+}
+
+.transaction-card p {
+    margin: 5px 0;
+}
+
+.Withdraw {
+    background-color: #ffcccc;
+}
+
+.Deposit {
+    background-color: #ccffcc;
 }

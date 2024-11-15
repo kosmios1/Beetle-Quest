@@ -50,6 +50,7 @@ const (
 	ErrCouldNotAddEvent                constError = "could not add event"
 	ErrCouldNotAddGachaToUser          constError = "could not add gacha to user"
 	ErrCouldNotRemoveGachaFromUser     constError = "could not remove gacha from user"
+	ErrTransactionNotFound             constError = "transaction not found"
 
 	ErrCouldNotParseTime          constError = "time format not correct"
 	ErrCouldNotDecodeUserID       constError = "could not decode user id"

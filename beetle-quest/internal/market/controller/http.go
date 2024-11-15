@@ -243,3 +243,23 @@ func (c *MarketController) BidToAuction(ctx *gin.Context) {
 
 	ctx.HTML(http.StatusOK, "successMsg.tmpl", gin.H{"Message": "Bid successfully"})
 }
+
+// Internal ==========================================================================================================
+
+func (c *MarketController) GetUserTransactionHistory(ctx *gin.Context) {
+	var data models.GetUserTransactionHistoryData
+	if err := ctx.ShouldBindJSON(&data); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"Error": models.ErrInvalidData})
+		ctx.Abort()
+		return
+	}
+
+	auctions, ok := c.srv.GetUserTransactionHistory(data.UserID)
+	if !ok {
+		ctx.JSON(http.StatusBadRequest, gin.H{"Error": models.ErrTransactionNotFound})
+		ctx.Abort()
+		return
+	}
+
+	ctx.JSON(http.StatusOK, models.GetUserTransactionHistoryDataResponse{TransactionHistory: auctions})
+}

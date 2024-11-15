@@ -86,3 +86,19 @@
         </div>
     </div>
 </div>
+
+<div class="transactions-list">
+    {{ range .TransactionList }}
+    <div class="transaction-card {{ .TransactionType }}">
+        <h3>Transaction ID: {{ .TransactionID }}</h3>
+        <p>Type: {{ .TransactionType }}</p>
+        <p>User ID: {{ .UserID }}</p>
+        <p>Amount: ${{ .Amount }}</p>
+        <p>Date: {{ .DateTime.Format "Jan 2, 2006 15:04 MST" }}</p>
+        <p>Event Type: {{ .EventType }}</p>
+        {{ if ne .EventID "00000000-0000-0000-0000-000000000000" }}
+            <p>Event ID: {{ .EventID }}</p>
+        {{ end }}
+    </div>
+    {{ end }}
+</div>

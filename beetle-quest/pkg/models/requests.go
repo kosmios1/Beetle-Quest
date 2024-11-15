@@ -1,5 +1,7 @@
 package models
 
+import "time"
+
 // Auth ======================================
 
 type RegisterRequest struct {
@@ -14,14 +16,23 @@ type LoginRequest struct {
 }
 
 // User ======================================
+type TransactionView struct {
+	TransactionID   string
+	TransactionType string
+	UserID          string
+	Amount          int64
+	DateTime        time.Time
+	EventType       string
+	EventID         string
+}
 
 type GetUserAccountDetailsTemplatesData struct {
-	UserID          string        `json:"user_id"`
-	Username        string        `json:"username"`
-	Email           string        `json:"email"`
-	Currency        int64         `json:"currency"`
-	GachaList       []Gacha       `json:"gacha_list"`
-	TransactionList []Transaction `json:"transaction_list"`
+	UserID          string            `json:"user_id"`
+	Username        string            `json:"username"`
+	Email           string            `json:"email"`
+	Currency        int64             `json:"currency"`
+	GachaList       []Gacha           `json:"gacha_list"`
+	TransactionList []TransactionView `json:"transaction_list"`
 }
 
 type UpdateUserAccountDetailsRequest struct {
@@ -108,4 +119,13 @@ type RemoveGachaFromUserData struct {
 
 type FindGachaByIDData struct {
 	GachaID string `json:"gacha_id"`
+}
+
+// Market
+type GetUserTransactionHistoryData struct {
+	UserID UUID `json:"user_id"`
+}
+
+type GetUserTransactionHistoryDataResponse struct {
+	TransactionHistory []Transaction `json:"TransactionHistory"`
 }

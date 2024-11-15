@@ -9,7 +9,8 @@ import (
 	"log"
 
 	internalMiddleware "beetle-quest/internal/user/middleware"
-	httpGrepo "beetle-quest/pkg/repositories/serviceHttp/gacha"
+	gHttpGrepo "beetle-quest/pkg/repositories/serviceHttp/gacha"
+	mHttpGrepo "beetle-quest/pkg/repositories/serviceHttp/market"
 
 	"github.com/gin-contrib/secure"
 	"github.com/gin-gonic/gin"
@@ -37,7 +38,7 @@ func main() {
 	r.LoadHTMLGlob("templates/*")
 
 	cnt := controller.NewUserController(
-		service.NewUserService(repository.NewUserRepo(), httpGrepo.NewGachaRepo()),
+		service.NewUserService(repository.NewUserRepo(), gHttpGrepo.NewGachaRepo(), mHttpGrepo.NewMarketRepo()),
 	)
 
 	basePath := r.Group("/api/v1/user")

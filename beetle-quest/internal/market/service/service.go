@@ -593,3 +593,14 @@ func (s *MarketService) closeAuctionCallback(aid models.UUID) {
 func (s *MarketService) closeAuctionErrorCallback(err error) {
 	log.Printf("Error closing auction: %v", err)
 }
+
+// Internal functions ====================================================
+
+func (s *MarketService) GetUserTransactionHistory(uid models.UUID) ([]models.Transaction, bool) {
+	transactions, ok := s.arepo.GetUserTransactionHistory(uid)
+	if !ok {
+		return []models.Transaction{}, false
+	}
+
+	return transactions, true
+}

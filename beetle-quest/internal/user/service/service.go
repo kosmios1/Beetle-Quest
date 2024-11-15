@@ -9,12 +9,14 @@ import (
 type UserService struct {
 	urepo repositories.UserRepo
 	grepo repositories.GachaRepo
+	mrepo repositories.MarketRepo
 }
 
-func NewUserService(urepo repositories.UserRepo, grepo repositories.GachaRepo) *UserService {
+func NewUserService(urepo repositories.UserRepo, grepo repositories.GachaRepo, mrepo repositories.MarketRepo) *UserService {
 	return &UserService{
 		urepo,
 		grepo,
+		mrepo,
 	}
 }
 
@@ -127,4 +129,17 @@ func (s *UserService) GetUserGachaList(userId string) []models.Gacha {
 		return []models.Gacha{}
 	}
 	return gachas
+}
+
+func (s *UserService) GetUserTransactionHistory(userId string) []models.Transaction {
+	uid, err := utils.ParseUUID(userId)
+	if err != nil {
+		return []models.Transaction{}
+	}
+
+	transactions, ok := s.mrepo.GetUserTransactionHistory(uid)
+	if !ok {
+		return []models.Transaction{}
+	}
+	return transactions
 }

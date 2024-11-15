@@ -76,6 +76,18 @@ func (r *MarketRepo) FindByID(id models.UUID) (*models.Auction, bool) {
 	return &auction, true
 }
 
+func (r *MarketRepo) GetUserTransactionHistory(uid models.UUID) ([]models.Transaction, bool) {
+	var transactions []models.Transaction
+	result := r.db.Table("transactions").Where("user_id = ?", uid).Find(&transactions)
+	if result.Error != nil {
+		if result.Error == gorm.ErrEmptySlice {
+			return []models.Transaction{}, true
+		}
+		return []models.Transaction{}, false
+	}
+	return transactions, true
+}
+
 func (r *MarketRepo) GetUserAuctions(uid models.UUID) ([]models.Auction, bool) {
 	var auctions []models.Auction
 	result := r.db.Table("auctions").Where("owner_id = ?", uid).Find(&auctions)

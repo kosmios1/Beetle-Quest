@@ -124,6 +124,7 @@ services:
             ADD_GACHA_TO_USER_ENDPOINT: https://gacha-service/api/v1/internal/gacha/add_gacha_to_user
             REMOVE_GACHA_FROM_USER_ENDPOINT: https://gacha-service/api/v1/internal/gacha/remove_gacha_from_user
             GET_USER_GACHAS_ENDPOINT: https://gacha-service/api/v1/internal/gacha/get_user_gachas
+            GET_USER_TRANSACTION_HISTORY_ENDPOINT: https://market-service/api/v1/internal/market/get_user_transaction_history
         env_file:
             - ./secrets/postgress.env
             - ./secrets/jwt.env

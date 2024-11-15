@@ -42,15 +42,28 @@ func (c *UserController) GetUserAccountDetails(ctx *gin.Context) {
 	}
 
 	gachas := c.srv.GetUserGachaList(user.UserID.String())
+	transactions := c.srv.GetUserTransactionHistory(userID)
 
-	// TODO: Get user's transaction history
+	var transactionViews []models.TransactionView
+	for _, transaction := range transactions {
+		transactionViews = append(transactionViews, models.TransactionView{
+			TransactionID:   transaction.TransactionID.String(),
+			TransactionType: transaction.TransactionType.String(),
+			UserID:          transaction.UserID.String(),
+			Amount:          transaction.Amount,
+			DateTime:        transaction.DateTime,
+			EventType:       transaction.EventType.String(),
+			EventID:         transaction.EventID.String(),
+		})
+	}
+
 	ctx.HTML(http.StatusOK, "userInfo.tmpl", models.GetUserAccountDetailsTemplatesData{
 		UserID:          user.UserID.String(),
 		Username:        user.Username,
 		Email:           user.Email,
 		Currency:        user.Currency,
 		GachaList:       gachas,
-		TransactionList: []models.Transaction{},
+		TransactionList: transactionViews,
 	})
 }
 

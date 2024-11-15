@@ -10,6 +10,7 @@ type MarketRepo interface {
 	Delete(*models.Auction) bool
 
 	GetAll() ([]models.Auction, bool)
+	GetUserTransactionHistory(models.UUID) ([]models.Transaction, bool)
 	GetUserAuctions(models.UUID) ([]models.Auction, bool)
 	FindByID(models.UUID) (*models.Auction, bool)
 

@@ -62,6 +62,11 @@ func main() {
 		}
 	}
 
+	internalPath := r.Group("/api/v1/internal/market")
+	{
+		internalPath.POST("/get_user_transaction_history", cnt.GetUserTransactionHistory)
+	}
+
 	server := utils.SetupHTPPSServer(r)
 	if err := server.ListenAndServeTLS("/serverCert.pem", "/serverKey.pem"); err != nil {
 		log.Fatal("Failed to start server: ", err)
