@@ -52,13 +52,7 @@ func (r *MarketRepo) Create(auction *models.Auction) bool {
 }
 
 func (r *MarketRepo) Delete(auction *models.Auction) bool {
-	result := r.db.Table("auctions").Delete(auction)
-	if result.Error != nil {
-		return false
-	}
-
-	// TODO: Have to give back the money to the bidders
-	result = r.db.Table("bids").Where("auction_id = ?", auction.AuctionID).Delete(&models.Bid{})
+	result := r.db.Table("auctions").Delete(auction, models.Auction{AuctionID: auction.AuctionID})
 	if result.Error != nil {
 		return false
 	}
@@ -93,6 +87,14 @@ func (r *MarketRepo) GetAll() ([]models.Auction, bool) {
 		return nil, false
 	}
 	return auctions, true
+}
+
+func (r *MarketRepo) BidToAuction(bid *models.Bid) bool {
+	result := r.db.Table("bids").Create(bid)
+	if result.Error != nil {
+		return false
+	}
+	return true
 }
 
 func (r *MarketRepo) GetBidListOfAuction(aid models.UUID) ([]models.Bid, bool) {

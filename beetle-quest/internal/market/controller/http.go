@@ -174,23 +174,70 @@ func (c *MarketController) AuctionDetail(ctx *gin.Context) {
 }
 
 func (c *MarketController) AuctionDelete(ctx *gin.Context) {
-	// TODO: Steps to implement
-	// 1. Get auction's id
-	// 2. Get user_id by the gin context
-	// 3. Check if user is the owner of the auction
-	// 4. Check that the auction is not expired
-	// 5. Check that no one bid to the auction
-	// 6. Check that the auction is open less than x time
-	// 7. Refund the bidders
-	// 8. Delete the auction
+	password, ok := ctx.GetQuery("password")
+	if !ok {
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": models.ErrInvalidPassword})
+		ctx.Abort()
+		return
+	}
+
+	aid := ctx.Param("auction_id")
+	if aid == "" {
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": models.ErrInvalidAuctionID})
+		ctx.Abort()
+		return
+	}
+
+	uid, ok := ctx.Get("user_id")
+	if !ok {
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": models.ErrInvalidUserID})
+		ctx.Abort()
+	}
+
+	if err := c.srv.DeleteAuction(uid.(string), aid, password); err != nil {
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
+		ctx.Abort()
+		return
+	}
+
+	ctx.HTML(http.StatusOK, "successMsg.tmpl", gin.H{"Message": "Auction deleted successfully"})
 }
 
 func (c *MarketController) BidToAuction(ctx *gin.Context) {
-	// TODO: Steps to implement
-	// 1. Get auction's id
-	// 2. Get user_id by the gin context
-	// 3. Check if user is not the owner of the auction
-	// 4. Check if user has enough bugscoin to bid
-	// 5. Check if the auction is not expired
-	// 6. Bid to the auction
+	var data models.BidRequest
+	if err := ctx.ShouldBindJSON(&data); err != nil {
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": models.ErrInvalidData})
+		ctx.Abort()
+		return
+	}
+
+	aid := ctx.Param("auction_id")
+	if aid == "" {
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": models.ErrInvalidAuctionID})
+		ctx.Abort()
+		return
+	}
+
+	uid, ok := ctx.Get("user_id")
+	if !ok {
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": models.ErrInvalidUserID})
+		ctx.Abort()
+		return
+	}
+
+	bidAmount, err := strconv.Atoi(data.BidAmount)
+	if err != nil {
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": models.ErrInvalidBidAmount})
+		ctx.Abort()
+		return
+	}
+
+	err = c.srv.MakeBid(uid.(string), aid, int64(bidAmount))
+	if err != nil {
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
+		ctx.Abort()
+		return
+	}
+
+	ctx.HTML(http.StatusOK, "successMsg.tmpl", gin.H{"Message": "Bid successfully"})
 }

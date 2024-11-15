@@ -55,6 +55,10 @@ type CreateAuctionRequest struct {
 	EndTime string `json:"end_time"`
 }
 
+type BidRequest struct {
+	BidAmount string `json:"bid_amount"`
+}
+
 // ============================================
 // Internal models
 // ============================================

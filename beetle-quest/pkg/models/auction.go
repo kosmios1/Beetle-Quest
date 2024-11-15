@@ -16,8 +16,9 @@ type Auction struct {
 }
 
 type Bid struct {
+	BidID       UUID      `json:"bid_id"`
 	AuctionID   UUID      `json:"auction_id"`
-	UserID      UUID      `json:"owner_id"`
+	UserID      UUID      `json:"user_id"`
 	AmountSpend int64     `json:"amount_spend"`
 	TimeStamp   time.Time `json:"time_stamp"`
 }

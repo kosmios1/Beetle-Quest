@@ -218,6 +218,65 @@ func (s *MarketService) CreateAuction(userId, gachaId string, endTime time.Time)
 	return nil
 }
 
+func (s *MarketService) DeleteAuction(userId, auctionId, password string) error {
+	uid, err := utils.ParseUUID(userId)
+	if err != nil {
+		return models.ErrInvalidUserID
+	}
+
+	aid, err := utils.ParseUUID(auctionId)
+	if err != nil {
+		return models.ErrInvalidAuctionID
+	}
+
+	user, exists := s.urepo.FindByID(uid)
+	if !exists {
+		return models.ErrUserNotFound
+	}
+
+	auction, exists := s.arepo.FindByID(aid)
+	if !exists {
+		return models.ErrAuctionNotFound
+	}
+
+	// Check if the user is the owner of the auction
+	if auction.OwnerID != uid {
+		return models.ErrUserNotOwnerOfAuction
+	}
+
+	// Check if the inserted password is correct
+	if err = utils.CompareHashPassword([]byte(password), user.PasswordHash); err != nil {
+		return models.ErrInvalidPassword
+	}
+
+	if auction.EndTime.Before(time.Now()) {
+		return models.ErrAuctionEnded
+	}
+
+	// If the auction started more than 1/3 of the total time, it cannot be deleted
+	timeNow := time.Now()
+	totalAuctionTime := auction.EndTime.Sub(auction.StartTime)
+	if timeNow.Sub(auction.StartTime) > totalAuctionTime/3 {
+		return models.ErrAuctionIsTooCloseToEnd
+	}
+
+	bids, ok := s.arepo.GetBidListOfAuction(aid)
+	if !ok {
+		return models.ErrCouldNotRetrieveAuctionBids
+	}
+
+	// If there are bids the auction cannot be deleted
+	if len(bids) > 0 {
+		return models.ErrAuctionHasBids
+	}
+
+	if ok := s.arepo.Delete(auction); !ok {
+		return models.ErrCouldNotDeleteAuction
+	}
+
+	return nil
+}
+
 func (s *MarketService) RetrieveAuctionTemplateList() ([]models.AuctionTemplate, error) {
 	auctions, ok := s.arepo.GetAll()
 	if !ok {
@@ -271,4 +330,76 @@ func (s *MarketService) GetBidListOfAuctionID(auctionId string) ([]models.Bid, b
 		return []models.Bid{}, false
 	}
 	return bids, true
+}
+
+func (s *MarketService) MakeBid(userId, auctionId string, bidAmount int64) error {
+	uid, err := utils.ParseUUID(userId)
+	if err != nil {
+		return models.ErrInvalidUserID
+	}
+
+	aid, err := utils.ParseUUID(auctionId)
+	if err != nil {
+		return models.ErrInvalidAuctionID
+	}
+
+	auction, exists := s.arepo.FindByID(aid)
+	if !exists {
+		return models.ErrAuctionNotFound
+	}
+
+	if auction.OwnerID == uid {
+		return models.ErrOwnerCannotBid
+	}
+
+	user, exists := s.urepo.FindByID(uid)
+	if !exists {
+		return models.ErrUserNotFound
+	}
+
+	if user.Currency < bidAmount {
+		return models.ErrNotEnoughMoneyToBid
+	}
+
+	bids, ok := s.arepo.GetBidListOfAuction(aid)
+	if !ok {
+		return models.ErrCouldNotRetrieveAuctionBids
+	}
+
+	var maxBid int64 = 0
+	for _, bid := range bids {
+		if bid.AmountSpend > maxBid {
+			maxBid = bid.AmountSpend
+		}
+	}
+
+	if bidAmount <= maxBid {
+		return models.ErrBidAmountNotEnough
+	}
+
+	if auction.EndTime.Before(time.Now()) {
+		return models.ErrAuctionEnded
+	}
+
+	bid := &models.Bid{
+		BidID:       utils.GenerateUUID(),
+		UserID:      uid,
+		AuctionID:   aid,
+		AmountSpend: int64(bidAmount),
+		TimeStamp:   time.Now(),
+	}
+
+	user.Currency -= bidAmount
+	if ok := s.urepo.Update(user); !ok {
+		return models.ErrCouldNotUpdate
+	}
+
+	if ok := s.arepo.BidToAuction(bid); !ok {
+		user.Currency += bidAmount
+		if ok := s.urepo.Update(user); !ok {
+			// TODO: What should we do here?
+		}
+		return models.ErrCouldNotBidToAuction
+	}
+	return nil
 }

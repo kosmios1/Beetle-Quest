@@ -30,7 +30,7 @@ func NewGachaRepo() *GachaRepo {
 	}
 }
 
-func (r GachaRepo) GetAll() ([]models.Gacha, bool) {
+func (r *GachaRepo) GetAll() ([]models.Gacha, bool) {
 	resp, err := r.cb.Execute(func() (*http.Response, error) {
 		resp, err := r.client.Get(getAllEndpoint)
 
@@ -58,7 +58,7 @@ func (r GachaRepo) GetAll() ([]models.Gacha, bool) {
 	return result.GachaList, true
 }
 
-func (r GachaRepo) FindByID(gid models.UUID) (*models.Gacha, bool) {
+func (r *GachaRepo) FindByID(gid models.UUID) (*models.Gacha, bool) {
 	requestData := models.FindGachaByIDData{
 		GachaID: gid.String(),
 	}
@@ -100,7 +100,7 @@ func (r GachaRepo) FindByID(gid models.UUID) (*models.Gacha, bool) {
 	return &gacha, true
 }
 
-func (r GachaRepo) AddGachaToUser(uid models.UUID, gid models.UUID) bool {
+func (r *GachaRepo) AddGachaToUser(uid models.UUID, gid models.UUID) bool {
 	requestData := models.AddGachaToUserData{
 		UserID:  uid,
 		GachaID: gid,
@@ -136,7 +136,7 @@ func (r GachaRepo) AddGachaToUser(uid models.UUID, gid models.UUID) bool {
 	return true
 }
 
-func (r GachaRepo) GetUserGachas(uid models.UUID) ([]models.Gacha, bool) {
+func (r *GachaRepo) GetUserGachas(uid models.UUID) ([]models.Gacha, bool) {
 	requestData := models.GetUserGachasData{
 		UserID: uid,
 	}

@@ -33,7 +33,7 @@ func NewUserRepo() *UserRepo {
 	}
 }
 
-func (r UserRepo) Create(email, username string, hashedPassword []byte, currency int64) bool {
+func (r *UserRepo) Create(email, username string, hashedPassword []byte, currency int64) bool {
 	requestData := models.CreateUserData{
 		Email:          email,
 		Username:       username,
@@ -72,7 +72,7 @@ func (r UserRepo) Create(email, username string, hashedPassword []byte, currency
 	}
 }
 
-func (r UserRepo) Update(user *models.User) bool {
+func (r *UserRepo) Update(user *models.User) bool {
 	jsonData, err := json.Marshal(user)
 	if err != nil {
 		return false
@@ -103,12 +103,12 @@ func (r UserRepo) Update(user *models.User) bool {
 	return true
 }
 
-func (r UserRepo) Delete(user *models.User) bool {
+func (r *UserRepo) Delete(user *models.User) bool {
 	log.Println("[ERROR] Not implemented!")
 	return false
 }
 
-func (r UserRepo) FindByID(id models.UUID) (*models.User, bool) {
+func (r *UserRepo) FindByID(id models.UUID) (*models.User, bool) {
 	requestData := models.FindUserByIDData{
 		UserID: id.String(),
 	}
@@ -150,7 +150,7 @@ func (r UserRepo) FindByID(id models.UUID) (*models.User, bool) {
 	return &user, true
 }
 
-func (r UserRepo) FindByUsername(username string) (*models.User, bool) {
+func (r *UserRepo) FindByUsername(username string) (*models.User, bool) {
 	requestData := models.FindUserByUsernameData{
 		Username: username,
 	}
@@ -192,7 +192,7 @@ func (r UserRepo) FindByUsername(username string) (*models.User, bool) {
 	return &user, true
 }
 
-func (r UserRepo) FindByEmail(email string) (*models.User, bool) {
+func (r *UserRepo) FindByEmail(email string) (*models.User, bool) {
 	requestData := models.FindUserByEmailData{
 		Email: email,
 	}

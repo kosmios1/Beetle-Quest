@@ -41,16 +41,13 @@ func NewUserRepo() *UserRepo {
 	}
 
 	// This will create the table if it does not exist and will keep the schema updated
-	err := repo.db.AutoMigrate(&models.User{})
-	if err != nil {
-		log.Printf("Failed to migrate the database: %v", err)
-	}
-
+	repo.db.AutoMigrate(&models.User{})
 	return repo
 }
 
-func (r UserRepo) Create(email, username string, hashedPassword []byte, currency int64) bool {
+func (r *UserRepo) Create(email, username string, hashedPassword []byte, currency int64) bool {
 	result := r.db.Table("users").Create(&models.User{
+		UserID:       utils.GenerateUUID(),
 		Username:     username,
 		Email:        email,
 		PasswordHash: hashedPassword,
@@ -68,23 +65,23 @@ func (r UserRepo) Create(email, username string, hashedPassword []byte, currency
 	return true
 }
 
-func (r UserRepo) Update(user *models.User) bool {
-	result := r.db.Table("users").Save(user)
+func (r *UserRepo) Update(user *models.User) bool {
+	result := r.db.Table("users").Where("user_id = ?", user.UserID).Updates(user)
 	if result.Error != nil {
 		return false
 	}
 	return true
 }
 
-func (r UserRepo) Delete(user *models.User) bool {
-	result := r.db.Table("users").Delete(user)
+func (r *UserRepo) Delete(user *models.User) bool {
+	result := r.db.Table("users").Delete(user, models.User{UserID: user.UserID})
 	if result.Error != nil {
 		return false
 	}
 	return true
 }
 
-func (r UserRepo) FindByUsername(username string) (*models.User, bool) {
+func (r *UserRepo) FindByUsername(username string) (*models.User, bool) {
 	var user models.User
 	result := r.db.Table("users").First(&user, models.User{Username: username})
 	if result.Error != nil {
@@ -94,7 +91,7 @@ func (r UserRepo) FindByUsername(username string) (*models.User, bool) {
 	return &user, true
 }
 
-func (r UserRepo) FindByID(id models.UUID) (*models.User, bool) {
+func (r *UserRepo) FindByID(id models.UUID) (*models.User, bool) {
 	var user models.User
 	result := r.db.Table("users").First(&user, models.User{UserID: id})
 	if result.Error != nil {
@@ -103,7 +100,7 @@ func (r UserRepo) FindByID(id models.UUID) (*models.User, bool) {
 	return &user, true
 }
 
-func (r UserRepo) FindByEmail(email string) (*models.User, bool) {
+func (r *UserRepo) FindByEmail(email string) (*models.User, bool) {
 	var user models.User
 	result := r.db.Table("users").First(&user, models.User{Email: email})
 	if result.Error != nil {

@@ -49,7 +49,7 @@ func NewGachaRepo() *GachaRepo {
 	return repo
 }
 
-func (r GachaRepo) FindByID(id models.UUID) (*models.Gacha, bool) {
+func (r *GachaRepo) FindByID(id models.UUID) (*models.Gacha, bool) {
 	var gacha models.Gacha
 	result := r.db.Table("gachas").First(&gacha, models.Gacha{GachaID: id})
 	if result.Error != nil {
@@ -58,7 +58,7 @@ func (r GachaRepo) FindByID(id models.UUID) (*models.Gacha, bool) {
 	return &gacha, true
 }
 
-func (r GachaRepo) GetAll() ([]models.Gacha, bool) {
+func (r *GachaRepo) GetAll() ([]models.Gacha, bool) {
 	var gachas []models.Gacha
 	result := r.db.Table("gachas").Find(&gachas)
 	if result.Error != nil {
@@ -67,7 +67,7 @@ func (r GachaRepo) GetAll() ([]models.Gacha, bool) {
 	return gachas, true
 }
 
-func (r GachaRepo) AddGachaToUser(uid models.UUID, gid models.UUID) bool {
+func (r *GachaRepo) AddGachaToUser(uid models.UUID, gid models.UUID) bool {
 	result := r.db.Table("user_gacha").Create(struct {
 		UserID  models.UUID
 		GachaID models.UUID
@@ -82,7 +82,7 @@ func (r GachaRepo) AddGachaToUser(uid models.UUID, gid models.UUID) bool {
 	return true
 }
 
-func (r GachaRepo) GetUserGachas(uid models.UUID) ([]models.Gacha, bool) {
+func (r *GachaRepo) GetUserGachas(uid models.UUID) ([]models.Gacha, bool) {
 	var gachas []models.Gacha
 	result := r.db.Table("user_gacha").Select("gachas.*").Joins("JOIN gachas ON gachas.gacha_id = user_gacha.gacha_id").Where("user_gacha.user_id = ?", uid).Find(&gachas)
 	if result.Error != nil {

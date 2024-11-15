@@ -1,8 +1,9 @@
 CREATE TABLE bids (
+    bid_id UUID PRIMARY KEY,
     auction_id UUID,
     user_id UUID,
     amount_spend BIGINT,
-    timestamp TIMESTAMP
+    time_stamp TIMESTAMP
 );
 
 CREATE TABLE auctions (

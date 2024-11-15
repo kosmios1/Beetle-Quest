@@ -110,14 +110,17 @@ func (c *UserController) DeleteUserAccount(ctx *gin.Context) {
 		return
 	}
 
+	// TODO: Delete user's gacha list
+	// TODO: Update user's auctions to be without owner (they are of the system)
+	// TODO: Delete user's transaction history
+	// TODO: Invalidate user's token
+
 	err = c.srv.DeleteUserAccount(parsedUserID, password)
 	if err != nil {
 		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err})
 		ctx.Abort()
 		return
 	}
-
-	// TODO: Invalidate user's token
 
 	ctx.HTML(http.StatusOK, "successMsg.tmpl", gin.H{
 		"Message": "User account deleted successfully!",
