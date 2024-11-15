@@ -6,6 +6,7 @@ import (
 
 type MarketRepo interface {
 	Create(*models.Auction) bool
+	Update(*models.Auction) bool
 	Delete(*models.Auction) bool
 
 	GetAll() ([]models.Auction, bool)
@@ -14,4 +15,6 @@ type MarketRepo interface {
 
 	GetBidListOfAuction(models.UUID) ([]models.Bid, bool)
 	BidToAuction(*models.Bid) bool
+
+	AddTransaction(*models.Transaction) bool
 }

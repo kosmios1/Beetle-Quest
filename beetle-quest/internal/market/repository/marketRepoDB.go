@@ -51,6 +51,14 @@ func (r *MarketRepo) Create(auction *models.Auction) bool {
 	return true
 }
 
+func (r *MarketRepo) Update(auction *models.Auction) bool {
+	result := r.db.Table("auctions").Where("auction_id = ?", auction.AuctionID).Updates(auction)
+	if result.Error != nil {
+		return false
+	}
+	return true
+}
+
 func (r *MarketRepo) Delete(auction *models.Auction) bool {
 	result := r.db.Table("auctions").Delete(auction, models.Auction{AuctionID: auction.AuctionID})
 	if result.Error != nil {
@@ -104,4 +112,12 @@ func (r *MarketRepo) GetBidListOfAuction(aid models.UUID) ([]models.Bid, bool) {
 		return nil, false
 	}
 	return bids, true
+}
+
+func (r *MarketRepo) AddTransaction(transaction *models.Transaction) bool {
+	result := r.db.Table("transactions").Create(transaction)
+	if result.Error != nil {
+		return false
+	}
+	return true
 }

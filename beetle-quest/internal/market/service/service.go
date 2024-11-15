@@ -1,21 +1,34 @@
 package service
 
 import (
+	"beetle-quest/internal/market/repository"
 	"beetle-quest/pkg/models"
 	"beetle-quest/pkg/repositories"
 	"beetle-quest/pkg/utils"
+	"log"
 	"math/rand/v2"
 	"time"
 )
 
 type MarketService struct {
-	urepo repositories.UserRepo
-	grepo repositories.GachaRepo
-	arepo repositories.MarketRepo
+	evrepo *repository.EventRepo
+	urepo  repositories.UserRepo
+	grepo  repositories.GachaRepo
+	arepo  repositories.MarketRepo
 }
 
 func NewMarketService(urepo repositories.UserRepo, grepo repositories.GachaRepo, arepo repositories.MarketRepo) *MarketService {
-	return &MarketService{urepo: urepo, grepo: grepo, arepo: arepo}
+	evrepo := repository.NewEventRepo()
+	srv := &MarketService{
+		evrepo: evrepo,
+		urepo:  urepo,
+		grepo:  grepo,
+		arepo:  arepo,
+	}
+
+	go evrepo.StartSubscriber(srv.closeAuctionCallback, srv.closeAuctionErrorCallback)
+
+	return srv
 }
 
 func (s *MarketService) AddBugsCoin(userId string, amount int64) error {
@@ -31,6 +44,20 @@ func (s *MarketService) AddBugsCoin(userId string, amount int64) error {
 	user, ok := s.urepo.FindByID(id)
 	if !ok {
 		return models.ErrUserNotFound
+	}
+
+	t := &models.Transaction{
+		TransactionID:   utils.GenerateUUID(),
+		TransactionType: models.Deposit,
+		UserID:          user.UserID,
+		Amount:          amount,
+		DateTime:        time.Now(),
+		EventType:       models.MarketEv,
+		EventID:         models.UUID{},
+	}
+
+	if ok := s.arepo.AddTransaction(t); !ok {
+		return models.ErrInternalServerError
 	}
 
 	user.Currency += amount
@@ -60,6 +87,20 @@ func (s *MarketService) RollGacha(userId string) (string, error) {
 		return "", models.ErrInternalServerError
 	}
 	gid := gachas[rand.IntN(len(gachas))].GachaID
+
+	t := &models.Transaction{
+		TransactionID:   utils.GenerateUUID(),
+		TransactionType: models.Withdraw,
+		UserID:          user.UserID,
+		Amount:          1000,
+		DateTime:        time.Now(),
+		EventType:       models.MarketEv,
+		EventID:         models.UUID{},
+	}
+
+	if ok := s.arepo.AddTransaction(t); !ok {
+		return "", models.ErrInternalServerError
+	}
 
 	user.Currency -= 1000
 	if ok := s.urepo.Update(user); !ok {
@@ -128,7 +169,19 @@ func (s *MarketService) BuyGacha(userId string, gachaId string) error {
 		return models.ErrNotEnoughMoneyToBuyGacha
 	}
 
-	// TODO: Create transaction
+	t := &models.Transaction{
+		TransactionID:   utils.GenerateUUID(),
+		TransactionType: models.Withdraw,
+		UserID:          user.UserID,
+		Amount:          gacha.Price,
+		DateTime:        time.Now(),
+		EventType:       models.MarketEv,
+		EventID:         models.UUID{},
+	}
+
+	if ok := s.arepo.AddTransaction(t); !ok {
+		return models.ErrInternalServerError
+	}
 
 	user.Currency -= gacha.Price
 	if ok := s.urepo.Update(user); !ok {
@@ -202,7 +255,7 @@ func (s *MarketService) CreateAuction(userId, gachaId string, endTime time.Time)
 		return models.ErrInvalidEndTime
 	}
 
-	var auction models.Auction = models.Auction{
+	auction := &models.Auction{
 		AuctionID: utils.GenerateUUID(),
 		OwnerID:   user.UserID,
 		GachaID:   gacha.GachaID,
@@ -211,8 +264,13 @@ func (s *MarketService) CreateAuction(userId, gachaId string, endTime time.Time)
 		WinnerID:  models.UUID{},
 	}
 
-	if ok := s.arepo.Create(&auction); !ok {
+	if ok := s.arepo.Create(auction); !ok {
 		return models.ErrCouldNotCreateAuction
+	}
+
+	if err = s.evrepo.AddEndAuctionEvent(auction); err != nil {
+		// TODO: Report to admin
+		return models.ErrCouldNotAddEvent
 	}
 
 	return nil
@@ -402,4 +460,143 @@ func (s *MarketService) MakeBid(userId, auctionId string, bidAmount int64) error
 		return models.ErrCouldNotBidToAuction
 	}
 	return nil
+}
+
+// Timed events callbacks ================================================
+// TODO: handle all edge cases
+// Examples:
+// - What happens if the owner of an auction deletes its account ?
+// - ...
+func (s *MarketService) closeAuctionCallback(aid models.UUID) {
+	auction, exists := s.arepo.FindByID(aid)
+	if !exists {
+		s.closeAuctionErrorCallback(models.ErrAuctionNotFound)
+		return
+	}
+
+	bids, ok := s.arepo.GetBidListOfAuction(aid)
+	if !ok {
+		s.closeAuctionErrorCallback(models.ErrCouldNotRetrieveAuctionBids)
+		return
+	}
+
+	if len(bids) == 0 {
+		s.arepo.Delete(auction)
+		return
+	}
+
+	var maxBid int64 = 0
+	var maxBidder models.UUID
+	for _, bid := range bids {
+		if bid.AmountSpend > maxBid {
+			maxBid = bid.AmountSpend
+			maxBidder = bid.UserID
+		}
+	}
+
+	{ // Give back money to the losers
+		for _, bid := range bids {
+			if bid.UserID == maxBidder {
+				continue
+			}
+
+			user, exists := s.urepo.FindByID(bid.UserID)
+			if !exists { // NOTE: Should not be possible
+				s.closeAuctionErrorCallback(models.ErrUserNotFound)
+				return
+			}
+
+			user.Currency += bid.AmountSpend
+			if ok := s.urepo.Update(user); !ok {
+				s.closeAuctionErrorCallback(models.ErrCouldNotUpdate)
+				return
+			}
+		}
+	}
+
+	// Transfer the gacha to the winner
+	auction.WinnerID = maxBidder
+	if ok := s.arepo.Update(auction); !ok {
+		s.closeAuctionErrorCallback(models.ErrCouldNotUpdateAuction)
+		return
+	}
+
+	gacha, exists := s.grepo.FindByID(auction.GachaID)
+	if !exists { // NOTE: Should not be possible
+		s.closeAuctionErrorCallback(models.ErrGachaNotFound)
+		return
+	}
+
+	{ // Winner actions
+		user, exists := s.urepo.FindByID(maxBidder)
+		if !exists { // NOTE: Should not be possible
+			s.closeAuctionErrorCallback(models.ErrUserNotFound)
+			return
+		}
+
+		t := &models.Transaction{
+			TransactionID:   utils.GenerateUUID(),
+			TransactionType: models.Withdraw,
+			UserID:          user.UserID,
+			Amount:          maxBid,
+			DateTime:        time.Now(),
+			EventType:       models.AuctionEv,
+			EventID:         auction.AuctionID,
+		}
+
+		if ok := s.arepo.AddTransaction(t); !ok {
+			s.closeAuctionErrorCallback(models.ErrCouldNotAddTransaction)
+			return
+		}
+
+		user.Currency -= maxBid
+		if ok := s.urepo.Update(user); !ok {
+			s.closeAuctionErrorCallback(models.ErrCouldNotUpdate)
+			return
+		}
+
+		if ok := s.grepo.AddGachaToUser(user.UserID, gacha.GachaID); !ok {
+			s.closeAuctionErrorCallback(models.ErrCouldNotAddGachaToUser)
+			return
+		}
+	}
+
+	{ // Auction owner actions
+		user, exists := s.urepo.FindByID(auction.OwnerID)
+		if !exists { // NOTE: Should not be possible
+			s.closeAuctionErrorCallback(models.ErrUserNotFound)
+			return
+		}
+
+		// TODO: Implement this
+		// if ok := s.grepo.RemoveGachaToUser(user.UserID, gacha.GachaID); !ok {
+		// 	s.closeAuctionErrorCallback(models.ErrCouldNotAddGachaToUser)
+		// 	return
+		// }
+
+		t := &models.Transaction{
+			TransactionID:   utils.GenerateUUID(),
+			TransactionType: models.Deposit,
+			UserID:          user.UserID,
+			Amount:          maxBid,
+			DateTime:        time.Now(),
+			EventType:       models.AuctionEv,
+			EventID:         auction.AuctionID,
+		}
+
+		if ok := s.arepo.AddTransaction(t); !ok {
+			s.closeAuctionErrorCallback(models.ErrCouldNotAddTransaction)
+			return
+		}
+
+		user.Currency += maxBid
+		if ok := s.urepo.Update(user); !ok {
+			s.closeAuctionErrorCallback(models.ErrCouldNotUpdate)
+			return
+		}
+	}
+}
+
+func (s *MarketService) closeAuctionErrorCallback(err error) {
+	log.Printf("Error closing auction: %v", err)
 }

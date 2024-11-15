@@ -15,7 +15,9 @@ type MarketController struct {
 }
 
 func NewMarketController(srv *service.MarketService) *MarketController {
-	return &MarketController{srv: srv}
+	return &MarketController{
+		srv: srv,
+	}
 }
 
 func (c *MarketController) Market(ctx *gin.Context) {
