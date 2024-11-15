@@ -1,3 +1,8 @@
+<div id="gacha-roll">
+    <button id="roll-btn" hx-get="/api/v1/market/gacha/roll" hx-target="#notification-popup" hx-target-4xx="#notification-popup" hx-target-5*="#notification-popup" hx-swap="innerHTML" hx-trigger="click">
+        Roll Gacha
+    </button>
+</div>
 <div class="auction-list">
     {{range .Auctions}}
     <div class="auction-item">

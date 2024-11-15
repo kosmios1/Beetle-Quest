@@ -486,3 +486,42 @@ button:hover {
 .Deposit {
     background-color: #ccffcc;
 }
+
+/* Gacha Roll */
+#gacha-roll {
+    text-align: center;
+    padding: 20px;
+    margin-bottom: 20px;
+    background-color: #f4f4f8;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+#roll-btn {
+    padding: 10px 20px;
+    color: white;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#roll-btn:hover {
+    background-color: #0056b3;
+}
+
+.result-display {
+    margin-top: 20px;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%; /* Makes the image round */
+    overflow: hidden;
+    border: 2px solid #007bff;
+    display: inline-block;
+}
+
+#result-img {
+    width: 100%;
+    height: auto;
+}

@@ -345,12 +345,17 @@ func (s *MarketService) RetrieveAuctionTemplateList() ([]models.AuctionTemplate,
 	for _, auction := range auctions {
 		gacha, exists := s.grepo.FindByID(auction.GachaID)
 		if !exists {
-			return nil, models.ErrUserNotFound
+			gacha = &models.Gacha{
+				Name:      "Unknown",
+				ImagePath: "unknown.png",
+			}
 		}
 
 		owner, exists := s.urepo.FindByID(auction.OwnerID)
 		if !exists {
-			return nil, models.ErrGachaNotFound
+			owner = &models.User{
+				Username: "Unknown",
+			}
 		}
 
 		data = append(data, models.AuctionTemplate{
