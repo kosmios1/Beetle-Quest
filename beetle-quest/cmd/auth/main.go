@@ -3,11 +3,12 @@ package main
 import (
 	"beetle-quest/internal/auth/controller"
 	"beetle-quest/internal/auth/service"
-	repository "beetle-quest/pkg/repositories/serviceHttp/user"
 	"beetle-quest/pkg/utils"
 	"log"
 
 	internalRepo "beetle-quest/internal/auth/repository"
+	arepo "beetle-quest/pkg/repositories/serviceHttp/admin"
+	urepo "beetle-quest/pkg/repositories/serviceHttp/user"
 
 	"github.com/gin-contrib/secure"
 	"github.com/gin-gonic/gin"
@@ -34,12 +35,13 @@ func main() {
 	}))
 
 	r.LoadHTMLGlob("templates/*")
+
+	cnt := controller.NewAuthController(
+		service.NewAuthService(urepo.NewUserRepo(), internalRepo.NewOauth2Repo(), arepo.NewAdminRepo()),
+	)
+
 	basePath := r.Group("/api/v1/auth")
 	{
-		cnt := controller.NewAuthController(
-			service.NewAuthService(repository.NewUserRepo(), internalRepo.NewOauth2Repo()),
-		)
-
 		basePath.GET("/logout", cnt.Logout)
 		basePath.POST("/login", cnt.Login)
 		basePath.POST("/register", cnt.Register)
@@ -47,6 +49,12 @@ func main() {
 
 		basePath.GET("/check_session", cnt.CheckSession)
 		basePath.Any("/traefik/verify", cnt.Verify)
+	}
+
+	adminSpecific := r.Group("/api/v1/auth/admin")
+	{
+		adminSpecific.POST("/login", cnt.AdminLogin)
+		adminSpecific.GET("/oauth2", cnt.AdminOauth2Callback)
 	}
 
 	server := utils.SetupHTPPSServer(r)

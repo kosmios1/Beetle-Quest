@@ -17,12 +17,14 @@ var (
 )
 
 type AuthService struct {
+	arepo      repositories.AdminRepo
 	userRepo   repositories.UserRepo
 	oauth2Repo *repository.Oauth2Repo
 }
 
-func NewAuthService(userRepo repositories.UserRepo, oauth2Repo *repository.Oauth2Repo) *AuthService {
+func NewAuthService(userRepo repositories.UserRepo, oauth2Repo *repository.Oauth2Repo, arepo repositories.AdminRepo) *AuthService {
 	return &AuthService{
+		arepo:      arepo,
 		userRepo:   userRepo,
 		oauth2Repo: oauth2Repo,
 	}
@@ -109,4 +111,58 @@ func (s *AuthService) VerifyToken(token string) (jwt.MapClaims, bool) {
 	}
 
 	return claims, true
+}
+
+// Admin ==============================================================================================================
+
+func (s *AuthService) AdminLogin(id, password, otp string) (string, error) {
+	if password == "" {
+		return "", models.ErrInvalidUsernameOrPass
+	}
+
+	aid, err := utils.ParseUUID(id)
+	if err != nil {
+		return "", models.ErrInvalidUsernameOrPass
+	}
+
+	admin, ok := s.arepo.FindByID(aid)
+	if !ok {
+		return "", models.ErrInvalidUsernameOrPass
+	}
+
+	if err := utils.CompareHashPassword([]byte(password), admin.PasswordHash); err != nil {
+		return "", models.ErrInvalidUsernameOrPass
+	}
+
+	// TODO: check otp
+
+	return admin.AdminId.String(), nil
+}
+
+func (s *AuthService) MakeAdminAuthRequest(userId string) (string, error) {
+	state, err := utils.GenerateRandomSalt(32)
+	if err != nil {
+		return "", err
+	}
+	stateHex := hex.EncodeToString(state)
+
+	url := s.oauth2Repo.AdminAuthCodeURL(stateHex, userId)
+	if url == "" {
+		return "", err
+	}
+	return url, nil
+}
+
+func (s *AuthService) ExchangeAdminCodeForToken(code string) (*oauth2.Token, jwt.MapClaims, error) {
+	token, err := s.oauth2Repo.AdminExchange(context.Background(), code)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	claims, err := utils.VerifyJWTToken(token.AccessToken, jwtSecretKey)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return token, claims, nil
 }

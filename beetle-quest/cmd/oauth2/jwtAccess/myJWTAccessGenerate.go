@@ -39,6 +39,14 @@ type JWTAccessGenerate struct {
 }
 
 func (a *JWTAccessGenerate) Token(ctx context.Context, data *oauth2.GenerateBasic, isGenRefresh bool) (string, string, error) {
+
+	var expiresAt int64
+	if data.TokenInfo.GetScope() == "admin" {
+		expiresAt = data.TokenInfo.GetAccessCreateAt().Add(time.Minute * 15).Unix()
+	} else {
+		expiresAt = data.TokenInfo.GetAccessCreateAt().Add(data.TokenInfo.GetAccessExpiresIn()).Unix()
+	}
+
 	claims := &JWTAccessClaims{
 		StandardClaims: jwt.StandardClaims{
 			Audience:  data.Client.GetID(),
@@ -46,7 +54,7 @@ func (a *JWTAccessGenerate) Token(ctx context.Context, data *oauth2.GenerateBasi
 			IssuedAt:  data.TokenInfo.GetAccessCreateAt().Unix(),
 			NotBefore: data.TokenInfo.GetAccessCreateAt().Unix(),
 			Issuer:    data.Client.GetID(),
-			ExpiresAt: data.TokenInfo.GetAccessCreateAt().Add(data.TokenInfo.GetAccessExpiresIn()).Unix(),
+			ExpiresAt: expiresAt,
 		},
 		Scope: data.TokenInfo.GetScope(),
 	}

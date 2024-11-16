@@ -25,6 +25,16 @@ http:
                     insecureSkipVerify: true
 
     routers:
+        admin-service:
+            rule: "PathPrefix(`/api/v1/admin`) && Host(`localhost`)"
+            entryPoints:
+                - websec
+            service: auth-service
+            priority: 1
+            tls: true
+            middlewares:
+                - "traefik-auth"
+
         auth-service:
             rule: "PathPrefix(`/api/v1/auth`) && Host(`localhost`)"
             entryPoints:
@@ -80,6 +90,12 @@ http:
             tls: true
 
     services:
+        admin-service:
+            loadBalancer:
+                serversTransport: insecureTransport
+                servers:
+                    - url: "https://admin-service"
+
         auth-service:
             loadBalancer:
                 serversTransport: insecureTransport

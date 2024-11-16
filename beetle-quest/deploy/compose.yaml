@@ -24,6 +24,14 @@ x-market-db-environments: &market-db-environments
     POSTGRES_USER: beetle
     POSTGRES_DB: beetle-quest-main-db
 
+x-admin-db-environments: &admin-db-environments
+    POSTGRES_HOST: admin-db
+    POSTGRES_PORT: 5432
+    POSTGRES_SSLMODE: disable
+    POSTGRES_TIMEZONE: Europe/Rome
+    POSTGRES_USER: beetle
+    POSTGRES_DB: beetle-quest-main-db
+
 x-common-services-environments: &common-services-environments
     GOMAXPROCS: 1
     LOG_LEVEL: debug
@@ -52,6 +60,7 @@ services:
         networks:
             - internal
             - oauth2
+            - admin
         volumes:
             - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
             - ./traefik/rules.yml:/etc/traefik/rules.yml:ro
@@ -60,24 +69,27 @@ services:
             - ./traefik/certs/key.pem:/certs/key.pem:ro
 
     # MICROSERVICES SECTION =============================================================================================================================================================================
-    # admin-service:
-    #     build:
-    #         context: ../
-    #         dockerfile: deploy/admin/Dockerfile
-    #         args:
-    #             <<: *services-go-build-flags
-    #     networks:
-    #         - admin
-    #     volumes:
-    #         - ./cacerts/cert.pem:/certs/caCert.pem:ro
-    #         - ./cacerts/key.pem:/certs/caKey.pem:ro
-    #     deploy:
-    #         resources:
-    #             limits:
-    #                 cpus: "1"
-    #                 memory: 50M
-    #     env_file:
-    #         - ./secrets/admin.env
+    admin-service:
+        build:
+            context: ../
+            dockerfile: deploy/admin/Dockerfile
+            args:
+                <<: *services-go-build-flags
+        networks:
+            - admin
+        volumes:
+            - ./cacerts/cert.pem:/certs/caCert.pem:ro
+            - ./cacerts/key.pem:/certs/caKey.pem:ro
+        deploy:
+            resources:
+                limits:
+                    cpus: "1"
+                    memory: 50M
+        environment:
+            <<: [*admin-db-environments, *common-services-environments]
+        env_file:
+            - ./secrets/postgress.env
+            - ./secrets/jwt.env
 
     auth-service:
         build:
@@ -86,8 +98,9 @@ services:
             args:
                 <<: *services-go-build-flags
         networks:
-            - internal
             - oauth2
+            - admin
+            - internal
         volumes:
             - ./cacerts/cert.pem:/certs/caCert.pem:ro
             - ./cacerts/key.pem:/certs/caKey.pem:ro
@@ -101,6 +114,7 @@ services:
         environment:
             <<: [*common-oauth2-environments, *common-services-environments]
             OAUTH2_REDIRECT_URL: https://localhost/api/v1/auth/oauth2
+            OAUTH2_ADMIN_REDIRECT_URL: https://localhost/api/v1/auth/admin/oauth2
             OAUTH2_AUTH_ENDPOINT: https://localhost/oauth2/authorize
 
             OAUTH2_TOKEN_ENDPOINT: http://oauth2-server:8080/oauth2/token
@@ -113,6 +127,8 @@ services:
             FIND_USER_BY_ID_ENDPOINT: https://user-service/api/v1/internal/user/find_by_id
             FIND_USER_BY_EMAIL_ENDPOINT: https://user-service/api/v1/internal/user/find_by_email
             FIND_USER_BY_USERNAME_ENDPOINT: https://user-service/api/v1/internal/user/find_by_username
+
+            FIND_ADMIN_BY_ID_ENDPOINT: https://admin-service/api/v1/internal/admin/find_by_id
         env_file:
             - ./secrets/oauth2.env
             - ./secrets/jwt.env
@@ -316,6 +332,17 @@ services:
             - internal
         environment:
             <<: *market-db-environments
+        env_file:
+            - ./secrets/postgress.env
+
+    admin-db:
+        build:
+            context: ./admin/postgres
+            dockerfile: ./Dockerfile
+        networks:
+            - admin
+        environment:
+            <<: *admin-db-environments
         env_file:
             - ./secrets/postgress.env
 

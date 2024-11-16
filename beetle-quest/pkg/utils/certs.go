@@ -96,7 +96,7 @@ func GenOwnCertAndKey(serviceName string) {
 			PostalCode:    []string{""},
 		},
 		IPAddresses:           []net.IP{net.IPv4(127, 0, 0, 1), net.IPv6loopback},
-		DNSNames:              []string{"reverse-proxy", "localhost", "auth-service", "user-service", "gacha-service", "market-service", "oauth2-service", "static-service"},
+		DNSNames:              []string{"reverse-proxy", "localhost", "admin-service", "auth-service", "user-service", "gacha-service", "market-service", "oauth2-service", "static-service"},
 		NotBefore:             time.Now(),
 		NotAfter:              time.Now().AddDate(1, 0, 0),
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},

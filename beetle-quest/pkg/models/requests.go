@@ -70,6 +70,13 @@ type BidRequest struct {
 	BidAmount string `json:"bid_amount"`
 }
 
+// Admin ====================================
+type AdminLoginRequest struct {
+	AdminID  string `json:"admin_id"`
+	Password string `json:"password"`
+	OtpCode  string `json:"otp_code"`
+}
+
 // ============================================
 // Internal models
 // ============================================
@@ -136,4 +143,10 @@ type DeleteUserTransactionHistoryData struct {
 
 type GetUserTransactionHistoryDataResponse struct {
 	TransactionHistory []Transaction `json:"TransactionHistory"`
+}
+
+// Admin
+
+type FindAdminByIDData struct {
+	AdminID UUID `json:"admin_id"`
 }

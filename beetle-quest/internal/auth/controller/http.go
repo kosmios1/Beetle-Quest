@@ -51,7 +51,7 @@ func (c *AuthController) Login(ctx *gin.Context) {
 		return
 	}
 
-	url, err := c.srv.MakeAuthRequest(string(user.UserID.String()))
+	url, err := c.srv.MakeAuthRequest(user.UserID.String())
 	if err != nil {
 		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": "internal server error"})
 		ctx.Abort()
@@ -144,4 +144,68 @@ func (c *AuthController) CheckSession(ctx *gin.Context) {
 	}
 
 	ctx.HTML(http.StatusOK, "home.tmpl", gin.H{"UserID": claims["sub"]})
+}
+
+// Admin ==============================================================================================================
+
+func (c *AuthController) AdminLogin(ctx *gin.Context) {
+	var loginData models.AdminLoginRequest
+	if err := ctx.ShouldBindJSON(&loginData); err != nil {
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "username or password is missing"})
+		ctx.Abort()
+		return
+	}
+
+	adminId, err := c.srv.AdminLogin(loginData.AdminID, loginData.Password, loginData.OtpCode)
+	if err != nil {
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err})
+		ctx.Abort()
+		return
+	}
+
+	url, err := c.srv.MakeAdminAuthRequest(adminId)
+	if err != nil {
+		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": "internal server error"})
+		ctx.Abort()
+		return
+	}
+
+	ctx.Redirect(http.StatusFound, url)
+}
+
+func (c *AuthController) AdminOauth2Callback(ctx *gin.Context) {
+	if err := ctx.Request.ParseForm(); err != nil {
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "invalid request"})
+		ctx.Abort()
+		return
+	}
+
+	state := ctx.Request.Form.Get("state")
+	// TODO: How to validate state?
+	if state == "" {
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "state invalid!"})
+		ctx.Abort()
+		return
+	}
+
+	code := ctx.Request.Form.Get("code")
+	if code == "" {
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "code not found!"})
+		ctx.Abort()
+		return
+	}
+
+	token, claims, err := c.srv.ExchangeAdminCodeForToken(code)
+	if err != nil {
+		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": "internal server error"})
+		ctx.Abort()
+		return
+	}
+
+	maxAge := int(token.Expiry.Sub(time.Now()).Seconds())
+	ctx.SetCookie("access_token", token.AccessToken, maxAge, "/", "", false, true)
+
+	// TODO: Template for admin home
+	// ctx.HTML(http.StatusOK, "adminHome.tmpl", gin.H{"AdminID": claims["sub"]})
+	ctx.JSON(http.StatusOK, gin.H{"AdminID": claims["sub"]})
 }

@@ -46,7 +46,6 @@ func main() {
 		MinRetryBackoff: time.Second * 5,
 		MaxRetryBackoff: time.Minute * 2,
 	}))
-
 	manager.MapAccessGenerate(myjwtAccess.NewJWTAccessGenerate("", jwtKeySecret, jwt.SigningMethodHS512))
 
 	clientDomain = "" // TODO: remove this line when the client domain is set up
