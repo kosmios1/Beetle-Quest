@@ -24,6 +24,7 @@
 
 !assets/gimp/
 !assets/gimp/*.xcf
+!assets/admin_otp_qrcode.png
 
 
 !beetle-quest/

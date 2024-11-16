@@ -143,7 +143,11 @@ func (c *AuthController) CheckSession(ctx *gin.Context) {
 		return
 	}
 
-	ctx.HTML(http.StatusOK, "home.tmpl", gin.H{"UserID": claims["sub"]})
+	if claims["scope"] == "user" {
+		ctx.HTML(http.StatusOK, "home.tmpl", gin.H{"UserID": claims["sub"]})
+	} else {
+		ctx.HTML(http.StatusOK, "adminHome.tmpl", gin.H{"AdminID": claims["sub"]})
+	}
 }
 
 // Admin ==============================================================================================================
