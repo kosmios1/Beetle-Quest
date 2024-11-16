@@ -60,6 +60,10 @@ func (s *MarketService) AddBugsCoin(userId string, amount int64) error {
 		return models.ErrInternalServerError
 	}
 
+	if user.Currency+amount < 0 {
+		return models.ErrMaxMoneyExceeded
+	}
+
 	user.Currency += amount
 	if ok := s.urepo.Update(user); !ok {
 		return models.ErrCouldNotUpdate

@@ -51,6 +51,7 @@ const (
 	ErrCouldNotAddGachaToUser          constError = "could not add gacha to user"
 	ErrCouldNotRemoveGachaFromUser     constError = "could not remove gacha from user"
 	ErrTransactionNotFound             constError = "transaction not found"
+	ErrMaxMoneyExceeded                constError = "max money exceeded"
 
 	ErrCouldNotParseTime          constError = "time format not correct"
 	ErrCouldNotDecodeUserID       constError = "could not decode user id"
