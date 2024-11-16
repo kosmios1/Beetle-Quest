@@ -14,7 +14,9 @@ var (
 	getAllEndpoint        = utils.FindEnv("GET_ALL_GACHA_ENDPOINT")
 	findGachaByIDEndpoint = utils.FindEnv("FIND_GACHA_BY_ID_ENDPOINT")
 
-	getUserGachasEndpoint       = utils.FindEnv("GET_USER_GACHAS_ENDPOINT")
+	getUserGachasEndpoint    = utils.FindEnv("GET_USER_GACHAS_ENDPOINT")
+	removeUserGachasEndpoint = utils.FindEnv("REMOVE_USER_GACHAS_ENDPOINT")
+
 	addGachaToUserEndpoint      = utils.FindEnv("ADD_GACHA_TO_USER_ENDPOINT")
 	removeGachaFromUserEndpoint = utils.FindEnv("REMOVE_GACHA_FROM_USER_ENDPOINT")
 )
@@ -212,4 +214,39 @@ func (r *GachaRepo) GetUserGachas(uid models.UUID) ([]models.Gacha, bool) {
 	}
 
 	return result.GachaList, true
+}
+
+func (r *GachaRepo) RemoveUserGachas(uid models.UUID) bool {
+	requestData := models.RemoveUserGachasData{
+		UserID: uid,
+	}
+
+	jsonData, err := json.Marshal(requestData)
+	if err != nil {
+		return false
+	}
+	resp, err := r.cb.Execute(func() (*http.Response, error) {
+		resp, err := r.client.Post(
+			removeUserGachasEndpoint,
+			"application/json",
+			bytes.NewBuffer(jsonData),
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		return resp, nil
+	})
+	defer resp.Body.Close()
+
+	if err != nil {
+		return false
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return false
+	}
+
+	return true
 }

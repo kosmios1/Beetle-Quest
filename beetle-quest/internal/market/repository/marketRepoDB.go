@@ -76,6 +76,14 @@ func (r *MarketRepo) FindByID(id models.UUID) (*models.Auction, bool) {
 	return &auction, true
 }
 
+func (r *MarketRepo) DeleteUserTransactionHistory(uid models.UUID) bool {
+	result := r.db.Table("transactions").Delete(models.Transaction{}, models.Transaction{UserID: uid})
+	if result.Error != nil {
+		return false
+	}
+	return true
+}
+
 func (r *MarketRepo) GetUserTransactionHistory(uid models.UUID) ([]models.Transaction, bool) {
 	var transactions []models.Transaction
 	result := r.db.Table("transactions").Where("user_id = ?", uid).Find(&transactions)

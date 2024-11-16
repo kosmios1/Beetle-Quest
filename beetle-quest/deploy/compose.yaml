@@ -46,7 +46,7 @@ services:
         image: traefik:v3.2
         ports:
             # The Web UI
-            - "127.0.0.1:8080:8080" # TODO: expose on 443
+            - "127.0.0.1:8080:8080"
             # Listening Port
             - "127.0.0.1:443:443" # TODO: expose on 0.0.0.0:443:443
         networks:
@@ -94,7 +94,6 @@ services:
             FIND_USER_BY_ID_ENDPOINT: https://user-service/api/v1/internal/user/find_by_id
             FIND_USER_BY_EMAIL_ENDPOINT: https://user-service/api/v1/internal/user/find_by_email
             FIND_USER_BY_USERNAME_ENDPOINT: https://user-service/api/v1/internal/user/find_by_username
-
         env_file:
             - ./secrets/oauth2.env
             - ./secrets/jwt.env
@@ -124,7 +123,10 @@ services:
             ADD_GACHA_TO_USER_ENDPOINT: https://gacha-service/api/v1/internal/gacha/add_gacha_to_user
             REMOVE_GACHA_FROM_USER_ENDPOINT: https://gacha-service/api/v1/internal/gacha/remove_gacha_from_user
             GET_USER_GACHAS_ENDPOINT: https://gacha-service/api/v1/internal/gacha/get_user_gachas
+            REMOVE_USER_GACHAS_ENDPOINT: https://gacha-service/api/v1/internal/gacha/remove_user_gachas
+
             GET_USER_TRANSACTION_HISTORY_ENDPOINT: https://market-service/api/v1/internal/market/get_user_transaction_history
+            DELETE_USER_TRANSACTION_HISTORY_ENDPOINT: https://market-service/api/v1/internal/market/delete_user_transaction_history
         env_file:
             - ./secrets/postgress.env
             - ./secrets/jwt.env
@@ -192,7 +194,7 @@ services:
             ADD_GACHA_TO_USER_ENDPOINT: https://gacha-service/api/v1/internal/gacha/add_gacha_to_user
             REMOVE_GACHA_FROM_USER_ENDPOINT: https://gacha-service/api/v1/internal/gacha/remove_gacha_from_user
             GET_USER_GACHAS_ENDPOINT: https://gacha-service/api/v1/internal/gacha/get_user_gachas
-
+            REMOVE_USER_GACHAS_ENDPOINT: https://gacha-service/api/v1/internal/gacha/remove_user_gachas
         env_file:
             - ./secrets/postgress.env
             - ./secrets/jwt.env

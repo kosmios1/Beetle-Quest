@@ -11,7 +11,8 @@ import (
 )
 
 var (
-	getUserTransactionHistoryEndpoint = utils.FindEnv("GET_USER_TRANSACTION_HISTORY_ENDPOINT")
+	getUserTransactionHistoryEndpoint    = utils.FindEnv("GET_USER_TRANSACTION_HISTORY_ENDPOINT")
+	deleteUserTransactionHistoryEndpoint = utils.FindEnv("DELETE_USER_TRANSACTION_HISTORY_ENDPOINT")
 )
 
 type MarketRepo struct {
@@ -66,6 +67,42 @@ func (r *MarketRepo) GetUserTransactionHistory(userID models.UUID) ([]models.Tra
 	}
 
 	return result.TransactionHistory, true
+}
+
+func (r *MarketRepo) DeleteUserTransactionHistory(userID models.UUID) bool {
+	requestData := models.DeleteUserTransactionHistoryData{
+		UserID: userID,
+	}
+
+	jsonData, err := json.Marshal(requestData)
+	if err != nil {
+		return false
+	}
+
+	resp, err := r.cb.Execute(func() (*http.Response, error) {
+		resp, err := r.client.Post(
+			deleteUserTransactionHistoryEndpoint,
+			"application/json",
+			bytes.NewBuffer(jsonData),
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		return resp, nil
+	})
+	defer resp.Body.Close()
+
+	if err != nil {
+		return false
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return false
+	}
+
+	return true
 }
 
 // Not to be implemented, never used

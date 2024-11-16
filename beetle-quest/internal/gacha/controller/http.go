@@ -135,3 +135,19 @@ func (c *GachaController) FindByID(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, gacha)
 }
+
+func (c *GachaController) RemoveUserGachas(ctx *gin.Context) {
+	var req models.RemoveUserGachasData
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": models.ErrInvalidData})
+		ctx.Abort()
+		return
+	}
+
+	if ok := c.srv.RemoveUserGachas(req.UserID); !ok {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Error": models.ErrCouldNotDelete})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"Message": "User's gachas have been removed!"})
+}

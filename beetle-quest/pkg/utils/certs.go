@@ -114,7 +114,6 @@ func GenOwnCertAndKey(serviceName string) {
 	savePEMFile(serverKeyPath, "RSA PRIVATE KEY", x509.MarshalPKCS1PrivateKey(servicePrivKey))
 
 	log.Println("[INFO] Generated client certificate and key")
-	// TODO: Maybe remove caKey.pem from the container?
 }
 
 func getTlsConfig(isServerConfig bool) *tls.Config {

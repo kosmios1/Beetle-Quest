@@ -9,5 +9,6 @@ type GachaRepo interface {
 	AddGachaToUser(models.UUID, models.UUID) bool
 	RemoveGachaFromUser(models.UUID, models.UUID) bool
 
+	RemoveUserGachas(models.UUID) bool
 	GetUserGachas(models.UUID) ([]models.Gacha, bool)
 }

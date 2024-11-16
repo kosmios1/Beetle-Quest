@@ -65,6 +65,7 @@ func main() {
 	internalPath := r.Group("/api/v1/internal/market")
 	{
 		internalPath.POST("/get_user_transaction_history", cnt.GetUserTransactionHistory)
+		internalPath.POST("/delete_user_transaction_history", cnt.DeleteUserTransactionHistory)
 	}
 
 	server := utils.SetupHTPPSServer(r)

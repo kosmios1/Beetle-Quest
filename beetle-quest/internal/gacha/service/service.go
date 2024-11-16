@@ -55,3 +55,7 @@ func (s *GachaService) GetUserGachas(uid models.UUID) ([]models.Gacha, bool) {
 	}
 	return gachas, true
 }
+
+func (s *GachaService) RemoveUserGachas(uid models.UUID) bool {
+	return s.gachaRepo.RemoveUserGachas(uid)
+}

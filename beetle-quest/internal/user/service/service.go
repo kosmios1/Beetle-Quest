@@ -38,6 +38,16 @@ func (s *UserService) DeleteUserAccount(userID models.UUID, password string) err
 		return models.ErrInvalidPassword
 	}
 
+	if ok := s.grepo.RemoveUserGachas(user.UserID); !ok {
+		return models.ErrCouldNotDelete
+	}
+
+	if ok := s.mrepo.DeleteUserTransactionHistory(user.UserID); !ok {
+		return models.ErrCouldNotDelete
+	}
+
+	// NOTE: Even if we don't invalidate the user session, the user is invalid and can't do anything
+
 	if ok := s.urepo.Delete(user); !ok {
 		return models.ErrCouldNotDelete
 	}

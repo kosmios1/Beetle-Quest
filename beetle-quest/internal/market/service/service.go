@@ -249,7 +249,6 @@ func (s *MarketService) CreateAuction(userId, gachaId string, endTime time.Time)
 		}
 	}
 
-	// TODO: time is not correct inside containers
 	startTime := time.Now()
 	if endTime.Before(startTime) || endTime.After(startTime.Add(time.Hour*24)) {
 		return models.ErrInvalidEndTime
@@ -468,9 +467,6 @@ func (s *MarketService) MakeBid(userId, auctionId string, bidAmount int64) error
 }
 
 // Timed events callbacks ================================================
-// TODO: handle all edge cases
-// Examples:
-// - What happens if the owner of an auction deletes its account ?
 // - ...
 func (s *MarketService) closeAuctionCallback(aid models.UUID) {
 	auction, exists := s.arepo.FindByID(aid)
@@ -608,4 +604,8 @@ func (s *MarketService) GetUserTransactionHistory(uid models.UUID) ([]models.Tra
 	}
 
 	return transactions, true
+}
+
+func (s *MarketService) DeleteUserTransactionHistory(uid models.UUID) bool {
+	return s.arepo.DeleteUserTransactionHistory(uid)
 }

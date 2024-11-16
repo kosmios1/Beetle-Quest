@@ -99,6 +99,10 @@ type GetUserGachasData struct {
 	UserID UUID `json:"user_id"`
 }
 
+type RemoveUserGachasData struct {
+	UserID UUID `json:"user_id"`
+}
+
 type GetAllGachasDataResponse struct {
 	GachaList []Gacha `json:"GachaList"`
 }
@@ -123,6 +127,10 @@ type FindGachaByIDData struct {
 
 // Market
 type GetUserTransactionHistoryData struct {
+	UserID UUID `json:"user_id"`
+}
+
+type DeleteUserTransactionHistoryData struct {
 	UserID UUID `json:"user_id"`
 }
 

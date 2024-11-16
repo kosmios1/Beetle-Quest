@@ -118,7 +118,7 @@ Michele Ivan Bruna
         //
         image("../assets/images/png/munich_grasshopper_common.png",      width: 60%),
         image("../assets/images/png/druid_bee_uncommon.png",      width: 60%),
-        image("../assets/images/png/assassin_mosquito_rare.png",      width: 60%), // TODO: change
+        image("../assets/images/png/assassin_mosquito_rare.png",      width: 60%),
         image("../assets/images/png/assassin_peacock_epic.png",      width: 60%),
         image("../assets/images/png/demoniac_mosquito_legendary.png",      width: 60%),
     )],

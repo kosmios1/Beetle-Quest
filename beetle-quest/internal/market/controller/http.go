@@ -263,3 +263,20 @@ func (c *MarketController) GetUserTransactionHistory(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, models.GetUserTransactionHistoryDataResponse{TransactionHistory: auctions})
 }
+
+func (c *MarketController) DeleteUserTransactionHistory(ctx *gin.Context) {
+	var data models.DeleteUserTransactionHistoryData
+	if err := ctx.ShouldBindJSON(&data); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"Error": models.ErrInvalidData})
+		ctx.Abort()
+		return
+	}
+
+	if ok := c.srv.DeleteUserTransactionHistory(data.UserID); !ok {
+		ctx.JSON(http.StatusBadRequest, gin.H{"Error": models.ErrCouldNotDelete})
+		ctx.Abort()
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"Message": "Transaction history deleted successfully"})
+}

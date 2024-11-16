@@ -68,10 +68,8 @@ func (r *GachaRepo) GetAll() ([]models.Gacha, bool) {
 }
 
 func (r *GachaRepo) AddGachaToUser(uid models.UUID, gid models.UUID) bool {
-	result := r.db.Table("user_gacha").Create(struct {
-		UserID  models.UUID
-		GachaID models.UUID
-	}{uid, gid})
+	value := models.GachaUserRelation{UserID: uid, GachaID: gid}
+	result := r.db.Table("user_gacha").Create(value)
 	if result.Error != nil {
 		// TODO: Maybe return error?
 		if strings.Contains(result.Error.Error(), "duplicate key") {
@@ -83,11 +81,16 @@ func (r *GachaRepo) AddGachaToUser(uid models.UUID, gid models.UUID) bool {
 }
 
 func (r *GachaRepo) RemoveGachaFromUser(uid models.UUID, gid models.UUID) bool {
-	result := r.db.Table("user_gacha").Delete(struct {
-		UserID  models.UUID
-		GachaID models.UUID
-	}{uid, gid},
-		"user_id = ? AND gacha_id = ?", uid, gid)
+	value := models.GachaUserRelation{UserID: uid, GachaID: gid}
+	result := r.db.Table("user_gacha").Delete(value, "user_id = ? AND gacha_id = ?", uid, gid)
+	if result.Error != nil {
+		return false
+	}
+	return true
+}
+
+func (r *GachaRepo) RemoveUserGachas(uid models.UUID) bool {
+	result := r.db.Table("user_gacha").Delete(models.GachaUserRelation{}, models.GachaUserRelation{UserID: uid})
 	if result.Error != nil {
 		return false
 	}

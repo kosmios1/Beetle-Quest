@@ -21,3 +21,8 @@ type Gacha struct {
 	Price     int64  `json:"price"`
 	ImagePath string `json:"image_path"`
 }
+
+type GachaUserRelation struct {
+	UserID  UUID
+	GachaID UUID
+}
