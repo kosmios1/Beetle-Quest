@@ -9,8 +9,8 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+	"github.com/go-oauth2/oauth2/v4"
 	"github.com/go-oauth2/oauth2/v4/errors"
-	"github.com/go-oauth2/oauth2/v4/generates"
 	"github.com/go-oauth2/oauth2/v4/manage"
 	"github.com/go-oauth2/oauth2/v4/models"
 	"github.com/go-oauth2/oauth2/v4/server"
@@ -18,6 +18,8 @@ import (
 
 	oredis "github.com/go-oauth2/redis/v4"
 	"github.com/go-redis/redis/v8"
+
+	myjwtAccess "beetle-quest/cmd/oauth2/jwtAccess"
 )
 
 var (
@@ -45,9 +47,7 @@ func main() {
 		MaxRetryBackoff: time.Minute * 2,
 	}))
 
-	// Set up JWT access token generation
-	// kid : key id, used to distinguish multiple keys
-	manager.MapAccessGenerate(generates.NewJWTAccessGenerate("", jwtKeySecret, jwt.SigningMethodHS512))
+	manager.MapAccessGenerate(myjwtAccess.NewJWTAccessGenerate("", jwtKeySecret, jwt.SigningMethodHS512))
 
 	clientDomain = "" // TODO: remove this line when the client domain is set up
 	clientStore := store.NewClientStore()
@@ -62,6 +62,7 @@ func main() {
 	srv.SetAllowGetAccessRequest(true)
 	srv.SetClientInfoHandler(server.ClientFormHandler)
 	srv.SetUserAuthorizationHandler(userAuthorizeHandler)
+	srv.SetClientScopeHandler(authorizeScopeHandler)
 
 	r := gin.Default()
 	// TODO: Uncomment this when having a valid SSL certificate
@@ -150,4 +151,11 @@ func userAuthorizeHandler(w http.ResponseWriter, r *http.Request) (userID string
 	}
 
 	return userID, nil
+}
+
+func authorizeScopeHandler(tgr *oauth2.TokenGenerateRequest) (allowed bool, err error) {
+	if tgr.Scope == "user" || tgr.Scope == "admin" {
+		return true, nil
+	}
+	return false, errors.New("Invalid scope")
 }

@@ -60,6 +60,25 @@ services:
             - ./traefik/certs/key.pem:/certs/key.pem:ro
 
     # MICROSERVICES SECTION =============================================================================================================================================================================
+    # admin-service:
+    #     build:
+    #         context: ../
+    #         dockerfile: deploy/admin/Dockerfile
+    #         args:
+    #             <<: *services-go-build-flags
+    #     networks:
+    #         - admin
+    #     volumes:
+    #         - ./cacerts/cert.pem:/certs/caCert.pem:ro
+    #         - ./cacerts/key.pem:/certs/caKey.pem:ro
+    #     deploy:
+    #         resources:
+    #             limits:
+    #                 cpus: "1"
+    #                 memory: 50M
+    #     env_file:
+    #         - ./secrets/admin.env
+
     auth-service:
         build:
             context: ../

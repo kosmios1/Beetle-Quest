@@ -16,15 +16,15 @@ http:
             # TODO: Change to rootCAs when microservices verify client (traefik) certificates
             insecureSkipVerify: true
 
-    routers:
-        oauth2-server:
-            rule: "PathPrefix(`/oauth2`) && Host(`localhost`)"
-            entryPoints:
-                - websec
-            service: oauth2-server
-            priority: 1
-            tls: true
+    middlewares:
+        traefik-auth:
+            forwardAuth:
+                address: "https://auth-service/api/v1/auth/traefik/verify"
+                tls:
+                    # TODO: Change to rootCAs when microservices verify client (traefik) certificates
+                    insecureSkipVerify: true
 
+    routers:
         auth-service:
             rule: "PathPrefix(`/api/v1/auth`) && Host(`localhost`)"
             entryPoints:
@@ -40,6 +40,8 @@ http:
             service: user-service
             priority: 1
             tls: true
+            middlewares:
+                - "traefik-auth"
 
         gacha-service:
             rule: "PathPrefix(`/api/v1/gacha`) && Host(`localhost`)"
@@ -48,6 +50,18 @@ http:
             service: gacha-service
             priority: 1
             tls: true
+            middlewares:
+                - "traefik-auth"
+
+        market-service:
+            rule: "PathPrefix(`/api/v1/market`) && Host(`localhost`)"
+            entryPoints:
+                - websec
+            service: market-service
+            priority: 1
+            tls: true
+            middlewares:
+                - "traefik-auth"
 
         static-service:
             rule: "PathPrefix(`/static`) && Host(`localhost`)"
@@ -57,20 +71,15 @@ http:
             priority: 1
             tls: true
 
-        market-service:
-            rule: "PathPrefix(`/api/v1/market`) && Host(`localhost`)"
+        oauth2-server:
+            rule: "PathPrefix(`/oauth2`) && Host(`localhost`)"
             entryPoints:
                 - websec
-            service: market-service
+            service: oauth2-server
             priority: 1
             tls: true
 
     services:
-        oauth2-server:
-            loadBalancer:
-                servers:
-                    - url: "http://oauth2-server:8080"
-
         auth-service:
             loadBalancer:
                 serversTransport: insecureTransport
@@ -89,14 +98,19 @@ http:
                 servers:
                     - url: "https://gacha-service"
 
+        market-service:
+            loadBalancer:
+                serversTransport: insecureTransport
+                servers:
+                    - url: "https://market-service"
+
         static-service:
             loadBalancer:
                 serversTransport: insecureTransport
                 servers:
                     - url: "https://static-service"
 
-        market-service:
+        oauth2-server:
             loadBalancer:
-                serversTransport: insecureTransport
                 servers:
-                    - url: "https://market-service"
+                    - url: "http://oauth2-server:8080"

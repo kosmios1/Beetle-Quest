@@ -26,6 +26,16 @@ func CheckJWTAuthorizationToken() gin.HandlerFunc {
 			return
 		}
 
+		if claims.Valid() != nil {
+			ctx.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
+
+		if claims["scope"] != "user" {
+			ctx.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
+
 		ctx.Set("user_id", claims["sub"])
 		ctx.Next()
 	}
