@@ -9,6 +9,7 @@ import (
 	"encoding/hex"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/pquerna/otp/totp"
 	"golang.org/x/oauth2"
 )
 
@@ -117,24 +118,26 @@ func (s *AuthService) VerifyToken(token string) (jwt.MapClaims, bool) {
 
 func (s *AuthService) AdminLogin(id, password, otp string) (string, error) {
 	if password == "" {
-		return "", models.ErrInvalidUsernameOrPass
+		return "", models.ErrInvalidAdminIDOrPassOrOTOP
 	}
 
 	aid, err := utils.ParseUUID(id)
 	if err != nil {
-		return "", models.ErrInvalidUsernameOrPass
+		return "", models.ErrInvalidAdminIDOrPassOrOTOP
 	}
 
 	admin, ok := s.arepo.FindByID(aid)
 	if !ok {
-		return "", models.ErrInvalidUsernameOrPass
+		return "", models.ErrInvalidAdminIDOrPassOrOTOP
 	}
 
 	if err := utils.CompareHashPassword([]byte(password), admin.PasswordHash); err != nil {
-		return "", models.ErrInvalidUsernameOrPass
+		return "", models.ErrInvalidAdminIDOrPassOrOTOP
 	}
 
-	// TODO: check otp
+	if ok := totp.Validate(otp, admin.OtpSecret); !ok {
+		return "", models.ErrInvalidAdminIDOrPassOrOTOP
+	}
 
 	return admin.AdminId.String(), nil
 }
