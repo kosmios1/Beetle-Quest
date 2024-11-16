@@ -37,7 +37,7 @@ const (
 	ErrCouldNotDeleteAuction           constError = "could not delete auction"
 	ErrCouldNotRetrieveAuctionBids     constError = "could not retrieve auction bids"
 	ErrAuctionHasBids                  constError = "auction has bids"
-	ErrAuctionEnded                    constError = "auction already ended, cannot be deleted"
+	ErrAuctionEnded                    constError = "auction already ended"
 	ErrAuctionIsTooCloseToEnd          constError = "auction is too close to end"
 	ErrOwnerCannotBid                  constError = "owner cannot bid"
 	ErrNotEnoughMoneyToBid             constError = "not enough money to bid"
