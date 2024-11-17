@@ -52,7 +52,7 @@ func main() {
 			accountGroup.DELETE("/:user_id", cnt.DeleteUserAccount)
 		}
 
-		basePath.GET("/:user_id/gacha", cnt.GetUserGachaList)
+		basePath.GET("/:user_id/gacha/list", cnt.GetUserGachaList)
 		basePath.GET("/:user_id/gacha/:gacha_id", cnt.GetUserGachaDetails)
 	}
 

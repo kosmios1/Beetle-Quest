@@ -134,11 +134,11 @@ func (c *UserController) DeleteUserAccount(ctx *gin.Context) {
 }
 
 func (c *UserController) GetUserGachaList(ctx *gin.Context) {
-	ctx.JSON(200, gin.H{"message": "EHEHEHEH NOT IMPLEMENTED YET!"})
+	ctx.JSON(200, gin.H{"message": "TODO: EHEHEHEH NOT IMPLEMENTED YET!"})
 }
 
 func (c *UserController) GetUserGachaDetails(ctx *gin.Context) {
-	ctx.JSON(200, gin.H{"message": "EHEHEHEH NOT IMPLEMENTED YET!"})
+	ctx.JSON(200, gin.H{"message": "TODO: EHEHEHEH NOT IMPLEMENTED YET!"})
 }
 
 // Internal API ==========================================================================

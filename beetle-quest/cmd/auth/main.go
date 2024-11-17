@@ -42,9 +42,9 @@ func main() {
 
 	basePath := r.Group("/api/v1/auth")
 	{
-		basePath.GET("/logout", cnt.Logout)
-		basePath.POST("/login", cnt.Login)
 		basePath.POST("/register", cnt.Register)
+		basePath.POST("/login", cnt.Login)
+		basePath.GET("/logout", cnt.Logout)
 		basePath.GET("/oauth2", cnt.Oauth2Callback)
 
 		basePath.GET("/check_session", cnt.CheckSession)

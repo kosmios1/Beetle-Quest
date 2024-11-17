@@ -4,36 +4,24 @@ info:
     version: 0.1.0
 
 servers:
-    - url: localhost:8080/api/v1
+    - url: https://localhost/api/v1
 
 tags:
     - name: Auth
+    - name: OAuth2
+    - name: Static
     - name: Users
     - name: Gachas
     - name: Market
-    - name: Auction
     - name: Admin
-    - name: Report
+    # - name: Report
 
 paths:
     ### AUTH ###
-    /register:
+    /auth/register:
         post:
             summary: Register a new user
             tags: [Auth]
-            parameters:
-                - name: email
-                  in: query
-                  schema:
-                    type: string
-                - name: username
-                  in: query
-                  schema:
-                      type: string
-                - name: password
-                  in: query
-                  schema:
-                      type: string
             requestBody:
                 description: User registration details
                 required: true
@@ -46,22 +34,11 @@ paths:
                     description: user registered successfully.
                 400:
                     description: invalid request data.
-                409:
-                    description: username already exists.
 
-    /login:
+    /auth/login:
         post:
             summary: Login
             tags: [Auth]
-            parameters:
-                - name: username
-                  in: query
-                  schema:
-                      type: string
-                - name: password
-                  in: query
-                  schema:
-                      type: string
             requestBody:
                 description: Login details
                 required: true
@@ -76,10 +53,6 @@ paths:
                         Set-Cookie:
                             schema:
                                 type: string
-                    # content:
-                    #     application/json:
-                    #         schema:
-                    #             $ref: "#/components/schemas/User"
                 400:
                     description: Invalid request data.
                 401:
@@ -87,12 +60,10 @@ paths:
                 500:
                     description: Internal server error.
 
-    /logout:
+    /auth/logout:
         get:
             summary: Logout
             tags: [Auth]
-            security:
-                - authCookie: []
             responses:
                 200:
                     description: Logout successfull.
@@ -101,540 +72,523 @@ paths:
                 500:
                     description: Internal server error.
 
-    ### USER ###
-    /user/account/{user_uuid}:
+    /auth/oauth2:
         get:
-            summary: Get details of own user account
-            tags: [Users]
-            security:
-                - authCookie: []
+            summary: OAuth2
+            tags: [Auth]
             parameters:
-                - name: user_uuid
-                  in: path
+                - in: query
+                  name: code
+                  required: true
+                  schema:
+                      type: string
+                - in: query
+                  name: state
                   required: true
                   schema:
                       type: string
             responses:
                 200:
-                    description: User details fetched successfully.
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/User"
-                404:
-                    description: User not found.
-        patch:
-            summary: Update a user account
-            tags: [Users]
-            security:
-                - authCookie: []
-            parameters:
-                - name: user_uuid
-                  in: path
-                  required: true
-                  schema:
-                      type: string
-            requestBody:
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            type: object
-                            properties:
-                                username:
-                                    type: string
-                                email:
-                                    type: string
-                                password:
-                                    type: string
-            responses:
-                200:
-                    description: User account updated successfully.
+                    description: OAuth2 successfull.
                 400:
                     description: Bad request.
-                404:
-                    description: User not found.
-        delete:
-            summary: Delete a user account
-            tags: [Users]
-            security:
-                - authCookie: []
-            parameters:
-                - name: user_uuid
-                  in: path
-                  required: true
-                  schema:
-                      type: string
-            responses:
-                204:
-                    description: User account deleted successfully.
-                404:
-                    description: User not found.
+                500:
+                    description: Internal server error.
 
-    /user/{user_uuid}/gacha:
+    /auth/check_session:
         get:
-            summary: Get gacha collection of a specific user
-            tags: [Users]
+            summary: Check session
+            tags: [Auth]
             security:
-                - authCookie: []
-            parameters:
-                - name: user_uuid
-                  in: path
-                  required: true
-                  schema:
-                      type: string
+                - oauth2:
+                      - user
+                      - admin
             responses:
                 200:
-                    description: Gacha collection fetched successfully.
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    total:
-                                        type: integer
-                                    gachas:
-                                        type: array
-                                        items:
-                                            $ref: "#/components/schemas/Gacha"
+                    description: Session is valid.
                 404:
-                    description: User not found.
+                    description: Unauthorized.
+                500:
+                    description: Internal server error.
 
-    /user/{user_uuid}/gacha/{gacha_uuid}:
+    # It is used by traefik to verify if the cookie is valid, should not be exposed to the user
+    /auth/traefik/verify:
         get:
-            summary: Get a specific gacha item from a user's collection
-            tags: [Users]
+            summary: Traefik verify
+            tags: [Auth]
             security:
-                - authCookie: []
-            parameters:
-                - name: user_uuid
-                  in: path
-                  required: true
-                  schema:
-                      type: string
-                - name: gacha_uuid
-                  in: path
-                  required: true
-                  schema:
-                      type: string
+                - oauth2:
+                      - user
+                      - admin
             responses:
                 200:
-                    description: Gacha item fetched successfully.
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/Gacha"
+                    description: Authorized.
                 404:
-                    description: User/gacha not found.
+                    description: Unauthorized.
+                500:
+                    description: Internal server error.
 
-    ### GACHA ###
-
-    /gacha/roll:
+    /auth/admin/login:
         post:
-            summary: Roll for a random gacha item. More the user spend bigger is the chance to obtain a good gacha.
-            tags: [Gachas]
-            security:
-                - authCookie: []
+            summary: Admin login
+            tags: [Auth]
             requestBody:
+                description: Admin login details
                 required: true
                 content:
                     application/json:
                         schema:
-                            type: object
-                            properties:
-                                amount_spent:
-                                    type: integer
+                            $ref: "#/components/schemas/AdminLogin"
             responses:
                 200:
-                    description: gacha rolled successfully, item returned.
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/GachaResult"
+                    description: Admin login successfull.
                 400:
-                    description: invalid request data.
+                    description: Invalid request data.
+                500:
+                    description: Internal server error.
+
+    /auth/admin/oauth2:
+        get:
+            summary: Admin OAuth2
+            tags: [Auth]
+            parameters:
+                - in: query
+                  name: code
+                  required: true
+                  schema:
+                      type: string
+                - in: query
+                  name: state
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                200:
+                    description: Admin OAuth2 successfull.
+                400:
+                    description: Bad request.
+                500:
+                    description: Internal server error.
+
+    ### OAUTH2 ###
+    /oauth2/authorize:
+        get:
+            summary: Authorize
+            tags: [OAuth2]
+            parameters:
+                - in: query
+                  name: response_type
+                  required: true
+                  schema:
+                      type: string
+                - in: query
+                  name: client_id
+                  required: true
+                  schema:
+                      type: string
+                - in: query
+                  name: redirect_uri
+                  required: true
+                  schema:
+                      type: string
+                - in: query
+                  name: state
+                  required: true
+                  schema:
+                      type: string
+                - in: query
+                  name: scope
+                  required: true
+                  schema:
+                      type: string
+                - in: query
+                  name: user_id
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                200:
+                    description: Authorized.
+                400:
+                    description: Bad request.
+                500:
+                    description: Internal server error.
+
+    /oauth2/token:
+        post:
+            summary: Token
+            tags: [OAuth2]
+            requestBody:
+                description: Token details
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/Token"
+            responses:
+                200:
+                    description: Token successfull.
+                400:
+                    description: Bad request.
+                500:
+                    description: Internal server error.
+
+    ### STATIC ###
+    /static/{path}:
+        get:
+            summary: Get static file
+            tags: [Static]
+            parameters:
+                - name: path
+                  in: path
+                  description: File path.
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                200:
+                    description: Static file.
                 404:
-                    description: user not found/insufficient currency.
+                    description: File not found.
+
+    ### USERS ###
+    /user/account/{user_id}:
+        get:
+            summary: Get user account
+            tags: [Users]
+            security:
+                - oauth2:
+                      - user
+            parameters:
+                - name: user_id
+                  in: path
+                  description: User ID
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                200:
+                    description: User account details.
+                400:
+                    description: Status bad requests.
+        patch:
+            summary: Modify user account
+            tags: [Users]
+            security:
+                - oauth2:
+                      - user
+            parameters:
+                - name: user_id
+                  in: path
+                  description: User ID
+                  required: true
+                  schema:
+                      type: string
+            requestBody:
+                description: User account details
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/PatchUser"
+            responses:
+                200:
+                    description: User account modified successfully.
+                400:
+                    description: Status bad requests.
+        delete:
+            summary: Delete user account
+            tags: [Users]
+            security:
+                - oauth2:
+                      - user
+            parameters:
+                - name: user_id
+                  in: path
+                  description: User ID
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                303:
+                    description: Status see other (redirect to login).
+                400:
+                    description: Status bad requests.
+
+    /{user_id}/gacha/list:
+        get:
+            summary: Get user gacha list
+            tags: [Users]
+            security:
+                - oauth2:
+                      - user
+            parameters:
+                - name: user_id
+                  in: path
+                  description: User ID
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                200:
+                    description: User gacha list.
+                400:
+                    description: Status bad requests.
+
+    /{user_id}/gacha/{gacha_id}:
+        get:
+            summary: Get user gacha details
+            tags: [Users]
+            security:
+                - oauth2:
+                      - user
+            parameters:
+                - name: user_id
+                  in: path
+                  description: User ID
+                  required: true
+                  schema:
+                      type: string
+                - name: gacha_id
+                  in: path
+                  description: Gacha ID
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                200:
+                    description: User gacha details.
+                400:
+                    description: Status bad requests.
+
+    # TODO:
+    # - internal endpoints (not accessible by the user)
+
+    ### GACHAS ###
 
     /gacha/list:
         get:
-            summary: Get a list of all gachas
+            summary: Get system gacha list
             tags: [Gachas]
             security:
-                - authCookie: []
+                - oauth2:
+                      - user
             responses:
                 200:
-                    description: List of gachas.
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    total:
-                                        type: integer
-                                    gachas:
-                                        type: array
-                                        items:
-                                            $ref: "#/components/schemas/Gacha"
-                404:
-                    description: No gachas found.
+                    description: System's gacha list.
+                400:
+                    description: Status bad requests.
 
-    /gacha/{gacha_uuid}:
+    /gacha/{gacha_id}:
         get:
-            summary: Get details of a specific gacha.
+            summary: Get gacha details
             tags: [Gachas]
             security:
-                - authCookie: []
+                - oauth2:
+                      - user
             parameters:
-                - name: gacha_uuid
+                - name: gacha_id
                   in: path
+                  description: Gacha ID
                   required: true
                   schema:
                       type: string
             responses:
                 200:
-                    description: Gacha details fetched successfully.
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/Gacha"
-                404:
-                    description: gacha not found.
+                    description: System's gacha details.
+                400:
+                    description: Status bad requests.
+
+    # TODO:
+    # - internal endpoints (not accessible by the user)
 
     ### MARKET ###
+    /market:
+        get:
+            summary: Get market list
+            tags: [Market]
+            security:
+                - oauth2:
+                      - user
+            responses:
+                200:
+                    description: Market template obtained successfully.
+                400:
+                    description: Status bad requests.
 
     /market/bugscoin/buy:
         post:
-            summary: Buy in-game currency with real money
+            summary: Buy bugscoin
             tags: [Market]
             security:
-                - authCookie: []
+                - oauth2:
+                      - user
             requestBody:
+                description: Buy bugscoin details
                 required: true
                 content:
                     application/json:
                         schema:
-                            type: object
-                            properties:
-                                amount:
-                                    type: integer
+                            $ref: "#/components/schemas/BuyBugscoin"
             responses:
                 200:
-                    description: In-game currency bought successfully.
+                    description: Bugscoin bought successfully.
                 400:
-                    description: invalid request data.
-                404:
-                    description: user not found.
+                    description: Status bad requests.
 
-    /market/gacha/{gacha_uuid}/buy:
+    /market/gacha/roll:
         get:
-            summary: Buy a gacha item with in-game currency
+            summary: Roll gacha
             tags: [Market]
             security:
-                - authCookie: []
+                - oauth2:
+                      - user
+            responses:
+                200:
+                    description: Gacha rolled successfully.
+                400:
+                    description: Status bad requests.
+                500:
+                    description: Internal server error.
+
+    /market/gacha/{gacha_id}/buy:
+        get:
+            summary: Buy gacha
+            tags: [Market]
+            security:
+                - oauth2:
+                      - user
             parameters:
-                - name: gacha_uuid
+                - name: gacha_id
                   in: path
+                  description: Gacha ID
                   required: true
                   schema:
                       type: string
             responses:
                 200:
-                    description: Gacha item bought successfully.
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/GachaResult"
+                    description: Gacha bought successfully.
                 400:
-                    description: "invalid request data."
-                404:
-                    description: "{user, gacha, gacha price} not found/insufficient currency."
+                    description: Status bad requests.
 
-    ### AUCTION ###
-    /auction:
+    /market/auction:
         post:
-            summary: Create a new auction for a gacha item
-            tags: [Auction]
+            summary: Create auction
+            tags: [Market]
             security:
-                - authCookie: []
+                - oauth2:
+                      - user
             requestBody:
+                description: Create auction details
                 required: true
                 content:
                     application/json:
                         schema:
-                            $ref: "#/components/schemas/CreateAuctionData"
+                            $ref: "#/components/schemas/CreateAuction"
             responses:
-                201:
+                200:
                     description: Auction created successfully.
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/Auction"
                 400:
-                    description: invalid request data.
-                404:
-                    description: "{user, gacha} not found/start price must be greater than 0/end time must be after start time."
+                    description: Status bad requests.
 
-    /auction/list:
+    /market/auction/list:
         get:
-            summary: Get a list of all auctions
-            tags: [Auction]
+            summary: Get auction list
+            tags: [Market]
             security:
-                - authCookie: []
+                - oauth2:
+                      - user
             responses:
                 200:
-                    description: List of auctions.
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    total:
-                                        type: integer
-                                    auctions:
-                                        type: array
-                                        items:
-                                            $ref: "#/components/schemas/Auction"
-                404:
-                    description: No auctions found.
+                    description: Auction list obtained successfully.
+                400:
+                    description: Status bad requests.
 
-    /auction/{auction_uuid}:
+    /market/auction/{auction_id}:
         get:
-            summary: Get details of a specific auction
-            tags: [Auction]
+            summary: Get auction details
+            tags: [Market]
             security:
-                - authCookie: []
+                - oauth2:
+                      - user
             parameters:
-                - name: auction_uuid
+                - name: auction_id
                   in: path
+                  description: Auction ID
                   required: true
                   schema:
                       type: string
             responses:
                 200:
-                    description: Auction details fetched successfully.
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/Auction"
-                404:
-                    description: auction not found.
+                    description: Auction details obtained successfully.
+                400:
+                    description: Status bad requests.
         delete:
-            summary: Delete an auction
-            tags: [Auction]
+            summary: Delete auction
+            tags: [Market]
             security:
-                - authCookie: []
+                - oauth2:
+                      - user
             parameters:
-                - name: auction_uuid
+                - name: auction_id
                   in: path
+                  description: Auction ID
                   required: true
                   schema:
                       type: string
             responses:
                 200:
-                    description: auction deleted successfully.
-                404:
-                    description: auction not found.
+                    description: Auction deleted successfully.
+                400:
+                    description: Status bad requests.
 
-    /auction/{auction_uuid}/bid:
+    /market/auction/{auction_id}/bid:
         post:
-            summary: Place a bid on an auction
-            tags: [Auction]
+            summary: Bid auction
+            tags: [Market]
             security:
-                - authCookie: []
+                - oauth2:
+                      - user
             parameters:
-                - name: auction_uuid
+                - name: auction_id
                   in: path
+                  description: Auction ID
                   required: true
                   schema:
                       type: string
             requestBody:
+                description: Bid auction details
                 required: true
                 content:
                     application/json:
                         schema:
-                            $ref: "#/components/schemas/BidInput"
+                            $ref: "#/components/schemas/BidAuction"
             responses:
                 200:
-                    description: Bid placed successfully.
+                    description: Auction bid successfully.
                 400:
-                    description: invalid request data.
-                404:
-                    description: auction not found/user not found/insufficient currency.
+                    description: Status bad requests.
+
+    # TODO:
+    # - internal endpoints (not accessible by the user)
 
     ### ADMIN ###
-    /admin/monitor:
-        get:
-            summary: Get system status for admin
-            tags: [Admin]
-            security:
-                - authCookie: []
-            responses:
-                200:
-                    description: System statistics and monitoring information.
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    total_users:
-                                        type: integer
-                                    active_auctions:
-                                        type: integer
-                                    completed_transactions:
-                                        type: integer
-                                    total_currency_in_game:
-                                        type: integer
-                                    issues_reported:
-                                        type: integer
-                                    issues:
-                                        type: array
-                                        items:
-                                            type: string
 
-    /admin/users:
-        get:
-            summary: Get a list of all users
-            tags: [Admin]
-            security:
-                - authCookie: []
-            responses:
-                200:
-                    description: List of users.
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    total:
-                                        type: integer
-                                    users:
-                                        type: array
-                                        items:
-                                            $ref: "#/components/schemas/User"
-                404:
-                    description: No users found.
-
-    /admin/gacha:
-        post:
-            summary: Add a new gacha item to the system
-            tags: [Admin]
-            security:
-                - authCookie: []
-            requestBody:
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            type: object
-                            properties:
-                                price:
-                                    type: integer
-                                name:
-                                    type: string
-                                rarity:
-                                    type: string
-                                image_url:
-                                    type: string
-            responses:
-                200:
-                    description: Gacha added successfully.
-                404:
-                    description: Gacha not found.
-
-    /admin/gacha/{gacha_uuid}:
-        patch:
-            summary: Update a gacha item
-            tags: [Admin]
-            security:
-                - authCookie: []
-            parameters:
-                - name: gacha_uuid
-                  in: path
-                  required: true
-                  schema:
-                      type: string
-            requestBody:
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            type: object
-                            properties:
-                                price:
-                                    type: integer
-                                name:
-                                    type: string
-                                rarity:
-                                    type: string
-                                image_url:
-                                    type: string
-            responses:
-                200:
-                    description: Gacha updated successfully.
-                404:
-                    description: Gacha not found.
-
-    ### REPORT ###
-    /report/issue:
-        post:
-            summary: Report an issue
-            tags: [Report]
-            security:
-                - authCookie: []
-            requestBody:
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            type: object
-                            properties:
-                                issue:
-                                    type: string
-            responses:
-                200:
-                    description: Issue reported successfully.
-                400:
-                    description: invalid request data.
+    # TODO:
+    # - internal endpoints (not accessible by the user)
 
 components:
     securitySchemes:
-        authCookie:
-            type: apiKey
-            in: cookie
-            name: auth_cookie
-
+        oauth2:
+            type: oauth2
+            flows:
+                authorizationCode:
+                    authorizationUrl: https://localhost/oauth2/authorize
+                    tokenUrl: https://localhost/oauth2/token
+                    scopes:
+                        user: User scope
+                        admin: Admin scope
     schemas:
-        UserPublic:
-            type: object
-            properties:
-                user_uuid:
-                    type: string
-                username:
-                    type: string
-                gacha_collection:
-                    type: array
-                    items:
-                        $ref: "#/components/schemas/Gacha"
-
-        User:
-            type: object
-            properties:
-                user_uuid:
-                    type: string
-                username:
-                    type: string
-                currency_amount:
-                    type: integer
-                gacha_collection:
-                    type: array
-                    items:
-                        $ref: "#/components/schemas/Gacha"
-                transaction_history:
-                    type: array
-                    items:
-                        $ref: "#/components/schemas/Transaction"
-
         Register:
             type: object
             properties:
@@ -653,88 +607,61 @@ components:
                 password:
                     type: string
 
-        Gacha:
+        AdminLogin:
             type: object
             properties:
-                gacha_uuid:
+                admin_id:
                     type: string
-                name:
+                password:
                     type: string
-                rarity:
-                    type: string
-                price:
-                    type: integer
-                image_url:
+                otp_code:
                     type: string
 
-        GachaResult:
+        PatchUser:
             type: object
             properties:
-                gacha:
-                    $ref: "#/components/schemas/Gacha"
-                remaining_currency:
-                    type: integer
-
-        CreateAuctionData:
-            type: object
-            properties:
-                gacha_uuid:
+                username:
                     type: string
-                start_price:
-                    type: integer
-                end_time:
+                email:
+                    type: string
+                new_password:
+                    type: string
+                old_password:
                     type: string
 
-        Auction:
+        Token:
+            # TODO: Check if correct
             type: object
             properties:
-                auction_uuid:
+                grant_type:
                     type: string
-                owner_username:
+                client_id:
                     type: string
-                gacha_uuid:
+                client_secret:
                     type: string
-                start_time:
+                redirect_uri:
                     type: string
-                end_time:
+                code:
                     type: string
-                winner_username:
-                    type: string
-                biddings:
-                    type: array
-                    items:
-                        $ref: "#/components/schemas/Bid"
-
-        BidInput:
-            type: object
-            properties:
-                auction_uuid:
-                    type: string
-                bid_amount:
-                    type: integer
-
-        Bid:
-            type: object
-            properties:
-                bid_uuid:
-                    type: string
-                currency_bidded:
-                    type: integer
-                bid_hash:
-                    type: string
-                previous_bid_hash:
+                scope:
                     type: string
 
-        Transaction:
+        BuyBugscoin:
             type: object
             properties:
-                transaction_uuid:
-                    type: string
                 amount:
                     type: integer
-                timestamp:
+
+        CreateAuction:
+            type: object
+            properties:
+                gacha_id:
                     type: string
-                event_type:
+                end_time:
                     type: string
-                event_uuid:
+
+        BidAuction:
+            type: object
+            properties:
+                bid_amount:
                     type: string
