@@ -4,129 +4,116 @@
 #      keyFile: /certs/key.pem
 
 tls:
-  stores:
-    default:
-      defaultCertificate:
-        certFile: /certs/cert.pem
-        keyFile: /certs/key.pem
+    stores:
+        default:
+            defaultCertificate:
+                certFile: /certs/cert.pem
+                keyFile: /certs/key.pem
 
 http:
-  serversTransports:
-    insecureTransport:
-      # TODO: Change to rootCAs when microservices verify client (traefik) certificates
-      insecureSkipVerify: true
+    serversTransports:
+        insecureTransport:
+            # TODO: Change to rootCAs when microservices verify client (traefik) certificates
+            insecureSkipVerify: true
 
-  middlewares:
-    traefik-auth:
-      forwardAuth:
-        address: "https://auth-service/api/v1/auth/traefik/verify"
-        tls:
-          # TODO: Change to rootCAs when microservices verify client (traefik) certificates
-          insecureSkipVerify: true
+    middlewares:
+        traefik-auth:
+            forwardAuth:
+                address: "https://auth-service/api/v1/auth/traefik/verify"
+                tls:
+                    # TODO: Change to rootCAs when microservices verify client (traefik) certificates
+                    insecureSkipVerify: true
 
-  routers:
-    admin-service:
-      rule: "PathPrefix(`/api/v1/admin`) && (Host(`localhost`) || Host(`reverse-proxy`))"
-      entryPoints:
-        - websec
-      service: auth-service
-      priority: 1
-      tls: true
-      middlewares:
-        - "traefik-auth"
+    routers:
+        admin-service:
+            rule: "PathPrefix(`/api/v1/admin`) && (Host(`localhost`) || Host(`reverse-proxy`))"
+            entryPoints:
+                - websec
+            service: auth-service
+            priority: 1
+            tls: true
+            middlewares:
+                - "traefik-auth"
 
-    auth-service:
-      rule: "PathPrefix(`/api/v1/auth`) && (Host(`localhost`) || Host(`reverse-proxy`))"
-      entryPoints:
-        - websec
-      service: auth-service
-      priority: 1
-      tls: true
+        auth-service:
+            rule: "PathPrefix(`/api/v1/auth`) && (Host(`localhost`) || Host(`reverse-proxy`))"
+            entryPoints:
+                - websec
+            service: auth-service
+            priority: 1
+            tls: true
 
-    user-service:
-      rule: "PathPrefix(`/api/v1/user`) && (Host(`localhost`) || Host(`reverse-proxy`))"
-      entryPoints:
-        - websec
-      service: user-service
-      priority: 1
-      tls: true
-      middlewares:
-        - "traefik-auth"
+        user-service:
+            rule: "PathPrefix(`/api/v1/user`) && (Host(`localhost`) || Host(`reverse-proxy`))"
+            entryPoints:
+                - websec
+            service: user-service
+            priority: 1
+            tls: true
+            middlewares:
+                - "traefik-auth"
 
-    gacha-service:
-      rule: "PathPrefix(`/api/v1/gacha`) && (Host(`localhost`) || Host(`reverse-proxy`))"
-      entryPoints:
-        - websec
-      service: gacha-service
-      priority: 1
-      tls: true
-      middlewares:
-        - "traefik-auth"
+        gacha-service:
+            rule: "PathPrefix(`/api/v1/gacha`) && (Host(`localhost`) || Host(`reverse-proxy`))"
+            entryPoints:
+                - websec
+            service: gacha-service
+            priority: 1
+            tls: true
+            middlewares:
+                - "traefik-auth"
 
-    market-service:
-      rule: "PathPrefix(`/api/v1/market`) && (Host(`localhost`) || Host(`reverse-proxy`))"
-      entryPoints:
-        - websec
-      service: market-service
-      priority: 1
-      tls: true
-      middlewares:
-        - "traefik-auth"
+        market-service:
+            rule: "PathPrefix(`/api/v1/market`) && (Host(`localhost`) || Host(`reverse-proxy`))"
+            entryPoints:
+                - websec
+            service: market-service
+            priority: 1
+            tls: true
+            middlewares:
+                - "traefik-auth"
 
-    static-service:
-      rule: "PathPrefix(`/static`) && (Host(`localhost`) || Host(`reverse-proxy`))"
-      entryPoints:
-        - websec
-      service: static-service
-      priority: 1
-      tls: true
+        static-service:
+            rule: "PathPrefix(`/static`) && (Host(`localhost`) || Host(`reverse-proxy`))"
+            entryPoints:
+                - websec
+            service: static-service
+            priority: 1
+            tls: true
 
-    oauth2-server:
-      rule: "PathPrefix(`/oauth2`) && (Host(`localhost`) || Host(`reverse-proxy`))"
-      entryPoints:
-        - websec
-      service: oauth2-server
-      priority: 1
-      tls: true
+    services:
+        admin-service:
+            loadBalancer:
+                serversTransport: insecureTransport
+                servers:
+                    - url: "https://admin-service"
 
-  services:
-    admin-service:
-      loadBalancer:
-        serversTransport: insecureTransport
-        servers:
-          - url: "https://admin-service"
+        auth-service:
+            loadBalancer:
+                serversTransport: insecureTransport
+                servers:
+                    - url: "https://auth-service"
 
-    auth-service:
-      loadBalancer:
-        serversTransport: insecureTransport
-        servers:
-          - url: "https://auth-service"
+        user-service:
+            loadBalancer:
+                serversTransport: insecureTransport
+                servers:
+                    - url: "https://user-service"
 
-    user-service:
-      loadBalancer:
-        serversTransport: insecureTransport
-        servers:
-          - url: "https://user-service"
+        gacha-service:
+            loadBalancer:
+                serversTransport: insecureTransport
+                servers:
+                    - url: "https://gacha-service"
 
-    gacha-service:
-      loadBalancer:
-        serversTransport: insecureTransport
-        servers:
-          - url: "https://gacha-service"
+        market-service:
+            loadBalancer:
+                serversTransport: insecureTransport
+                servers:
+                    - url: "https://market-service"
 
-    market-service:
-      loadBalancer:
-        serversTransport: insecureTransport
-        servers:
-          - url: "https://market-service"
-
-    static-service:
-      loadBalancer:
-        serversTransport: insecureTransport
-        servers:
-          - url: "https://static-service"
-
-    oauth2-server:
-      loadBalancer:
-        servers:
-          - url: "http://oauth2-server:8080"
+        static-service:
+            loadBalancer:
+                serversTransport: insecureTransport
+                servers:
+                    - url: "https://static-service"

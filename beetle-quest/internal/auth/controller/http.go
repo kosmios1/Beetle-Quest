@@ -3,6 +3,7 @@ package controller
 import (
 	"beetle-quest/internal/auth/service"
 	"beetle-quest/pkg/models"
+	"beetle-quest/pkg/utils"
 	"net/http"
 	"time"
 
@@ -44,56 +45,16 @@ func (c *AuthController) Login(ctx *gin.Context) {
 		return
 	}
 
-	user, err := c.srv.Login(loginData.Username, loginData.Password)
+	token, tokenString, err := c.srv.Login(loginData.Username, loginData.Password)
 	if err != nil {
 		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err})
 		ctx.Abort()
 		return
 	}
 
-	url, err := c.srv.MakeAuthRequest(user.UserID.String())
-	if err != nil {
-		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": "internal server error"})
-		ctx.Abort()
-		return
-	}
-
-	ctx.Redirect(http.StatusFound, url)
-}
-
-func (c *AuthController) Oauth2Callback(ctx *gin.Context) {
-	if err := ctx.Request.ParseForm(); err != nil {
-		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "invalid request"})
-		ctx.Abort()
-		return
-	}
-
-	state := ctx.Request.Form.Get("state")
-	// TODO: How to validate state?
-	if state == "" {
-		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "state invalid!"})
-		ctx.Abort()
-		return
-	}
-
-	code := ctx.Request.Form.Get("code")
-	if code == "" {
-		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "code not found!"})
-		ctx.Abort()
-		return
-	}
-
-	token, claims, err := c.srv.ExchangeCodeForToken(code)
-	if err != nil {
-		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": "internal server error"})
-		ctx.Abort()
-		return
-	}
-
-	maxAge := int(token.Expiry.Sub(time.Now()).Seconds())
-	ctx.SetCookie("access_token", token.AccessToken, maxAge, "/", "", false, true)
-
-	ctx.HTML(http.StatusOK, "home.tmpl", gin.H{"UserID": claims["sub"]})
+	maxAge := token.Claims.(*utils.CustomClaims).ExpiresAt - time.Now().Unix()
+	ctx.SetCookie("access_token", tokenString, int(maxAge), "/", "", false, true)
+	ctx.Redirect(http.StatusFound, "/api/v1/auth/check_session")
 }
 
 func (c *AuthController) Logout(ctx *gin.Context) {
@@ -160,56 +121,14 @@ func (c *AuthController) AdminLogin(ctx *gin.Context) {
 		return
 	}
 
-	adminId, err := c.srv.AdminLogin(loginData.AdminID, loginData.Password, loginData.OtpCode)
+	token, tokenString, err := c.srv.AdminLogin(loginData.AdminID, loginData.Password, loginData.OtpCode)
 	if err != nil {
 		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err})
 		ctx.Abort()
 		return
 	}
 
-	url, err := c.srv.MakeAdminAuthRequest(adminId)
-	if err != nil {
-		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": "internal server error"})
-		ctx.Abort()
-		return
-	}
-
-	ctx.Redirect(http.StatusFound, url)
-}
-
-func (c *AuthController) AdminOauth2Callback(ctx *gin.Context) {
-	if err := ctx.Request.ParseForm(); err != nil {
-		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "invalid request"})
-		ctx.Abort()
-		return
-	}
-
-	state := ctx.Request.Form.Get("state")
-	// TODO: How to validate state?
-	if state == "" {
-		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "state invalid!"})
-		ctx.Abort()
-		return
-	}
-
-	code := ctx.Request.Form.Get("code")
-	if code == "" {
-		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "code not found!"})
-		ctx.Abort()
-		return
-	}
-
-	token, claims, err := c.srv.ExchangeAdminCodeForToken(code)
-	if err != nil {
-		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": "internal server error"})
-		ctx.Abort()
-		return
-	}
-
-	maxAge := int(token.Expiry.Sub(time.Now()).Seconds())
-	ctx.SetCookie("access_token", token.AccessToken, maxAge, "/", "", false, true)
-
-	// TODO: Template for admin home
-	// ctx.HTML(http.StatusOK, "adminHome.tmpl", gin.H{"AdminID": claims["sub"]})
-	ctx.JSON(http.StatusOK, gin.H{"AdminID": claims["sub"]})
+	maxAge := token.Claims.(*utils.CustomClaims).ExpiresAt - time.Now().Unix()
+	ctx.SetCookie("access_token", tokenString, int(maxAge), "/", "", false, true)
+	ctx.Redirect(http.StatusFound, "/api/v1/auth/check_session")
 }

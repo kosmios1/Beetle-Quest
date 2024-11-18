@@ -6,7 +6,6 @@ import (
 	"beetle-quest/pkg/utils"
 	"log"
 
-	internalRepo "beetle-quest/internal/auth/repository"
 	arepo "beetle-quest/pkg/repositories/serviceHttp/admin"
 	urepo "beetle-quest/pkg/repositories/serviceHttp/user"
 
@@ -33,11 +32,10 @@ func main() {
 		SSLProxyHeaders:       map[string]string{"X-Forwarded-Proto": "https"},
 		AllowedHosts:          []string{},
 	}))
-
 	r.LoadHTMLGlob("templates/*")
 
 	cnt := controller.NewAuthController(
-		service.NewAuthService(urepo.NewUserRepo(), internalRepo.NewOauth2Repo(), arepo.NewAdminRepo()),
+		service.NewAuthService(urepo.NewUserRepo(), arepo.NewAdminRepo()),
 	)
 
 	basePath := r.Group("/api/v1/auth")
@@ -45,7 +43,6 @@ func main() {
 		basePath.POST("/register", cnt.Register)
 		basePath.POST("/login", cnt.Login)
 		basePath.GET("/logout", cnt.Logout)
-		basePath.GET("/oauth2", cnt.Oauth2Callback)
 
 		basePath.GET("/check_session", cnt.CheckSession)
 		basePath.Any("/traefik/verify", cnt.Verify)
@@ -54,7 +51,6 @@ func main() {
 	adminSpecific := r.Group("/api/v1/auth/admin")
 	{
 		adminSpecific.POST("/login", cnt.AdminLogin)
-		adminSpecific.GET("/oauth2", cnt.AdminOauth2Callback)
 	}
 
 	server := utils.SetupHTPPSServer(r)

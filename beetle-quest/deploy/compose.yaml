@@ -37,9 +37,6 @@ x-common-services-environments: &common-services-environments
     LOG_LEVEL: debug
     GIN_MODE: release
 
-x-common-oauth2-environments: &common-oauth2-environments
-    OAUTH2_CLIENT_ID: beetle-quest
-
 # In release set them to:
 # CGO_ENABLED: 0
 # LD_FLAGS: "-s -w"
@@ -59,7 +56,6 @@ services:
             - "127.0.0.1:443:443" # TODO: expose on 0.0.0.0:443:443
         networks:
             - internal
-            - oauth2
             - admin
         volumes:
             - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
@@ -98,7 +94,6 @@ services:
             args:
                 <<: *services-go-build-flags
         networks:
-            - oauth2
             - admin
             - internal
         volumes:
@@ -112,14 +107,13 @@ services:
                     cpus: "1"
                     memory: 50M
         environment:
-            <<: [*common-oauth2-environments, *common-services-environments]
-            OAUTH2_REDIRECT_URL: https://localhost/api/v1/auth/oauth2
-            OAUTH2_ADMIN_REDIRECT_URL: https://localhost/api/v1/auth/admin/oauth2
-            OAUTH2_AUTH_ENDPOINT: https://localhost/oauth2/authorize
+            <<: [*common-services-environments]
 
-            OAUTH2_TOKEN_ENDPOINT: http://oauth2-server:8080/oauth2/token
-            OAUTH2_REVOKE_TOKEN_ENDPOINT: http://oauth2-server:8080/oauth2/token/revoke
-            OAUTH2_VERIFY_TOKEN_ENDPOINT: http://oauth2-server:8080/oauth2/token/verify
+            REDIS_HOST: market-timed-events-redis
+            REDIS_PORT: 6379
+            REDIS_USERNAME: beetle
+            REDIS_PASSWORD: secret
+            REDIS_DB: 0
 
             CREATE_USER_ENDPOINT: https://user-service/api/v1/internal/user/create
             UPDATE_USER_ENDPOINT: https://user-service/api/v1/internal/user/update
@@ -130,7 +124,6 @@ services:
 
             FIND_ADMIN_BY_ID_ENDPOINT: https://admin-service/api/v1/internal/admin/find_by_id
         env_file:
-            - ./secrets/oauth2.env
             - ./secrets/jwt.env
 
     user-service:
@@ -257,48 +250,20 @@ services:
         # env_file:
         #     - ./secrets/jwt.env
 
-    # OAUTH2 SECTION ====================================================================================================================================================================================
-    oauth2-server:
-        build:
-            context: ../
-            dockerfile: deploy/oauth2/Dockerfile
-            args:
-                <<: *services-go-build-flags
-        networks:
-            - oauth2
-        deploy:
-            # mode: replicated
-            # replicas: 2
-            resources:
-                limits:
-                    cpus: "1"
-                    memory: 50M
-        environment:
-            <<: [*common-services-environments, *common-oauth2-environments]
-            OAUTH2_CLIENT_DOMAIN: http://auth-service
-            REDIS_HOST: oauth2-redis
-            REDIS_PORT: 6379
-            REDIS_USERNAME: beetle
-            REDIS_DB: 0
-        env_file:
-            - ./secrets/oauth2.env
-            - ./secrets/redis.env
-            - ./secrets/jwt.env
-
     # DB SERVICES SECTION ===============================================================================================================================================================================
-    oauth2-redis:
-        image: redis:8.0-M02-alpine3.20
-        command: "redis-server /usr/local/etc/redis/redis.conf"
-        volumes:
-            - ./oauth2/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
-        networks:
-            - oauth2
-
     market-timed-events-redis:
         image: redis:8.0-M02-alpine3.20
         command: "redis-server /usr/local/etc/redis/redis.conf"
         volumes:
             - ./market/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+        networks:
+            - internal
+
+    sessions-redis:
+        image: redis:8.0-M02-alpine3.20
+        command: "redis-server /usr/local/etc/redis/redis.conf"
+        volumes:
+            - ./auth/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
         networks:
             - internal
 
@@ -347,8 +312,6 @@ services:
             - ./secrets/postgress.env
 
 networks:
-    oauth2:
-        driver: bridge
     internal:
         driver: bridge
     admin:
