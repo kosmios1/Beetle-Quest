@@ -9,8 +9,8 @@ Prerequisites:
 
 Before you begin, ensure you have the following installed:
 
--   Docker
--   Docker Compose
+- Docker
+- Docker Compose
 
 ### Cloning the repo
 
@@ -32,6 +32,7 @@ deploy/
 │  ├── oauth2.env
 │  ├── postgress.env
 │  └── redis.env
+...
 └──compose.yml
 ```
 
@@ -59,7 +60,15 @@ cd beetle-quest/deploy
 docker compose down
 ```
 
-### Project structure
+## Tests
+
+You fill find the Postman collection file`beetle-quest-collection.json` inside `beetle-quest/tests/postman/`, you can execute them with Postam Newman:
+
+```sh
+docker run --rm --net beetle-quest_internal -v <path/to/repo/>V.System/beetle-quest/tests/postman/collection.json:/collection.json postman/newman run /collection.json --insecure --ignore-redirects --color on
+```
+
+## Project structure
 
 The project is structured as follows:
 
@@ -84,5 +93,5 @@ The project is structured as follows:
 
 ## References
 
--   [Project Structure 1](https://betterprogramming.pub/how-are-you-structuring-your-go-microservices-a355d6293932)
--   [Project Structure 2](https://gochronicles.com/project-structure/)
+- [Project Structure 1](https://betterprogramming.pub/how-are-you-structuring-your-go-microservices-a355d6293932)
+- [Project Structure 2](https://gochronicles.com/project-structure/)

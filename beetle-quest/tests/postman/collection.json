@@ -1,0 +1,360 @@
+{
+  "info": {
+    "_postman_id": "f4698202-b507-418b-8b12-94cda76009b1",
+    "name": "Beetle Quest API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "39361032"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "POST /auth/register",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"test@example.com\", \"username\": \"test\", \"password\": \"123456\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Response should be HTML', function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('text/html');",
+                  "});",
+                  "if (pm.response.code !== 200) {",
+                  "   pm.test('Status code is 400', function () {",
+                  "     pm.response.to.have.status(400);",
+                  "   });",
+                  "   pm.test('Response should contain success message in HTML', function () {",
+                  "       const responseBody = pm.response.text();",
+                  "       pm.expect(responseBody).to.include('inserted username or mail are already in the system');",
+                  "   });",
+                  "} else {",
+                  "   pm.test('Status code is 200', function () {",
+                  "     pm.response.to.have.status(200);",
+                  "   });",
+                  "   pm.test('Response should contain success message in HTML', function () {",
+                  "       const responseBody = pm.response.text();",
+                  "       pm.expect(responseBody).to.include('User registered successfully!');",
+                  "   });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /auth/login",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\": \"test\",\"password\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 302', function () {",
+                  "    pm.response.to.have.status(302);",
+                  "});",
+                  "",
+
+                  "pm.test('Extract and save code and state from redirect', function () {",
+                  "    const modifiedLocationHeader = pm.response.headers.get('location').replace('localhost', 'reverse-proxy');",
+                  "    pm.sendRequest({",
+                  "        url: modifiedLocationHeader,",
+                  "        method: 'GET',",
+                  "        header: {",
+                  "            'accept': '*/*'",
+                  "        }",
+                  "    }, function (err, res) {",
+                  "        if (err) {",
+                  "            console.error(err);",
+                  "        } else {",
+                  "            const redirectLocationHeader = res.headers.get('location');",
+                  "            if (redirectLocationHeader) {",
+                  "                const queryString = redirectLocationHeader.split('?')[1];",
+                  "                const params = {};",
+                  "                if (queryString) {",
+                  "                    queryString.split('&').forEach(param => {",
+                  "                        const [key, value] = param.split('=');",
+                  "                        params[decodeURIComponent(key)] = decodeURIComponent(value || '');",
+                  "                    });",
+                  "                }",
+                  "                const state = params['state'];",
+                  "                const code = params['code'];",
+                  "                if (state) {",
+                  "                    pm.globals.set('auth_state', state);",
+                  "                }",
+                  "                if (code) {",
+                  "                    pm.globals.set('auth_code', code);",
+                  "                }",
+                  "            }",
+                  "        }",
+                  "    console.log('Oauth2 State:', pm.globals.get('auth_state'));",
+                  "    console.log('Oauth2 Code:', pm.globals.get('auth_code'));",
+                  "    });",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /auth/logout",
+          "request": {
+            "method": "GET",
+            "header": ["accept:*/*"],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "logout"]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 302', function () {",
+                  "    pm.response.to.have.status(302);",
+                  "});",
+                  "",
+                  "pm.test('Response should be HTML', function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('text/html');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /auth/oauth2",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/oauth2?code=&state=",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "oauth2"],
+              "query": [
+                {
+                  "key": "code",
+                  "value": "{{auth_code}}"
+                },
+                {
+                  "key": "state",
+                  "value": "{{auth_state}}"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Response status is 200', function () {",
+                  "    pm.expect(pm.response).to.have.status(200);",
+                  "});",
+                  "pm.test('Response should be HTML', function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('text/html');",
+                  "});",
+                  "// Test: Validate Access Token Format",
+                  "// Test: Check Token Expiration",
+                  "// Test: Validate Scopes"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /auth/check_session",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/check_session",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "check_session"]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Test: Validate Response Status",
+                  "pm.test('Response status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "// Test: Check for Valid Session",
+                  "// Test: Handle Unauthorized Response",
+                  "if (pm.response.code === 404) {",
+                  "}",
+                  "// Test: Handle Internal Server Error",
+                  "if (pm.response.code === 500) {",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /auth/traefik/verify",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/traefik/verify",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "traefik", "verify"]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Test: Validate Response Status",
+                  "pm.test('Response status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "// Test: Check for Valid Session",
+                  "// Test: Handle Unauthorized Response",
+                  "if (pm.response.code === 404) {",
+                  "}",
+                  "// Test: Handle Internal Server Error",
+                  "if (pm.response.code === 500) {",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /auth/admin/login",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"admin_id\": \"admin\",\"password\": \"admin\", \"otp_code\": \"{{admin_otp}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/admin/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "admin", "login"]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["const seed = 'ASDASDASDASDASD';"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /auth/admin/oauth2",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/admin/oauth2?code=&state=",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "admin", "oauth2"],
+              "query": [
+                {
+                  "key": "code",
+                  "value": ""
+                },
+                {
+                  "key": "state",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://reverse-proxy/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "admin_otp",
+      "value": "{{auth_state}}"
+    },
+    {
+      "key": "user_id",
+      "value": "09087f45-5209-4efa-85bd-761562a6df53",
+      "type": "string"
+    },
+    {
+      "key": "gacha_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "auction_id",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
