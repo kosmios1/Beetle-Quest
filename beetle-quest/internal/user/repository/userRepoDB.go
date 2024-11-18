@@ -45,6 +45,15 @@ func NewUserRepo() *UserRepo {
 	return repo
 }
 
+func (r *UserRepo) GetAll() ([]models.User, error) {
+	var users []models.User
+	result := r.db.Table("users").Find(&users)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return users, nil
+}
+
 func (r *UserRepo) Create(email, username string, hashedPassword []byte, currency int64) bool {
 	result := r.db.Table("users").Create(&models.User{
 		UserID:       utils.GenerateUUID(),

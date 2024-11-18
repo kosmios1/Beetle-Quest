@@ -97,6 +97,15 @@ func (s *UserService) UpdateUserAccountDetails(userID models.UUID, newEmail, new
 	return nil
 }
 
+// Internal service functions =================================================================================================
+
+func (s *UserService) GetAllUsers() []models.User {
+	if users, err := s.urepo.GetAll(); err == nil {
+		return users
+	}
+	return []models.User{}
+}
+
 func (s *UserService) Create(email, username string, hashedPassword []byte, currency int64) bool {
 	return s.urepo.Create(email, username, hashedPassword, currency)
 }

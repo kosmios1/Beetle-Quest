@@ -56,7 +56,6 @@ services:
             - "127.0.0.1:443:443" # TODO: expose on 0.0.0.0:443:443
         networks:
             - internal
-            - admin
         volumes:
             - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
             - ./traefik/rules.yml:/etc/traefik/rules.yml:ro
@@ -72,6 +71,7 @@ services:
             args:
                 <<: *services-go-build-flags
         networks:
+            - internal # TODO: When ready, change admin network to admin
             - admin
         volumes:
             - ./cacerts/cert.pem:/certs/caCert.pem:ro
@@ -83,6 +83,25 @@ services:
                     memory: 50M
         environment:
             <<: [*admin-db-environments, *common-services-environments]
+
+            GET_ALL_USERS_ENDPOINT: https://user-service/api/v1/internal/user/get_all
+            CREATE_USER_ENDPOINT: https://user-service/api/v1/internal/user/create
+            UPDATE_USER_ENDPOINT: https://user-service/api/v1/internal/user/update
+            DELETE_USER_ENDPOINT: https://user-service/api/v1/internal/user/delete
+            FIND_USER_BY_ID_ENDPOINT: https://user-service/api/v1/internal/user/find_by_id
+            FIND_USER_BY_EMAIL_ENDPOINT: https://user-service/api/v1/internal/user/find_by_email
+            FIND_USER_BY_USERNAME_ENDPOINT: https://user-service/api/v1/internal/user/find_by_username
+
+            GET_ALL_GACHA_ENDPOINT: https://gacha-service/api/v1/internal/gacha/get_all
+            FIND_GACHA_BY_ID_ENDPOINT: https://gacha-service/api/v1/internal/gacha/find_by_id
+            ADD_GACHA_TO_USER_ENDPOINT: https://gacha-service/api/v1/internal/gacha/add_gacha_to_user
+            REMOVE_GACHA_FROM_USER_ENDPOINT: https://gacha-service/api/v1/internal/gacha/remove_gacha_from_user
+            GET_USER_GACHAS_ENDPOINT: https://gacha-service/api/v1/internal/gacha/get_user_gachas
+            REMOVE_USER_GACHAS_ENDPOINT: https://gacha-service/api/v1/internal/gacha/remove_user_gachas
+
+            GET_USER_TRANSACTION_HISTORY_ENDPOINT: https://market-service/api/v1/internal/market/get_user_transaction_history
+            DELETE_USER_TRANSACTION_HISTORY_ENDPOINT: https://market-service/api/v1/internal/market/delete_user_transaction_history
+
         env_file:
             - ./secrets/postgress.env
             - ./secrets/jwt.env
@@ -115,6 +134,7 @@ services:
             REDIS_PASSWORD: secret
             REDIS_DB: 0
 
+            GET_ALL_USERS_ENDPOINT: https://user-service/api/v1/internal/user/get_all
             CREATE_USER_ENDPOINT: https://user-service/api/v1/internal/user/create
             UPDATE_USER_ENDPOINT: https://user-service/api/v1/internal/user/update
             DELETE_USER_ENDPOINT: https://user-service/api/v1/internal/user/delete
@@ -210,6 +230,7 @@ services:
             REDIS_PASSWORD: secret
             REDIS_DB: 0
 
+            GET_ALL_USERS_ENDPOINT: https://user-service/api/v1/internal/user/get_all
             CREATE_USER_ENDPOINT: https://user-service/api/v1/internal/user/create
             UPDATE_USER_ENDPOINT: https://user-service/api/v1/internal/user/update
             DELETE_USER_ENDPOINT: https://user-service/api/v1/internal/user/delete

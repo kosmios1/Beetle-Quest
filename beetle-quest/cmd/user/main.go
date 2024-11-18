@@ -59,6 +59,7 @@ func main() {
 	internalPath := r.Group("/api/v1/internal/user")
 	// TODO: This can be reached only within the microservices network
 	{
+		internalPath.GET("/get_all", cnt.GetAllUsers)
 		internalPath.POST("/create", cnt.CreateUser)
 		internalPath.POST("/update", cnt.UpdateUser)
 

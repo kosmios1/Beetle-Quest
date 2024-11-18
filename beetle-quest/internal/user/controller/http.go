@@ -143,6 +143,15 @@ func (c *UserController) GetUserGachaDetails(ctx *gin.Context) {
 
 // Internal API ==========================================================================
 
+func (c *UserController) GetAllUsers(ctx *gin.Context) {
+	users := c.srv.GetAllUsers()
+
+	var data models.GetAllUsersDataResponse = models.GetAllUsersDataResponse{
+		UserList: users,
+	}
+	ctx.JSON(http.StatusOK, data)
+}
+
 func (c *UserController) CreateUser(ctx *gin.Context) {
 	var req models.CreateUserData
 	if err := ctx.ShouldBindJSON(&req); err != nil {

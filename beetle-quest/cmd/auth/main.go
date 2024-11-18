@@ -16,7 +16,6 @@ import (
 func main() {
 	utils.GenOwnCertAndKey("auth")
 
-	// This will connect to redis and return a store object used by the session middleware to store session data
 	r := gin.Default()
 	r.Use(gin.Recovery())
 	r.Use(secure.New(secure.Config{

@@ -77,6 +77,12 @@ type AdminLoginRequest struct {
 	OtpCode  string `json:"otp_code"`
 }
 
+type AdminUpdateUserAccount struct {
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	Currency int64  `json:"currency"`
+}
+
 // ============================================
 // Internal models
 // ============================================
@@ -99,6 +105,10 @@ type FindUserByUsernameData struct {
 
 type FindUserByEmailData struct {
 	Email string `json:"email"`
+}
+
+type GetAllUsersDataResponse struct {
+	UserList []User `json:"UserList"`
 }
 
 // Gacha

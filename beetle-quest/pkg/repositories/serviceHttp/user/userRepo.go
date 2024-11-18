@@ -12,9 +12,10 @@ import (
 )
 
 var (
-	createUserEndpoint string = utils.FindEnv("CREATE_USER_ENDPOINT")
-	updateUserEndpoint string = utils.FindEnv("UPDATE_USER_ENDPOINT")
-	deleteUserEndpoint string = utils.FindEnv("DELETE_USER_ENDPOINT")
+	getAllUsersEndpoint string = utils.FindEnv("GET_ALL_USERS_ENDPOINT")
+	createUserEndpoint  string = utils.FindEnv("CREATE_USER_ENDPOINT")
+	updateUserEndpoint  string = utils.FindEnv("UPDATE_USER_ENDPOINT")
+	deleteUserEndpoint  string = utils.FindEnv("DELETE_USER_ENDPOINT")
 
 	findUserByIDEndpoint       string = utils.FindEnv("FIND_USER_BY_ID_ENDPOINT")
 	findUserByUsernameEndpoint string = utils.FindEnv("FIND_USER_BY_USERNAME_ENDPOINT")
@@ -31,6 +32,34 @@ func NewUserRepo() *UserRepo {
 		client: utils.SetupHTTPSClient(),
 		cb:     gobreaker.NewCircuitBreaker[*http.Response](gobreaker.Settings{}),
 	}
+}
+
+func (r *UserRepo) GetAll() ([]models.User, error) {
+	resp, err := r.cb.Execute(func() (*http.Response, error) {
+		resp, err := r.client.Get(getAllUsersEndpoint)
+		if err != nil {
+			return nil, err
+		}
+		return resp, nil
+	})
+	defer resp.Body.Close()
+
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, err
+	}
+
+	var data models.GetAllUsersDataResponse
+	err = json.NewDecoder(resp.Body).Decode(&data)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	return data.UserList, nil
 }
 
 func (r *UserRepo) Create(email, username string, hashedPassword []byte, currency int64) bool {

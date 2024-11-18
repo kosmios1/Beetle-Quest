@@ -29,7 +29,7 @@ http:
             rule: "PathPrefix(`/api/v1/admin`) && (Host(`localhost`) || Host(`reverse-proxy`))"
             entryPoints:
                 - websec
-            service: auth-service
+            service: admin-service
             priority: 1
             tls: true
             middlewares:

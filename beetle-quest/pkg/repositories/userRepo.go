@@ -5,6 +5,8 @@ import (
 )
 
 type UserRepo interface {
+	GetAll() ([]models.User, error)
+
 	Create(email, username string, hashedPassword []byte, currency int64) bool
 	Update(user *models.User) bool
 	Delete(user *models.User) bool
