@@ -82,6 +82,7 @@ func (c *AdminController) UpdateUserProfile(ctx *gin.Context) {
 
 	if ok := c.srv.UpdateUserProfile(userId, &data); !ok {
 		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"error": "Internal server error!"})
+		ctx.Abort()
 		return
 	}
 
@@ -114,14 +115,38 @@ func (c *AdminController) AddGacha(ctx *gin.Context) {
 }
 
 func (cnt *AdminController) GetAllGachas(ctx *gin.Context) {
-	ctx.Status(http.StatusNotImplemented)
+	gachas, ok := cnt.srv.GetAllGachas()
+	if !ok {
+		ctx.Status(http.StatusInternalServerError)
+		ctx.Abort()
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"GachaList": gachas})
 }
 
 func (cnt *AdminController) GetGachaDetails(ctx *gin.Context) {
-	ctx.Status(http.StatusNotImplemented)
+	gachaId := ctx.Param("gacha_id")
+	if gachaId == "" {
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "gacha_id is required"})
+		ctx.Abort()
+		return
+	}
+
+	gacha, exists := cnt.srv.FindGachaByID(gachaId)
+	if !exists {
+		ctx.Status(http.StatusNotFound)
+		ctx.Abort()
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gacha)
 }
 
 func (cnt *AdminController) DeleteGacha(ctx *gin.Context) {
+	ctx.Status(http.StatusNotImplemented)
+}
+
+func (cnt *AdminController) UpdateGacha(ctx *gin.Context) {
 	ctx.Status(http.StatusNotImplemented)
 }
 
@@ -132,11 +157,30 @@ func (cnt *AdminController) GetMarketHistory(ctx *gin.Context) {
 }
 
 func (cnt *AdminController) GetAllAuctions(ctx *gin.Context) {
-	ctx.Status(http.StatusNotImplemented)
+	if auctions, ok := cnt.srv.GetAllAuctions(); ok {
+		ctx.JSON(http.StatusOK, gin.H{"AuctionList": auctions})
+		return
+	}
+	ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", models.ErrInternalServerError)
+	ctx.Abort()
 }
 
 func (cnt *AdminController) GetAuctionDetails(ctx *gin.Context) {
-	ctx.Status(http.StatusNotImplemented)
+	auctionId := ctx.Param("auction_id")
+	if auctionId == "" {
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "auction_id is required"})
+		ctx.Abort()
+		return
+	}
+
+	auction, exists := cnt.srv.FindAuctionByID(auctionId)
+	if !exists {
+		ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": "Auction not found"})
+		ctx.Abort()
+		return
+	}
+
+	ctx.JSON(http.StatusOK, auction)
 }
 
 func (cnt *AdminController) UpdateAuction(ctx *gin.Context) {

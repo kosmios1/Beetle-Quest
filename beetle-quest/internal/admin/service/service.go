@@ -102,4 +102,30 @@ func (s *AdminService) GetUserTransactionHistory(userId string) ([]models.Transa
 
 // Gacha service functions =================================================
 
+func (s *AdminService) GetAllGachas() ([]models.Gacha, bool) {
+	return s.grepo.GetAll()
+}
+
+func (s *AdminService) FindGachaByID(gachaId string) (*models.Gacha, bool) {
+	gid, err := utils.ParseUUID(gachaId)
+	if err != nil {
+		return nil, false
+	}
+
+	return s.grepo.FindByID(gid)
+}
+
 // Market service functions =================================================
+
+func (s *AdminService) GetAllAuctions() ([]models.Auction, bool) {
+	return s.mrepo.GetAll()
+}
+
+func (s *AdminService) FindAuctionByID(auctionId string) (*models.Auction, bool) {
+	aid, err := utils.ParseUUID(auctionId)
+	if err != nil {
+		return nil, false
+	}
+
+	return s.mrepo.FindByID(aid)
+}
