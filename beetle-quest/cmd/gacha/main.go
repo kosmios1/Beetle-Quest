@@ -44,6 +44,10 @@ func main() {
 
 	internalPath := r.Group("/api/v1/internal/gacha")
 	{
+		internalPath.POST("/create", cnt.CreateGacha)
+		internalPath.POST("/update", cnt.UpdateGacha)
+		internalPath.POST("/delete", cnt.DeleteGacha)
+
 		internalPath.POST("/get_user_gachas", cnt.GetUserGachas)
 		internalPath.POST("/remove_user_gachas", cnt.RemoveUserGachas)
 		internalPath.POST("/add_gacha_to_user", cnt.AddGachaToUser)

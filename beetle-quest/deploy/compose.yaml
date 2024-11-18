@@ -92,6 +92,9 @@ services:
             FIND_USER_BY_EMAIL_ENDPOINT: https://user-service/api/v1/internal/user/find_by_email
             FIND_USER_BY_USERNAME_ENDPOINT: https://user-service/api/v1/internal/user/find_by_username
 
+            CREATE_GACHA_ENDPOINT: https://gacha-service/api/v1/internal/gacha/create
+            UPDATE_GACHA_ENDPOINT: https://gacha-service/api/v1/internal/gacha/update
+            DELETE_GACHA_ENDPOINT: https://gacha-service/api/v1/internal/gacha/delete
             GET_ALL_GACHA_ENDPOINT: https://gacha-service/api/v1/internal/gacha/get_all
             FIND_GACHA_BY_ID_ENDPOINT: https://gacha-service/api/v1/internal/gacha/find_by_id
             ADD_GACHA_TO_USER_ENDPOINT: https://gacha-service/api/v1/internal/gacha/add_gacha_to_user
@@ -99,6 +102,9 @@ services:
             GET_USER_GACHAS_ENDPOINT: https://gacha-service/api/v1/internal/gacha/get_user_gachas
             REMOVE_USER_GACHAS_ENDPOINT: https://gacha-service/api/v1/internal/gacha/remove_user_gachas
 
+            FIND_AUCTION_BY_ID_ENDPOINT: https://market-service/api/v1/internal/market/auction/find_by_id
+            GET_ALL_AUCTIONS_ENDPOINT: https://market-service/api/v1/internal/market/auction/get_all
+            GET_ALL_TRANSACTIONS_ENDPOINT: https://market-service/api/v1/internal/market/get_transaction_history
             GET_USER_TRANSACTION_HISTORY_ENDPOINT: https://market-service/api/v1/internal/market/get_user_transaction_history
             DELETE_USER_TRANSACTION_HISTORY_ENDPOINT: https://market-service/api/v1/internal/market/delete_user_transaction_history
 
@@ -166,6 +172,10 @@ services:
                     memory: 50M
         environment:
             <<: [*common-services-environments, *user-db-environments]
+
+            CREATE_GACHA_ENDPOINT: https://gacha-service/api/v1/internal/gacha/create
+            UPDATE_GACHA_ENDPOINT: https://gacha-service/api/v1/internal/gacha/update
+            DELETE_GACHA_ENDPOINT: https://gacha-service/api/v1/internal/gacha/delete
             GET_ALL_GACHA_ENDPOINT: https://gacha-service/api/v1/internal/gacha/get_all
             FIND_GACHA_BY_ID_ENDPOINT: https://gacha-service/api/v1/internal/gacha/find_by_id
             ADD_GACHA_TO_USER_ENDPOINT: https://gacha-service/api/v1/internal/gacha/add_gacha_to_user
@@ -173,6 +183,9 @@ services:
             GET_USER_GACHAS_ENDPOINT: https://gacha-service/api/v1/internal/gacha/get_user_gachas
             REMOVE_USER_GACHAS_ENDPOINT: https://gacha-service/api/v1/internal/gacha/remove_user_gachas
 
+            FIND_AUCTION_BY_ID_ENDPOINT: https://market-service/api/v1/internal/market/auction/find_by_id
+            GET_ALL_AUCTIONS_ENDPOINT: https://market-service/api/v1/internal/market/auction/get_all
+            GET_ALL_TRANSACTIONS_ENDPOINT: https://market-service/api/v1/internal/market/get_transaction_history
             GET_USER_TRANSACTION_HISTORY_ENDPOINT: https://market-service/api/v1/internal/market/get_user_transaction_history
             DELETE_USER_TRANSACTION_HISTORY_ENDPOINT: https://market-service/api/v1/internal/market/delete_user_transaction_history
         env_file:
@@ -238,6 +251,9 @@ services:
             FIND_USER_BY_EMAIL_ENDPOINT: https://user-service/api/v1/internal/user/find_by_email
             FIND_USER_BY_USERNAME_ENDPOINT: https://user-service/api/v1/internal/user/find_by_username
 
+            CREATE_GACHA_ENDPOINT: https://gacha-service/api/v1/internal/gacha/create
+            UPDATE_GACHA_ENDPOINT: https://gacha-service/api/v1/internal/gacha/update
+            DELETE_GACHA_ENDPOINT: https://gacha-service/api/v1/internal/gacha/delete
             GET_ALL_GACHA_ENDPOINT: https://gacha-service/api/v1/internal/gacha/get_all
             FIND_GACHA_BY_ID_ENDPOINT: https://gacha-service/api/v1/internal/gacha/find_by_id
             ADD_GACHA_TO_USER_ENDPOINT: https://gacha-service/api/v1/internal/gacha/add_gacha_to_user

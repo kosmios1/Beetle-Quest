@@ -141,3 +141,12 @@ func (r *MarketRepo) AddTransaction(transaction *models.Transaction) bool {
 	}
 	return true
 }
+
+func (r *MarketRepo) GetAllTransactions() ([]models.Transaction, bool) {
+	var transactions []models.Transaction
+	result := r.db.Table("transactions").Find(&transactions)
+	if result.Error != nil {
+		return nil, false
+	}
+	return transactions, true
+}

@@ -64,6 +64,10 @@ func main() {
 
 	internalPath := r.Group("/api/v1/internal/market")
 	{
+		internalPath.POST("/auction/find_by_id", cnt.FindAuctionByID)
+		internalPath.GET("/auction/get_all", cnt.GetAllAuctions)
+		internalPath.GET("/get_transaction_history", cnt.GetTransactionHistory)
+
 		internalPath.POST("/get_user_transaction_history", cnt.GetUserTransactionHistory)
 		internalPath.POST("/delete_user_transaction_history", cnt.DeleteUserTransactionHistory)
 	}

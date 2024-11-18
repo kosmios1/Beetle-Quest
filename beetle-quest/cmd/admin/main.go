@@ -69,17 +69,17 @@ func main() {
 			gachaPath.GET("/get_all", cnt.GetAllGachas)
 			gachaPath.GET("/:gacha_id", cnt.GetGachaDetails)
 			gachaPath.DELETE("/:gacha_id", cnt.DeleteGacha)
-			gachaPath.PATCH("/:gacha_id", cnt.DeleteGacha)
+			gachaPath.PATCH("/:gacha_id", cnt.UpdateGacha)
 		}
 
 		marketPath := basePath.Group("/market")
 		{
-			marketPath.POST("/history", cnt.GetMarketHistory)
+			marketPath.GET("/history", cnt.GetMarketHistory)
 			auctionPath := marketPath.Group("/auction")
 			{
 				auctionPath.GET("/get_all", cnt.GetAllAuctions)
 				auctionPath.GET("/:auction_id", cnt.GetAuctionDetails)
-				auctionPath.PATCH("/:auction_id", cnt.UpdateAuction)
+				auctionPath.PATCH("/:auction_id", cnt.UpdateAuction) // TODO: Implement this
 			}
 		}
 	}

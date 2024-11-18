@@ -4,6 +4,7 @@ import (
 	"beetle-quest/pkg/models"
 	"beetle-quest/pkg/repositories"
 	"beetle-quest/pkg/utils"
+	"strconv"
 )
 
 type AdminService struct {
@@ -102,6 +103,81 @@ func (s *AdminService) GetUserTransactionHistory(userId string) ([]models.Transa
 
 // Gacha service functions =================================================
 
+func (s *AdminService) AddGacha(data *models.AdminAddGachaRequest) error {
+	price, err := strconv.Atoi(data.Price)
+	if err != nil {
+		return models.ErrInvalidIntValueAsString
+	}
+
+	rarity, err := models.RarityFromString(data.Rarity)
+	if err != nil {
+		return models.ErrInvalidRarityValue
+	}
+
+	gacha := &models.Gacha{
+		GachaID:   utils.GenerateUUID(),
+		Name:      data.Name,
+		Price:     int64(price),
+		Rarity:    rarity,
+		ImagePath: data.ImagePath,
+	}
+
+	if ok := s.grepo.Create(gacha); !ok {
+		return models.ErrGachaCreationFailed
+	}
+	return nil
+}
+
+func (s *AdminService) UpdateGacha(gachaId string, data *models.AdminUpdateGachaRequest) bool {
+	gid, err := utils.ParseUUID(gachaId)
+	if err != nil {
+		return false
+	}
+
+	gacha, exists := s.grepo.FindByID(gid)
+	if !exists {
+		return false
+	}
+
+	if data.Name != "" {
+		gacha.Name = data.Name
+	}
+
+	if data.ImagePath != "" {
+		gacha.ImagePath = data.ImagePath
+	}
+
+	price, err := strconv.Atoi(data.Price)
+	if err != nil {
+		return false
+	}
+	if price >= 0 {
+		gacha.Price = int64(price)
+	}
+
+	rarity, err := models.RarityFromString(data.Rarity)
+	if err != nil {
+		return false
+	}
+
+	gacha.Rarity = rarity
+
+	return s.grepo.Update(gacha)
+}
+
+func (s *AdminService) DeleteGacha(gachaId string) bool {
+	gid, err := utils.ParseUUID(gachaId)
+	if err != nil {
+		return false
+	}
+
+	gacha, exists := s.grepo.FindByID(gid)
+	if !exists {
+		return false
+	}
+	return s.grepo.Delete(gacha)
+}
+
 func (s *AdminService) GetAllGachas() ([]models.Gacha, bool) {
 	return s.grepo.GetAll()
 }
@@ -116,6 +192,10 @@ func (s *AdminService) FindGachaByID(gachaId string) (*models.Gacha, bool) {
 }
 
 // Market service functions =================================================
+
+func (s *AdminService) GetMarketHistory() ([]models.Transaction, bool) {
+	return s.mrepo.GetAllTransactions()
+}
 
 func (s *AdminService) GetAllAuctions() ([]models.Auction, bool) {
 	return s.mrepo.GetAll()

@@ -3,6 +3,10 @@ package repositories
 import "beetle-quest/pkg/models"
 
 type GachaRepo interface {
+	Create(*models.Gacha) bool
+	Update(*models.Gacha) bool
+	Delete(*models.Gacha) bool
+
 	GetAll() ([]models.Gacha, bool)
 	FindByID(models.UUID) (*models.Gacha, bool)
 

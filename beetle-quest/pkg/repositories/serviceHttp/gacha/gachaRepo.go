@@ -11,6 +11,10 @@ import (
 )
 
 var (
+	createEndpoint = utils.FindEnv("CREATE_GACHA_ENDPOINT")
+	updateEndpoint = utils.FindEnv("UPDATE_GACHA_ENDPOINT")
+	deleteEndpoint = utils.FindEnv("DELETE_GACHA_ENDPOINT")
+
 	getAllEndpoint        = utils.FindEnv("GET_ALL_GACHA_ENDPOINT")
 	findGachaByIDEndpoint = utils.FindEnv("FIND_GACHA_BY_ID_ENDPOINT")
 
@@ -31,6 +35,101 @@ func NewGachaRepo() *GachaRepo {
 		client: utils.SetupHTTPSClient(),
 		cb:     gobreaker.NewCircuitBreaker[*http.Response](gobreaker.Settings{}),
 	}
+}
+
+func (r *GachaRepo) Create(g *models.Gacha) bool {
+	jsonData, err := json.Marshal(g)
+	if err != nil {
+		return false
+	}
+
+	resp, err := r.cb.Execute(func() (*http.Response, error) {
+		resp, err := r.client.Post(
+			createEndpoint,
+			"application/json",
+			bytes.NewBuffer(jsonData),
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		return resp, nil
+	})
+	defer resp.Body.Close()
+
+	if err != nil {
+		return false
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return false
+	}
+
+	return true
+}
+
+func (r *GachaRepo) Update(g *models.Gacha) bool {
+	jsonData, err := json.Marshal(g)
+	if err != nil {
+		return false
+	}
+
+	resp, err := r.cb.Execute(func() (*http.Response, error) {
+		resp, err := r.client.Post(
+			updateEndpoint,
+			"application/json",
+			bytes.NewBuffer(jsonData),
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		return resp, nil
+	})
+	defer resp.Body.Close()
+
+	if err != nil {
+		return false
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return false
+	}
+	return true
+}
+
+func (r *GachaRepo) Delete(g *models.Gacha) bool {
+	jsonData, err := json.Marshal(g)
+	if err != nil {
+		return false
+	}
+
+	resp, err := r.cb.Execute(func() (*http.Response, error) {
+		resp, err := r.client.Post(
+			deleteEndpoint,
+			"application/json",
+			bytes.NewBuffer(jsonData),
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		return resp, nil
+	})
+	defer resp.Body.Close()
+
+	if err != nil {
+		return false
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return false
+	}
+
+	return true
 }
 
 func (r *GachaRepo) GetAll() ([]models.Gacha, bool) {

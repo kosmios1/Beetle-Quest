@@ -49,6 +49,30 @@ func NewGachaRepo() *GachaRepo {
 	return repo
 }
 
+func (r *GachaRepo) Create(gacha *models.Gacha) bool {
+	result := r.db.Table("gachas").Create(gacha)
+	if result.Error != nil {
+		return false
+	}
+	return true
+}
+
+func (r *GachaRepo) Update(gacha *models.Gacha) bool {
+	result := r.db.Table("gachas").Where("gacha_id = ?", gacha.GachaID).Updates(gacha)
+	if result.Error != nil {
+		return false
+	}
+	return true
+}
+
+func (r *GachaRepo) Delete(gacha *models.Gacha) bool {
+	result := r.db.Table("gachas").Delete(gacha, models.Gacha{GachaID: gacha.GachaID})
+	if result.Error != nil {
+		return false
+	}
+	return true
+}
+
 func (r *GachaRepo) FindByID(id models.UUID) (*models.Gacha, bool) {
 	var gacha models.Gacha
 	result := r.db.Table("gachas").First(&gacha, models.Gacha{GachaID: id})

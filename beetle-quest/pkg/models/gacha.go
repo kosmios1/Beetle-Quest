@@ -1,5 +1,7 @@
 package models
 
+import "errors"
+
 type Rarity uint8
 
 const (
@@ -12,6 +14,23 @@ const (
 
 func (r Rarity) String() string {
 	return [...]string{"Common", "Uncommon", "Rare", "Epic", "Legendary"}[r]
+}
+
+func RarityFromString(r string) (Rarity, error) {
+	switch r {
+	case "Common":
+		return Common, nil
+	case "Uncommon":
+		return Uncommon, nil
+	case "Rare":
+		return Rare, nil
+	case "Epic":
+		return Epic, nil
+	case "Legendary":
+		return Legendary, nil
+	default:
+		return Common, errors.New("Invalid rarity")
+	}
 }
 
 type Gacha struct {

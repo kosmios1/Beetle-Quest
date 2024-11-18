@@ -246,6 +246,46 @@ func (c *MarketController) BidToAuction(ctx *gin.Context) {
 
 // Internal ==========================================================================================================
 
+func (c *MarketController) GetAllAuctions(ctx *gin.Context) {
+	auctions, err := c.srv.GetAuctionList()
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
+		ctx.Abort()
+		return
+	}
+
+	ctx.JSON(http.StatusOK, models.GetAllAuctionDataResponse{AuctionList: auctions})
+}
+
+func (c *MarketController) GetTransactionHistory(ctx *gin.Context) {
+	transactions, err := c.srv.GetAllTransactions()
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
+		ctx.Abort()
+		return
+	}
+
+	ctx.JSON(http.StatusOK, models.GetAllTransactionDataResponse{TransactionHistory: transactions})
+}
+
+func (c *MarketController) FindAuctionByID(ctx *gin.Context) {
+	var data models.FindAuctionByIDData
+	if err := ctx.ShouldBindJSON(&data); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"Error": models.ErrInvalidData})
+		ctx.Abort()
+		return
+	}
+
+	auction, exists := c.srv.FindByID(data.AuctionID.String())
+	if !exists {
+		ctx.JSON(http.StatusBadRequest, gin.H{"Error": models.ErrAuctionNotFound})
+		ctx.Abort()
+		return
+	}
+
+	ctx.JSON(http.StatusOK, models.FindAuctionByIDDataResponse{Auction: auction})
+}
+
 func (c *MarketController) GetUserTransactionHistory(ctx *gin.Context) {
 	var data models.GetUserTransactionHistoryData
 	if err := ctx.ShouldBindJSON(&data); err != nil {

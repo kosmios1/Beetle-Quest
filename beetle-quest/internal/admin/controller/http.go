@@ -111,7 +111,61 @@ func (c *AdminController) GetUserTransactionHistory(ctx *gin.Context) {
 // Gacha controllers =================================================
 
 func (c *AdminController) AddGacha(ctx *gin.Context) {
-	ctx.Status(http.StatusNotImplemented)
+	var data models.AdminAddGachaRequest
+	if err := ctx.ShouldBindJSON(&data); err != nil {
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
+		ctx.Abort()
+		return
+	}
+
+	if err := c.srv.AddGacha(&data); err != nil {
+		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err.Error()})
+		ctx.Abort()
+		return
+	}
+
+	ctx.HTML(http.StatusOK, "successMsg.tmpl", gin.H{"Message": "Gacha added successfully!"})
+}
+
+func (cnt *AdminController) DeleteGacha(ctx *gin.Context) {
+	gachaId := ctx.Param("gacha_id")
+	if gachaId == "" {
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "gacha_id is required"})
+		ctx.Abort()
+		return
+	}
+
+	if ok := cnt.srv.DeleteGacha(gachaId); !ok {
+		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": "Internal server error!"})
+		ctx.Abort()
+		return
+	}
+
+	ctx.HTML(http.StatusOK, "successMsg.tmpl", gin.H{"Message": "Gacha deleted successfully!"})
+}
+
+func (cnt *AdminController) UpdateGacha(ctx *gin.Context) {
+	gachaId := ctx.Param("gacha_id")
+	if gachaId == "" {
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "gacha_id is required"})
+		ctx.Abort()
+		return
+	}
+
+	var data models.AdminUpdateGachaRequest
+	if err := ctx.ShouldBindJSON(&data); err != nil {
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
+		ctx.Abort()
+		return
+	}
+
+	if ok := cnt.srv.UpdateGacha(gachaId, &data); !ok {
+		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": "Internal server error!"})
+		ctx.Abort()
+		return
+	}
+
+	ctx.HTML(http.StatusOK, "successMsg.tmpl", gin.H{"Message": "Gacha updated successfully!"})
 }
 
 func (cnt *AdminController) GetAllGachas(ctx *gin.Context) {
@@ -142,17 +196,19 @@ func (cnt *AdminController) GetGachaDetails(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gacha)
 }
 
-func (cnt *AdminController) DeleteGacha(ctx *gin.Context) {
-	ctx.Status(http.StatusNotImplemented)
-}
-
-func (cnt *AdminController) UpdateGacha(ctx *gin.Context) {
-	ctx.Status(http.StatusNotImplemented)
-}
-
 // Market controllers ==============================================
 
 func (cnt *AdminController) GetMarketHistory(ctx *gin.Context) {
+	transactions, ok := cnt.srv.GetMarketHistory()
+	if !ok {
+		ctx.Status(http.StatusInternalServerError)
+		ctx.Abort()
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"MarketHistory": transactions})
+}
+
+func (cnt *AdminController) UpdateAuction(ctx *gin.Context) {
 	ctx.Status(http.StatusNotImplemented)
 }
 
@@ -181,8 +237,4 @@ func (cnt *AdminController) GetAuctionDetails(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, auction)
-}
-
-func (cnt *AdminController) UpdateAuction(ctx *gin.Context) {
-	ctx.Status(http.StatusNotImplemented)
 }

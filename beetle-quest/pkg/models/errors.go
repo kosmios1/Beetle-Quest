@@ -53,6 +53,12 @@ const (
 	ErrTransactionNotFound             constError = "transaction not found"
 	ErrMaxMoneyExceeded                constError = "max money exceeded"
 	ErrInvalidAdminIDOrPassOrOTOP      constError = "invalid admin id or password or one time password"
+	ErrGachaCreationFailed             constError = "gacha creation failed"
+	ErrCouldNotCreateGacha             constError = "could not create gacha"
+	ErrCouldNotUpdateGacha             constError = "could not update gacha"
+	ErrCouldNotDeleteGacha             constError = "could not delete gacha"
+	ErrCouldNotRetrieveAuctions        constError = "could not retrieve auctions"
+	ErrCouldNotRetrieveTransactions    constError = "could not retrieve transactions"
 
 	ErrCouldNotParseTime          constError = "time format not correct"
 	ErrCouldNotDecodeUserID       constError = "could not decode user id"
@@ -74,4 +80,7 @@ const (
 
 	// Internal api errors
 	ErrCouldNotBuyGacha constError = "internal: could not buy gacha (db)"
+
+	ErrInvalidIntValueAsString constError = "invalid int value as string"
+	ErrInvalidRarityValue      constError = "invalid rarity value [Common, Uncommon, Rare, Epic, Legendary]"
 )

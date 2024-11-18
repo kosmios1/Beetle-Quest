@@ -601,6 +601,20 @@ func (s *MarketService) closeAuctionErrorCallback(err error) {
 
 // Internal functions ====================================================
 
+func (s *MarketService) GetAuctionList() ([]models.Auction, error) {
+	if auctions, ok := s.arepo.GetAll(); ok {
+		return auctions, nil
+	}
+	return []models.Auction{}, models.ErrCouldNotRetrieveAuctions
+}
+
+func (s *MarketService) GetAllTransactions() ([]models.Transaction, error) {
+	if transactions, ok := s.arepo.GetAllTransactions(); ok {
+		return transactions, nil
+	}
+	return []models.Transaction{}, models.ErrCouldNotRetrieveTransactions
+}
+
 func (s *MarketService) GetUserTransactionHistory(uid models.UUID) ([]models.Transaction, bool) {
 	transactions, ok := s.arepo.GetUserTransactionHistory(uid)
 	if !ok {

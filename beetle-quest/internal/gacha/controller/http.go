@@ -63,6 +63,51 @@ func (c *GachaController) GetGachaDetails(ctx *gin.Context) {
 
 // Internal API ============================================================================================================
 
+func (c *GachaController) CreateGacha(ctx *gin.Context) {
+	var data models.Gacha
+	if err := ctx.ShouldBindJSON(&data); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "Invalid data submitted!"})
+		return
+	}
+
+	if err := c.srv.CreateGacha(&data); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Error": err.Error()})
+		return
+	}
+
+	ctx.Status(http.StatusOK)
+}
+
+func (c *GachaController) UpdateGacha(ctx *gin.Context) {
+	var data models.Gacha
+	if err := ctx.ShouldBindJSON(&data); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "Invalid data submitted!"})
+		return
+	}
+
+	if err := c.srv.UpdateGacha(&data); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Error": err.Error()})
+		return
+	}
+
+	ctx.Status(http.StatusOK)
+}
+
+func (c *GachaController) DeleteGacha(ctx *gin.Context) {
+	var data models.Gacha
+	if err := ctx.ShouldBindJSON(&data); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "Invalid data submitted!"})
+		return
+	}
+
+	if err := c.srv.DeleteGacha(&data); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Error": err.Error()})
+		return
+	}
+
+	ctx.Status(http.StatusOK)
+}
+
 func (c *GachaController) GetAll(ctx *gin.Context) {
 	gachas, ok := c.srv.GetAll()
 	if !ok {

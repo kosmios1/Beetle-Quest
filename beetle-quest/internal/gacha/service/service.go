@@ -59,3 +59,24 @@ func (s *GachaService) GetUserGachas(uid models.UUID) ([]models.Gacha, bool) {
 func (s *GachaService) RemoveUserGachas(uid models.UUID) bool {
 	return s.gachaRepo.RemoveUserGachas(uid)
 }
+
+func (s *GachaService) CreateGacha(g *models.Gacha) error {
+	if ok := s.gachaRepo.Create(g); !ok {
+		return models.ErrCouldNotCreateGacha
+	}
+	return nil
+}
+
+func (s *GachaService) UpdateGacha(g *models.Gacha) error {
+	if ok := s.gachaRepo.Update(g); !ok {
+		return models.ErrCouldNotUpdateGacha
+	}
+	return nil
+}
+
+func (s *GachaService) DeleteGacha(g *models.Gacha) error {
+	if ok := s.gachaRepo.Delete(g); !ok {
+		return models.ErrCouldNotDeleteGacha
+	}
+	return nil
+}

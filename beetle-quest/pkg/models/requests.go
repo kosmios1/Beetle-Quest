@@ -83,6 +83,24 @@ type AdminUpdateUserAccount struct {
 	Currency int64  `json:"currency"`
 }
 
+type AdminAddGachaRequest struct {
+	Name      string `json:"name"`
+	Rarity    string `json:"rarity"`
+	Price     string `json:"price"`
+	ImagePath string `json:"image_path"`
+}
+
+type AdminUpdateGachaRequest struct {
+	Name      string `json:"name"`
+	Rarity    string `json:"rarity"`
+	Price     string `json:"price"`
+	ImagePath string `json:"image_path"`
+}
+
+type GetAllAuctionDataResponse struct {
+	AuctionList []Auction `json:"AuctionList"`
+}
+
 // ============================================
 // Internal models
 // ============================================
@@ -153,6 +171,18 @@ type DeleteUserTransactionHistoryData struct {
 
 type GetUserTransactionHistoryDataResponse struct {
 	TransactionHistory []Transaction `json:"TransactionHistory"`
+}
+
+type GetAllTransactionDataResponse struct {
+	TransactionHistory []Transaction `json:"TransactionHistory"`
+}
+
+type FindAuctionByIDData struct {
+	AuctionID UUID `json:"auction_id"`
+}
+
+type FindAuctionByIDDataResponse struct {
+	Auction *Auction `json:"Auction"`
 }
 
 // Admin
