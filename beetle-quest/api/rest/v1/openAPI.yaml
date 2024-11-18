@@ -8,7 +8,6 @@ servers:
 
 tags:
     - name: Auth
-    - name: OAuth2
     - name: Static
     - name: Users
     - name: Gachas
@@ -64,6 +63,11 @@ paths:
         get:
             summary: Logout
             tags: [Auth]
+            security:
+                - cookieAuth
+            #     - oauth2:
+            #           - user
+            #           - admin
             responses:
                 200:
                     description: Logout successfull.
@@ -72,37 +76,15 @@ paths:
                 500:
                     description: Internal server error.
 
-    /auth/oauth2:
-        get:
-            summary: OAuth2
-            tags: [Auth]
-            parameters:
-                - in: query
-                  name: code
-                  required: true
-                  schema:
-                      type: string
-                - in: query
-                  name: state
-                  required: true
-                  schema:
-                      type: string
-            responses:
-                200:
-                    description: OAuth2 successfull.
-                400:
-                    description: Bad request.
-                500:
-                    description: Internal server error.
-
     /auth/check_session:
         get:
             summary: Check session
             tags: [Auth]
             security:
-                - oauth2:
-                      - user
-                      - admin
+                - cookieAuth
+            #     - oauth2:
+            #           - user
+            #           - admin
             responses:
                 200:
                     description: Session is valid.
@@ -117,9 +99,10 @@ paths:
             summary: Traefik verify
             tags: [Auth]
             security:
-                - oauth2:
-                      - user
-                      - admin
+                - cookieAuth
+            #     - oauth2:
+            #           - user
+            #           - admin
             responses:
                 200:
                     description: Authorized.
@@ -147,91 +130,68 @@ paths:
                 500:
                     description: Internal server error.
 
-    /auth/admin/oauth2:
-        get:
-            summary: Admin OAuth2
-            tags: [Auth]
-            parameters:
-                - in: query
-                  name: code
-                  required: true
-                  schema:
-                      type: string
-                - in: query
-                  name: state
-                  required: true
-                  schema:
-                      type: string
-            responses:
-                200:
-                    description: Admin OAuth2 successfull.
-                400:
-                    description: Bad request.
-                500:
-                    description: Internal server error.
+    # ### OAUTH2 ###
+    # /oauth2/authorize:
+    #     get:
+    #         summary: Authorize
+    #         tags: [OAuth2]
+    #         parameters:
+    #             - in: query
+    #               name: response_type
+    #               required: true
+    #               schema:
+    #                   type: string
+    #             - in: query
+    #               name: client_id
+    #               required: true
+    #               schema:
+    #                   type: string
+    #             - in: query
+    #               name: redirect_uri
+    #               required: true
+    #               schema:
+    #                   type: string
+    #             - in: query
+    #               name: state
+    #               required: true
+    #               schema:
+    #                   type: string
+    #             - in: query
+    #               name: scope
+    #               required: true
+    #               schema:
+    #                   type: string
+    #             - in: query
+    #               name: user_id
+    #               required: true
+    #               schema:
+    #                   type: string
+    #         responses:
+    #             200:
+    #                 description: Authorized.
+    #             400:
+    #                 description: Bad request.
+    #             500:
+    #                 description: Internal server error.
 
-    ### OAUTH2 ###
-    /oauth2/authorize:
-        get:
-            summary: Authorize
-            tags: [OAuth2]
-            parameters:
-                - in: query
-                  name: response_type
-                  required: true
-                  schema:
-                      type: string
-                - in: query
-                  name: client_id
-                  required: true
-                  schema:
-                      type: string
-                - in: query
-                  name: redirect_uri
-                  required: true
-                  schema:
-                      type: string
-                - in: query
-                  name: state
-                  required: true
-                  schema:
-                      type: string
-                - in: query
-                  name: scope
-                  required: true
-                  schema:
-                      type: string
-                - in: query
-                  name: user_id
-                  required: true
-                  schema:
-                      type: string
-            responses:
-                200:
-                    description: Authorized.
-                400:
-                    description: Bad request.
-                500:
-                    description: Internal server error.
-
-    /oauth2/token:
-        post:
-            summary: Token
-            tags: [OAuth2]
-            requestBody:
-                description: Token details
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            $ref: "#/components/schemas/Token"
-            responses:
-                200:
-                    description: Token successfull.
-                400:
-                    description: Bad request.
-                500:
-                    description: Internal server error.
+    # /oauth2/token:
+    #     post:
+    #         summary: Token
+    #         tags: [OAuth2]
+    #         requestBody:
+    #             description: Token details
+    #             required: true
+    #             content:
+    #                 application/json:
+    #                     schema:
+    #                         $ref: "#/components/schemas/Token"
+    #         responses:
+    #             200:
+    #                 description: Token successfull.
+    #             400:
+    #                 description: Bad request.
+    #             500:
+    #                 description: Internal server error.
 
     ### STATIC ###
     /static/{path}:
@@ -257,8 +217,9 @@ paths:
             summary: Get user account
             tags: [Users]
             security:
-                - oauth2:
-                      - user
+                - cookieAuth
+            #     - oauth2:
+            #           - user
             parameters:
                 - name: user_id
                   in: path
@@ -275,8 +236,9 @@ paths:
             summary: Modify user account
             tags: [Users]
             security:
-                - oauth2:
-                      - user
+                - cookieAuth
+            #     - oauth2:
+            #           - user
             parameters:
                 - name: user_id
                   in: path
@@ -300,8 +262,9 @@ paths:
             summary: Delete user account
             tags: [Users]
             security:
-                - oauth2:
-                      - user
+                - cookieAuth
+            #     - oauth2:
+            #           - user
             parameters:
                 - name: user_id
                   in: path
@@ -320,8 +283,9 @@ paths:
             summary: Get user gacha list
             tags: [Users]
             security:
-                - oauth2:
-                      - user
+                - cookieAuth
+            #     - oauth2:
+            #           - user
             parameters:
                 - name: user_id
                   in: path
@@ -340,8 +304,9 @@ paths:
             summary: Get user gacha details
             tags: [Users]
             security:
-                - oauth2:
-                      - user
+                - cookieAuth
+            #     - oauth2:
+            #           - user
             parameters:
                 - name: user_id
                   in: path
@@ -371,8 +336,9 @@ paths:
             summary: Get system gacha list
             tags: [Gachas]
             security:
-                - oauth2:
-                      - user
+                - cookieAuth
+            #     - oauth2:
+            #           - user
             responses:
                 200:
                     description: System's gacha list.
@@ -384,8 +350,9 @@ paths:
             summary: Get gacha details
             tags: [Gachas]
             security:
-                - oauth2:
-                      - user
+                - cookieAuth
+            #     - oauth2:
+            #           - user
             parameters:
                 - name: gacha_id
                   in: path
@@ -408,8 +375,9 @@ paths:
             summary: Get market list
             tags: [Market]
             security:
-                - oauth2:
-                      - user
+                - cookieAuth
+            #     - oauth2:
+            #           - user
             responses:
                 200:
                     description: Market template obtained successfully.
@@ -421,8 +389,9 @@ paths:
             summary: Buy bugscoin
             tags: [Market]
             security:
-                - oauth2:
-                      - user
+                - cookieAuth
+            #     - oauth2:
+            #           - user
             requestBody:
                 description: Buy bugscoin details
                 required: true
@@ -441,8 +410,9 @@ paths:
             summary: Roll gacha
             tags: [Market]
             security:
-                - oauth2:
-                      - user
+                - cookieAuth
+            #     - oauth2:
+            #           - user
             responses:
                 200:
                     description: Gacha rolled successfully.
@@ -456,8 +426,9 @@ paths:
             summary: Buy gacha
             tags: [Market]
             security:
-                - oauth2:
-                      - user
+                - cookieAuth
+            #     - oauth2:
+            #           - user
             parameters:
                 - name: gacha_id
                   in: path
@@ -476,8 +447,9 @@ paths:
             summary: Create auction
             tags: [Market]
             security:
-                - oauth2:
-                      - user
+                - cookieAuth
+            #     - oauth2:
+            #           - user
             requestBody:
                 description: Create auction details
                 required: true
@@ -496,8 +468,9 @@ paths:
             summary: Get auction list
             tags: [Market]
             security:
-                - oauth2:
-                      - user
+                - cookieAuth
+            #     - oauth2:
+            #           - user
             responses:
                 200:
                     description: Auction list obtained successfully.
@@ -509,8 +482,9 @@ paths:
             summary: Get auction details
             tags: [Market]
             security:
-                - oauth2:
-                      - user
+                - cookieAuth
+            #     - oauth2:
+            #           - user
             parameters:
                 - name: auction_id
                   in: path
@@ -527,8 +501,9 @@ paths:
             summary: Delete auction
             tags: [Market]
             security:
-                - oauth2:
-                      - user
+                - cookieAuth
+            #     - oauth2:
+            #           - user
             parameters:
                 - name: auction_id
                   in: path
@@ -547,8 +522,9 @@ paths:
             summary: Bid auction
             tags: [Market]
             security:
-                - oauth2:
-                      - user
+                - cookieAuth
+            #     - oauth2:
+            #           - user
             parameters:
                 - name: auction_id
                   in: path
@@ -579,15 +555,20 @@ paths:
 
 components:
     securitySchemes:
-        oauth2:
-            type: oauth2
-            flows:
-                authorizationCode:
-                    authorizationUrl: https://localhost/oauth2/authorize
-                    tokenUrl: https://localhost/oauth2/token
-                    scopes:
-                        user: User scope
-                        admin: Admin scope
+        cookieAuth:
+            type: apiKey
+            in: cookie
+            name: access_token
+        # oauth2:
+        #     type: oauth2
+        #     flows:
+        #         authorizationCode:
+        #             authorizationUrl: https://localhost/oauth2/authorize
+        #             tokenUrl: https://localhost/oauth2/token
+        #             scopes:
+        #                 user: User scope
+        #                 admin: Admin scope
+
     schemas:
         Register:
             type: object
