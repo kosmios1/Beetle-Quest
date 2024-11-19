@@ -75,7 +75,7 @@ func main() {
 			{
 				auctionPath.GET("/get_all", cnt.GetAllAuctions)
 				auctionPath.GET("/:auction_id", cnt.GetAuctionDetails)
-				auctionPath.PATCH("/:auction_id", cnt.UpdateAuction) // TODO: Implement this
+				auctionPath.PATCH("/:auction_id", cnt.UpdateAuction)
 			}
 		}
 	}
