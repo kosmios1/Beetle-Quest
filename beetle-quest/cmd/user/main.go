@@ -51,13 +51,9 @@ func main() {
 			accountGroup.PATCH("/:user_id", cnt.UpdateUserAccountDetails)
 			accountGroup.DELETE("/:user_id", cnt.DeleteUserAccount)
 		}
-
-		basePath.GET("/:user_id/gacha/list", cnt.GetUserGachaList)
-		basePath.GET("/:user_id/gacha/:gacha_id", cnt.GetUserGachaDetails)
 	}
 
 	internalPath := r.Group("/api/v1/internal/user")
-	// TODO: This can be reached only within the microservices network
 	{
 		internalPath.GET("/get_all", cnt.GetAllUsers)
 		internalPath.POST("/create", cnt.CreateUser)

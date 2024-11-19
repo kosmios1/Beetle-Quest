@@ -65,7 +65,6 @@ func (r *UserRepo) Create(email, username string, hashedPassword []byte, currenc
 
 	if result.Error != nil {
 		if strings.Contains(result.Error.Error(), "duplicate key") {
-			// TODO: Maybe return error
 			return false
 		}
 		// result.Error.Error()

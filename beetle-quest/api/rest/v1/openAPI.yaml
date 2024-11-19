@@ -64,7 +64,7 @@ paths:
             summary: Logout
             tags: [Auth]
             security:
-                - cookieAuth
+                - cookieAuth: []
             #     - oauth2:
             #           - user
             #           - admin
@@ -81,7 +81,7 @@ paths:
             summary: Check session
             tags: [Auth]
             security:
-                - cookieAuth
+                - cookieAuth: []
             #     - oauth2:
             #           - user
             #           - admin
@@ -99,7 +99,7 @@ paths:
             summary: Traefik verify
             tags: [Auth]
             security:
-                - cookieAuth
+                - cookieAuth: []
             #     - oauth2:
             #           - user
             #           - admin
@@ -217,7 +217,7 @@ paths:
             summary: Get user account
             tags: [Users]
             security:
-                - cookieAuth
+                - cookieAuth: []
             #     - oauth2:
             #           - user
             parameters:
@@ -236,7 +236,7 @@ paths:
             summary: Modify user account
             tags: [Users]
             security:
-                - cookieAuth
+                - cookieAuth: []
             #     - oauth2:
             #           - user
             parameters:
@@ -262,7 +262,7 @@ paths:
             summary: Delete user account
             tags: [Users]
             security:
-                - cookieAuth
+                - cookieAuth: []
             #     - oauth2:
             #           - user
             parameters:
@@ -278,54 +278,6 @@ paths:
                 400:
                     description: Status bad requests.
 
-    /{user_id}/gacha/list:
-        get:
-            summary: Get user gacha list
-            tags: [Users]
-            security:
-                - cookieAuth
-            #     - oauth2:
-            #           - user
-            parameters:
-                - name: user_id
-                  in: path
-                  description: User ID
-                  required: true
-                  schema:
-                      type: string
-            responses:
-                200:
-                    description: User gacha list.
-                400:
-                    description: Status bad requests.
-
-    /{user_id}/gacha/{gacha_id}:
-        get:
-            summary: Get user gacha details
-            tags: [Users]
-            security:
-                - cookieAuth
-            #     - oauth2:
-            #           - user
-            parameters:
-                - name: user_id
-                  in: path
-                  description: User ID
-                  required: true
-                  schema:
-                      type: string
-                - name: gacha_id
-                  in: path
-                  description: Gacha ID
-                  required: true
-                  schema:
-                      type: string
-            responses:
-                200:
-                    description: User gacha details.
-                400:
-                    description: Status bad requests.
-
     # TODO:
     # - internal endpoints (not accessible by the user)
 
@@ -336,7 +288,7 @@ paths:
             summary: Get system gacha list
             tags: [Gachas]
             security:
-                - cookieAuth
+                - cookieAuth: []
             #     - oauth2:
             #           - user
             responses:
@@ -350,7 +302,7 @@ paths:
             summary: Get gacha details
             tags: [Gachas]
             security:
-                - cookieAuth
+                - cookieAuth: []
             #     - oauth2:
             #           - user
             parameters:
@@ -366,6 +318,54 @@ paths:
                 400:
                     description: Status bad requests.
 
+    /gacha/{user_id}/list:
+        get:
+            summary: Get user gacha list
+            tags: [Gachas]
+            security:
+                - cookieAuth: []
+            #     - oauth2:
+            #           - user
+            parameters:
+                - name: user_id
+                  in: path
+                  description: User ID
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                200:
+                    description: User gacha list.
+                400:
+                    description: Status bad requests.
+
+    /gacha/{gacha_id}/{user_id}:
+        get:
+            summary: Get user gacha details
+            tags: [Gachas]
+            security:
+                - cookieAuth: []
+            #     - oauth2:
+            #           - user
+            parameters:
+                - name: gacha_id
+                  in: path
+                  description: Gacha ID
+                  required: true
+                  schema:
+                      type: string
+                - name: user_id
+                  in: path
+                  description: User ID
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                200:
+                    description: User gacha details.
+                400:
+                    description: Status bad requests.
+
     # TODO:
     # - internal endpoints (not accessible by the user)
 
@@ -375,7 +375,7 @@ paths:
             summary: Get market list
             tags: [Market]
             security:
-                - cookieAuth
+                - cookieAuth: []
             #     - oauth2:
             #           - user
             responses:
@@ -389,7 +389,7 @@ paths:
             summary: Buy bugscoin
             tags: [Market]
             security:
-                - cookieAuth
+                - cookieAuth: []
             #     - oauth2:
             #           - user
             requestBody:
@@ -410,7 +410,7 @@ paths:
             summary: Roll gacha
             tags: [Market]
             security:
-                - cookieAuth
+                - cookieAuth: []
             #     - oauth2:
             #           - user
             responses:
@@ -426,7 +426,7 @@ paths:
             summary: Buy gacha
             tags: [Market]
             security:
-                - cookieAuth
+                - cookieAuth: []
             #     - oauth2:
             #           - user
             parameters:
@@ -447,7 +447,7 @@ paths:
             summary: Create auction
             tags: [Market]
             security:
-                - cookieAuth
+                - cookieAuth: []
             #     - oauth2:
             #           - user
             requestBody:
@@ -468,7 +468,7 @@ paths:
             summary: Get auction list
             tags: [Market]
             security:
-                - cookieAuth
+                - cookieAuth: []
             #     - oauth2:
             #           - user
             responses:
@@ -482,7 +482,7 @@ paths:
             summary: Get auction details
             tags: [Market]
             security:
-                - cookieAuth
+                - cookieAuth: []
             #     - oauth2:
             #           - user
             parameters:
@@ -501,7 +501,7 @@ paths:
             summary: Delete auction
             tags: [Market]
             security:
-                - cookieAuth
+                - cookieAuth: []
             #     - oauth2:
             #           - user
             parameters:
@@ -522,7 +522,7 @@ paths:
             summary: Bid auction
             tags: [Market]
             security:
-                - cookieAuth
+                - cookieAuth: []
             #     - oauth2:
             #           - user
             parameters:
@@ -610,22 +610,21 @@ components:
                 old_password:
                     type: string
 
-        Token:
-            # TODO: Check if correct
-            type: object
-            properties:
-                grant_type:
-                    type: string
-                client_id:
-                    type: string
-                client_secret:
-                    type: string
-                redirect_uri:
-                    type: string
-                code:
-                    type: string
-                scope:
-                    type: string
+        # Token:
+        #     type: object
+        #     properties:
+        #         grant_type:
+        #             type: string
+        #         client_id:
+        #             type: string
+        #         client_secret:
+        #             type: string
+        #         redirect_uri:
+        #             type: string
+        #         code:
+        #             type: string
+        #         scope:
+        #             type: string
 
         BuyBugscoin:
             type: object

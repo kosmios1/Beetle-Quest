@@ -61,6 +61,44 @@ func (c *GachaController) GetGachaDetails(ctx *gin.Context) {
 	})
 }
 
+func (cnt *GachaController) GetUserGachaList(ctx *gin.Context) {
+	userId := ctx.Param("user_id")
+	if userId == "" {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "No User ID has been provided!"})
+		return
+	}
+
+	gacha, ok := cnt.srv.GetUserGachasStr(userId)
+	if !ok {
+		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "User Gacha not found!"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gacha)
+}
+
+func (cnt *GachaController) GetUserGachaDetails(ctx *gin.Context) {
+	gachaId := ctx.Param("gacha_id")
+	if gachaId == "" {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "No Gacha ID has been provided!"})
+		return
+	}
+
+	userId := ctx.Param("user_id")
+	if userId == "" {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "No User ID has been provided!"})
+		return
+	}
+
+	gacha, ok := cnt.srv.GetUserGachaDetails(userId, gachaId)
+	if !ok {
+		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "User Gacha not found!"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gacha)
+}
+
 // Internal API ============================================================================================================
 
 func (c *GachaController) CreateGacha(ctx *gin.Context) {

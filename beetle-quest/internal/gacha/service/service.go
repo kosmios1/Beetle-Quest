@@ -48,6 +48,38 @@ func (s *GachaService) RemoveGachaFromUser(userID models.UUID, gachaID models.UU
 	return nil
 }
 
+func (s *GachaService) GetUserGachaDetails(userId, gachaId string) (models.Gacha, bool) {
+	gachas, ok := s.GetUserGachasStr(userId)
+	if !ok {
+		return models.Gacha{}, false
+	}
+
+	gid, err := utils.ParseUUID(gachaId)
+	if err != nil {
+		return models.Gacha{}, false
+	}
+
+	for _, gacha := range gachas {
+		if gacha.GachaID == gid {
+			return gacha, true
+		}
+	}
+	return models.Gacha{}, false
+}
+
+func (s *GachaService) GetUserGachasStr(userId string) ([]models.Gacha, bool) {
+	uid, err := utils.ParseUUID(userId)
+	if err != nil {
+		return []models.Gacha{}, false
+	}
+
+	gachas, ok := s.gachaRepo.GetUserGachas(uid)
+	if !ok {
+		return []models.Gacha{}, false
+	}
+	return gachas, true
+}
+
 func (s *GachaService) GetUserGachas(uid models.UUID) ([]models.Gacha, bool) {
 	gachas, ok := s.gachaRepo.GetUserGachas(uid)
 	if !ok {

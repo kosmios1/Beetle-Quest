@@ -95,7 +95,6 @@ func (r *GachaRepo) AddGachaToUser(uid models.UUID, gid models.UUID) bool {
 	value := models.GachaUserRelation{UserID: uid, GachaID: gid}
 	result := r.db.Table("user_gacha").Create(value)
 	if result.Error != nil {
-		// TODO: Maybe return error?
 		if strings.Contains(result.Error.Error(), "duplicate key") {
 			return false
 		}
