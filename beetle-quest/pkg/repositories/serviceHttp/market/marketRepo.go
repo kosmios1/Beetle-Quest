@@ -6,17 +6,19 @@ import (
 	"bytes"
 	"encoding/json"
 	"net/http"
+	"os"
 
 	"github.com/sony/gobreaker/v2"
 )
 
 var (
-	findAuctionByIDEndpoint = utils.FindEnv("FIND_AUCTION_BY_ID_ENDPOINT")
-	getAllAuctionsEndpoint  = utils.FindEnv("GET_ALL_AUCTIONS_ENDPOINT")
+	findAuctionByIDEndpoint = os.Getenv("FIND_AUCTION_BY_ID_ENDPOINT")
+	getAllAuctionsEndpoint  = os.Getenv("GET_ALL_AUCTIONS_ENDPOINT")
+	getUserAuctionsEndpoint = os.Getenv("GET_USER_AUCTIONS_ENDPOINT")
 
-	getAllTransactionsEndpoint           = utils.FindEnv("GET_ALL_TRANSACTIONS_ENDPOINT")
-	getUserTransactionHistoryEndpoint    = utils.FindEnv("GET_USER_TRANSACTION_HISTORY_ENDPOINT")
-	deleteUserTransactionHistoryEndpoint = utils.FindEnv("DELETE_USER_TRANSACTION_HISTORY_ENDPOINT")
+	getAllTransactionsEndpoint           = os.Getenv("GET_ALL_TRANSACTIONS_ENDPOINT")
+	getUserTransactionHistoryEndpoint    = os.Getenv("GET_USER_TRANSACTION_HISTORY_ENDPOINT")
+	deleteUserTransactionHistoryEndpoint = os.Getenv("DELETE_USER_TRANSACTION_HISTORY_ENDPOINT")
 )
 
 type MarketRepo struct {
@@ -207,14 +209,53 @@ func (r *MarketRepo) FindByID(aid models.UUID) (*models.Auction, bool) {
 	return result.Auction, true
 }
 
+func (r *MarketRepo) GetUserAuctions(uid models.UUID) ([]models.Auction, bool) {
+	requestData := models.GetUserAuctionsData{
+		UserID: uid,
+	}
+
+	jsonData, err := json.Marshal(requestData)
+	if err != nil {
+		return []models.Auction{}, false
+	}
+
+	resp, err := r.cb.Execute(func() (*http.Response, error) {
+		resp, err := r.client.Post(
+			getUserAuctionsEndpoint,
+			"application/json",
+			bytes.NewBuffer(jsonData),
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		return resp, nil
+	})
+	defer resp.Body.Close()
+
+	if err != nil {
+		return []models.Auction{}, false
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return []models.Auction{}, false
+	}
+
+	var result models.GetUserAuctionsDataResponse
+	err = json.NewDecoder(resp.Body).Decode(&result)
+	if err != nil {
+		return []models.Auction{}, false
+	}
+
+	return result.AuctionList, true
+}
+
 // Not to be implemented, never used
 
 func (r *MarketRepo) Create(*models.Auction) bool { return false }
 func (r *MarketRepo) Update(*models.Auction) bool { return false }
 func (r *MarketRepo) Delete(*models.Auction) bool { return false }
-func (r *MarketRepo) GetUserAuctions(models.UUID) ([]models.Auction, bool) {
-	return []models.Auction{}, false
-}
 func (r *MarketRepo) GetBidListOfAuction(models.UUID) ([]models.Bid, bool) {
 	return []models.Bid{}, false
 }

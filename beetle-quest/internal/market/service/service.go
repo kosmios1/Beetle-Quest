@@ -14,16 +14,16 @@ type MarketService struct {
 	evrepo *repository.EventRepo
 	urepo  repositories.UserRepo
 	grepo  repositories.GachaRepo
-	arepo  repositories.MarketRepo
+	mrepo  repositories.MarketRepo
 }
 
-func NewMarketService(urepo repositories.UserRepo, grepo repositories.GachaRepo, arepo repositories.MarketRepo) *MarketService {
+func NewMarketService(urepo repositories.UserRepo, grepo repositories.GachaRepo, mrepo repositories.MarketRepo) *MarketService {
 	evrepo := repository.NewEventRepo()
 	srv := &MarketService{
 		evrepo: evrepo,
 		urepo:  urepo,
 		grepo:  grepo,
-		arepo:  arepo,
+		mrepo:  mrepo,
 	}
 
 	go evrepo.StartSubscriber(srv.closeAuctionCallback, srv.closeAuctionErrorCallback)
@@ -56,7 +56,7 @@ func (s *MarketService) AddBugsCoin(userId string, amount int64) error {
 		EventID:         models.UUID{},
 	}
 
-	if ok := s.arepo.AddTransaction(t); !ok {
+	if ok := s.mrepo.AddTransaction(t); !ok {
 		return models.ErrInternalServerError
 	}
 
@@ -102,7 +102,7 @@ func (s *MarketService) RollGacha(userId string) (string, error) {
 		EventID:         models.UUID{},
 	}
 
-	if ok := s.arepo.AddTransaction(t); !ok {
+	if ok := s.mrepo.AddTransaction(t); !ok {
 		return "", models.ErrInternalServerError
 	}
 
@@ -183,7 +183,7 @@ func (s *MarketService) BuyGacha(userId string, gachaId string) error {
 		EventID:         models.UUID{},
 	}
 
-	if ok := s.arepo.AddTransaction(t); !ok {
+	if ok := s.mrepo.AddTransaction(t); !ok {
 		return models.ErrInternalServerError
 	}
 
@@ -242,7 +242,7 @@ func (s *MarketService) CreateAuction(userId, gachaId string, endTime time.Time)
 		return models.ErrUserDoesNotOwnGacha
 	}
 
-	auctions, ok := s.arepo.GetUserAuctions(uid)
+	auctions, ok := s.mrepo.GetUserAuctions(uid)
 	if !ok {
 		return models.ErrCouldNotRetrieveUserAuctions
 	}
@@ -267,7 +267,7 @@ func (s *MarketService) CreateAuction(userId, gachaId string, endTime time.Time)
 		WinnerID:  models.UUID{},
 	}
 
-	if ok := s.arepo.Create(auction); !ok {
+	if ok := s.mrepo.Create(auction); !ok {
 		return models.ErrCouldNotCreateAuction
 	}
 
@@ -295,7 +295,7 @@ func (s *MarketService) DeleteAuction(userId, auctionId, password string) error 
 		return models.ErrUserNotFound
 	}
 
-	auction, exists := s.arepo.FindByID(aid)
+	auction, exists := s.mrepo.FindByID(aid)
 	if !exists {
 		return models.ErrAuctionNotFound
 	}
@@ -321,7 +321,7 @@ func (s *MarketService) DeleteAuction(userId, auctionId, password string) error 
 		return models.ErrAuctionIsTooCloseToEnd
 	}
 
-	bids, ok := s.arepo.GetBidListOfAuction(aid)
+	bids, ok := s.mrepo.GetBidListOfAuction(aid)
 	if !ok {
 		return models.ErrCouldNotRetrieveAuctionBids
 	}
@@ -331,7 +331,7 @@ func (s *MarketService) DeleteAuction(userId, auctionId, password string) error 
 		return models.ErrAuctionHasBids
 	}
 
-	if ok := s.arepo.Delete(auction); !ok {
+	if ok := s.mrepo.Delete(auction); !ok {
 		return models.ErrCouldNotDeleteAuction
 	}
 
@@ -339,7 +339,7 @@ func (s *MarketService) DeleteAuction(userId, auctionId, password string) error 
 }
 
 func (s *MarketService) RetrieveAuctionTemplateList() ([]models.AuctionTemplate, error) {
-	auctions, ok := s.arepo.GetAll()
+	auctions, ok := s.mrepo.GetAll()
 	if !ok {
 		return nil, models.ErrRetrievingAuctions
 	}
@@ -378,7 +378,7 @@ func (s *MarketService) FindByID(auctionId string) (*models.Auction, bool) {
 		return &models.Auction{}, false
 	}
 
-	auction, exists := s.arepo.FindByID(aid)
+	auction, exists := s.mrepo.FindByID(aid)
 	if !exists {
 		return &models.Auction{}, false
 	}
@@ -391,7 +391,7 @@ func (s *MarketService) GetBidListOfAuctionID(auctionId string) ([]models.Bid, b
 		return []models.Bid{}, false
 	}
 
-	bids, ok := s.arepo.GetBidListOfAuction(aid)
+	bids, ok := s.mrepo.GetBidListOfAuction(aid)
 	if !ok {
 		return []models.Bid{}, false
 	}
@@ -409,7 +409,7 @@ func (s *MarketService) MakeBid(userId, auctionId string, bidAmount int64) error
 		return models.ErrInvalidAuctionID
 	}
 
-	auction, exists := s.arepo.FindByID(aid)
+	auction, exists := s.mrepo.FindByID(aid)
 	if !exists {
 		return models.ErrAuctionNotFound
 	}
@@ -427,7 +427,7 @@ func (s *MarketService) MakeBid(userId, auctionId string, bidAmount int64) error
 		return models.ErrNotEnoughMoneyToBid
 	}
 
-	bids, ok := s.arepo.GetBidListOfAuction(aid)
+	bids, ok := s.mrepo.GetBidListOfAuction(aid)
 	if !ok {
 		return models.ErrCouldNotRetrieveAuctionBids
 	}
@@ -460,7 +460,7 @@ func (s *MarketService) MakeBid(userId, auctionId string, bidAmount int64) error
 		return models.ErrCouldNotUpdate
 	}
 
-	if ok := s.arepo.BidToAuction(bid); !ok {
+	if ok := s.mrepo.BidToAuction(bid); !ok {
 		user.Currency += bidAmount
 		if ok := s.urepo.Update(user); !ok {
 			// TODO: What should we do here?
@@ -473,20 +473,20 @@ func (s *MarketService) MakeBid(userId, auctionId string, bidAmount int64) error
 // Timed events callbacks ================================================
 // - ...
 func (s *MarketService) closeAuctionCallback(aid models.UUID) {
-	auction, exists := s.arepo.FindByID(aid)
+	auction, exists := s.mrepo.FindByID(aid)
 	if !exists {
 		s.closeAuctionErrorCallback(models.ErrAuctionNotFound)
 		return
 	}
 
-	bids, ok := s.arepo.GetBidListOfAuction(aid)
+	bids, ok := s.mrepo.GetBidListOfAuction(aid)
 	if !ok {
 		s.closeAuctionErrorCallback(models.ErrCouldNotRetrieveAuctionBids)
 		return
 	}
 
 	if len(bids) == 0 {
-		if ok = s.arepo.Delete(auction); !ok {
+		if ok = s.mrepo.Delete(auction); !ok {
 			s.closeAuctionErrorCallback(models.ErrCouldNotDeleteAuction)
 		}
 		return
@@ -528,7 +528,7 @@ func (s *MarketService) closeAuctionCallback(aid models.UUID) {
 
 	{ // Winner actions
 		auction.WinnerID = maxBidder
-		if ok := s.arepo.Update(auction); !ok {
+		if ok := s.mrepo.Update(auction); !ok {
 			// NOTE: If we do not find the auction, we still have informations to give gacha to the winner
 			s.closeAuctionErrorCallback(models.ErrCouldNotUpdateAuction)
 		}
@@ -548,7 +548,7 @@ func (s *MarketService) closeAuctionCallback(aid models.UUID) {
 				EventID:         auction.AuctionID,
 			}
 
-			if ok := s.arepo.AddTransaction(t); !ok {
+			if ok := s.mrepo.AddTransaction(t); !ok {
 				s.closeAuctionErrorCallback(models.ErrCouldNotAddTransaction)
 				return
 			}
@@ -582,7 +582,7 @@ func (s *MarketService) closeAuctionCallback(aid models.UUID) {
 			EventID:         auction.AuctionID,
 		}
 
-		if ok := s.arepo.AddTransaction(t); !ok {
+		if ok := s.mrepo.AddTransaction(t); !ok {
 			s.closeAuctionErrorCallback(models.ErrCouldNotAddTransaction)
 		}
 
@@ -602,21 +602,28 @@ func (s *MarketService) closeAuctionErrorCallback(err error) {
 // Internal functions ====================================================
 
 func (s *MarketService) GetAuctionList() ([]models.Auction, error) {
-	if auctions, ok := s.arepo.GetAll(); ok {
+	if auctions, ok := s.mrepo.GetAll(); ok {
+		return auctions, nil
+	}
+	return []models.Auction{}, models.ErrCouldNotRetrieveAuctions
+}
+
+func (s *MarketService) GetAuctionListOfUser(uid models.UUID) ([]models.Auction, error) {
+	if auctions, ok := s.mrepo.GetUserAuctions(uid); ok {
 		return auctions, nil
 	}
 	return []models.Auction{}, models.ErrCouldNotRetrieveAuctions
 }
 
 func (s *MarketService) GetAllTransactions() ([]models.Transaction, error) {
-	if transactions, ok := s.arepo.GetAllTransactions(); ok {
+	if transactions, ok := s.mrepo.GetAllTransactions(); ok {
 		return transactions, nil
 	}
 	return []models.Transaction{}, models.ErrCouldNotRetrieveTransactions
 }
 
 func (s *MarketService) GetUserTransactionHistory(uid models.UUID) ([]models.Transaction, bool) {
-	transactions, ok := s.arepo.GetUserTransactionHistory(uid)
+	transactions, ok := s.mrepo.GetUserTransactionHistory(uid)
 	if !ok {
 		return []models.Transaction{}, false
 	}
@@ -625,5 +632,5 @@ func (s *MarketService) GetUserTransactionHistory(uid models.UUID) ([]models.Tra
 }
 
 func (s *MarketService) DeleteUserTransactionHistory(uid models.UUID) bool {
-	return s.arepo.DeleteUserTransactionHistory(uid)
+	return s.mrepo.DeleteUserTransactionHistory(uid)
 }

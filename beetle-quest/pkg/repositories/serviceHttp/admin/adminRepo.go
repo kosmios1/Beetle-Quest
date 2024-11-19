@@ -6,12 +6,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"net/http"
+	"os"
 
 	"github.com/sony/gobreaker/v2"
 )
 
 var (
-	findAdminByIDEndpoint string = utils.FindEnv("FIND_ADMIN_BY_ID_ENDPOINT")
+	findAdminByIDEndpoint string = os.Getenv("FIND_ADMIN_BY_ID_ENDPOINT")
 )
 
 type AdminRepo struct {

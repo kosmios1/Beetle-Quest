@@ -6,23 +6,24 @@ import (
 	"bytes"
 	"encoding/json"
 	"net/http"
+	"os"
 
 	"github.com/sony/gobreaker/v2"
 )
 
 var (
-	createEndpoint = utils.FindEnv("CREATE_GACHA_ENDPOINT")
-	updateEndpoint = utils.FindEnv("UPDATE_GACHA_ENDPOINT")
-	deleteEndpoint = utils.FindEnv("DELETE_GACHA_ENDPOINT")
+	createEndpoint = os.Getenv("CREATE_GACHA_ENDPOINT")
+	updateEndpoint = os.Getenv("UPDATE_GACHA_ENDPOINT")
+	deleteEndpoint = os.Getenv("DELETE_GACHA_ENDPOINT")
 
-	getAllEndpoint        = utils.FindEnv("GET_ALL_GACHA_ENDPOINT")
-	findGachaByIDEndpoint = utils.FindEnv("FIND_GACHA_BY_ID_ENDPOINT")
+	getAllEndpoint        = os.Getenv("GET_ALL_GACHA_ENDPOINT")
+	findGachaByIDEndpoint = os.Getenv("FIND_GACHA_BY_ID_ENDPOINT")
 
-	getUserGachasEndpoint    = utils.FindEnv("GET_USER_GACHAS_ENDPOINT")
-	removeUserGachasEndpoint = utils.FindEnv("REMOVE_USER_GACHAS_ENDPOINT")
+	getUserGachasEndpoint    = os.Getenv("GET_USER_GACHAS_ENDPOINT")
+	removeUserGachasEndpoint = os.Getenv("REMOVE_USER_GACHAS_ENDPOINT")
 
-	addGachaToUserEndpoint      = utils.FindEnv("ADD_GACHA_TO_USER_ENDPOINT")
-	removeGachaFromUserEndpoint = utils.FindEnv("REMOVE_GACHA_FROM_USER_ENDPOINT")
+	addGachaToUserEndpoint      = os.Getenv("ADD_GACHA_TO_USER_ENDPOINT")
+	removeGachaFromUserEndpoint = os.Getenv("REMOVE_GACHA_FROM_USER_ENDPOINT")
 )
 
 type GachaRepo struct {

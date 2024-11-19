@@ -185,6 +185,14 @@ type FindAuctionByIDDataResponse struct {
 	Auction *Auction `json:"Auction"`
 }
 
+type GetUserAuctionsData struct {
+	UserID UUID `json:"user_id"`
+}
+
+type GetUserAuctionsDataResponse struct {
+	AuctionList []Auction `json:"AuctionList"`
+}
+
 // Admin
 
 type FindAdminByIDData struct {

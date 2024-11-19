@@ -41,7 +41,7 @@ func main() {
 		basePath.GET("/list", cnt.List)
 		basePath.GET("/:gacha_id", cnt.GetGachaDetails)
 
-		basePath.GET("/:user_id/list", cnt.GetUserGachaList)
+		basePath.GET("/user/:user_id/list", cnt.GetUserGachaList)
 		basePath.GET("/:gacha_id/:user_id", cnt.GetUserGachaDetails)
 	}
 

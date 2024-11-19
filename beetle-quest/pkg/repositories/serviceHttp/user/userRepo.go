@@ -7,19 +7,20 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/sony/gobreaker/v2"
 )
 
 var (
-	getAllUsersEndpoint string = utils.FindEnv("GET_ALL_USERS_ENDPOINT")
-	createUserEndpoint  string = utils.FindEnv("CREATE_USER_ENDPOINT")
-	updateUserEndpoint  string = utils.FindEnv("UPDATE_USER_ENDPOINT")
-	deleteUserEndpoint  string = utils.FindEnv("DELETE_USER_ENDPOINT")
+	getAllUsersEndpoint string = os.Getenv("GET_ALL_USERS_ENDPOINT")
+	createUserEndpoint  string = os.Getenv("CREATE_USER_ENDPOINT")
+	updateUserEndpoint  string = os.Getenv("UPDATE_USER_ENDPOINT")
+	deleteUserEndpoint  string = os.Getenv("DELETE_USER_ENDPOINT")
 
-	findUserByIDEndpoint       string = utils.FindEnv("FIND_USER_BY_ID_ENDPOINT")
-	findUserByUsernameEndpoint string = utils.FindEnv("FIND_USER_BY_USERNAME_ENDPOINT")
-	findUserByEmailEndpoint    string = utils.FindEnv("FIND_USER_BY_EMAIL_ENDPOINT")
+	findUserByIDEndpoint       string = os.Getenv("FIND_USER_BY_ID_ENDPOINT")
+	findUserByUsernameEndpoint string = os.Getenv("FIND_USER_BY_USERNAME_ENDPOINT")
+	findUserByEmailEndpoint    string = os.Getenv("FIND_USER_BY_EMAIL_ENDPOINT")
 )
 
 type UserRepo struct {

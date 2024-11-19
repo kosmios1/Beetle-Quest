@@ -268,6 +268,24 @@ func (c *MarketController) GetTransactionHistory(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, models.GetAllTransactionDataResponse{TransactionHistory: transactions})
 }
 
+func (c *MarketController) GetUserAuctions(ctx *gin.Context) {
+	var data models.GetUserAuctionsData
+	if err := ctx.ShouldBindJSON(&data); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"Error": models.ErrInvalidData})
+		ctx.Abort()
+		return
+	}
+
+	auctions, err := c.srv.GetAuctionListOfUser(data.UserID)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
+		ctx.Abort()
+		return
+	}
+
+	ctx.JSON(http.StatusOK, models.GetUserAuctionsDataResponse{AuctionList: auctions})
+}
+
 func (c *MarketController) FindAuctionByID(ctx *gin.Context) {
 	var data models.FindAuctionByIDData
 	if err := ctx.ShouldBindJSON(&data); err != nil {

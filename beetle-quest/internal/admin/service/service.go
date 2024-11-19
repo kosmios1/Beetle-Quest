@@ -82,6 +82,7 @@ func (s *AdminService) UpdateUserProfile(userId string, data *models.AdminUpdate
 	}
 
 	if data.Currency >= 0 {
+		// FIXME: Con currency := 0 non funziona
 		user.Currency = data.Currency
 	}
 
@@ -155,6 +156,7 @@ func (s *AdminService) UpdateGacha(gachaId string, data *models.AdminUpdateGacha
 		gacha.Price = int64(price)
 	}
 
+	// FIXME: If rarity == "Common" it does not change
 	rarity, err := models.RarityFromString(data.Rarity)
 	if err != nil {
 		return false
