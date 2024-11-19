@@ -108,6 +108,25 @@ func (c *AdminController) GetUserTransactionHistory(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"TransactionList": transactions})
 }
 
+func (c *AdminController) GetUserAuctionList(ctx *gin.Context) {
+	userId := ctx.Param("user_id")
+	if userId == "" {
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "user_id is required"})
+		ctx.Abort()
+		return
+	}
+
+	auctionList, exists := c.srv.GetUserAuctionList(userId)
+	if !exists {
+		ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": "User not found"})
+		ctx.Abort()
+		return
+	}
+
+	// ctx.HTML(http.StatusOK, "userMarketHistory.tmpl", gin.H{"MarketHistory": marketHistory})
+	ctx.JSON(http.StatusOK, gin.H{"AuctionList": auctionList})
+}
+
 // Gacha controllers =================================================
 
 func (c *AdminController) AddGacha(ctx *gin.Context) {

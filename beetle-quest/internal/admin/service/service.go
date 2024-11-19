@@ -102,6 +102,19 @@ func (s *AdminService) GetUserTransactionHistory(userId string) ([]models.Transa
 	return []models.Transaction{}, false
 }
 
+func (s *AdminService) GetUserAuctionList(userId string) ([]models.Auction, bool) {
+	uid, err := utils.ParseUUID(userId)
+	if err != nil {
+		return []models.Auction{}, false
+	}
+
+	if auctions, ok := s.mrepo.GetUserAuctions(uid); ok {
+		return auctions, true
+	}
+
+	return []models.Auction{}, false
+}
+
 // Gacha service functions =================================================
 
 func (s *AdminService) AddGacha(data *models.AdminAddGachaRequest) error {

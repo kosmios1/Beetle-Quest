@@ -3,7 +3,6 @@ package main
 import (
 	"beetle-quest/pkg/utils"
 	"log"
-	"net/http"
 
 	"github.com/gin-contrib/secure"
 	"github.com/gin-gonic/gin"
@@ -57,10 +56,7 @@ func main() {
 			userPath.GET("/:user_id", cnt.GetUserProfile)
 			userPath.PATCH("/:user_id", cnt.UpdateUserProfile)
 			userPath.GET("/:user_id/transaction_history", cnt.GetUserTransactionHistory)
-			userPath.GET("/:user_id/market_history", func(ctx *gin.Context) {
-				// TODO: Don't know what this means, it's inside the user stories
-				ctx.Status(http.StatusNotImplemented)
-			})
+			userPath.GET("/:user_id/auction/get_all", cnt.GetUserAuctionList)
 		}
 
 		gachaPath := basePath.Group("/gacha")
@@ -74,7 +70,7 @@ func main() {
 
 		marketPath := basePath.Group("/market")
 		{
-			marketPath.GET("/history", cnt.GetMarketHistory)
+			marketPath.GET("/transaction_history", cnt.GetMarketHistory)
 			auctionPath := marketPath.Group("/auction")
 			{
 				auctionPath.GET("/get_all", cnt.GetAllAuctions)

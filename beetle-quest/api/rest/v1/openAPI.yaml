@@ -621,9 +621,9 @@ paths:
                 400:
                     description: Status bad requests.
 
-    /admin/user/{user_id}/market_history: # TODO
+    /admin/user/{user_id}/auction/get_all: # TODO
         get:
-            summary: Get user market history
+            summary: Get user auction list
             tags: [Admin]
             security:
                 - cookieAuth: []
@@ -637,8 +637,12 @@ paths:
                   schema:
                       type: string
             responses:
-                501:
-                    description: Not implemented yet
+                200:
+                    description: User auction list obtained successfully.
+                400:
+                    description: Status bad requests.
+                404:
+                    description: User not found.
 
     /admin/gacha/add:
         post:
@@ -741,9 +745,9 @@ paths:
                 400:
                     description: Status bad requests.
 
-    /admin/market/history:
+    /admin/market/transaction_history:
         get:
-            summary: Get market history
+            summary: Get market's transaction history
             tags: [Admin]
             security:
                 - cookieAuth: []
@@ -755,7 +759,7 @@ paths:
                 400:
                     description: Status bad requests.
 
-    /admin/market/auction/get_al:
+    /admin/market/auction/get_all:
         get:
             summary: Get all auctions
             tags: [Admin]
