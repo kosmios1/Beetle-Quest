@@ -93,7 +93,6 @@ paths:
                 500:
                     description: Internal server error.
 
-    # It is used by traefik to verify if the cookie is valid, should not be exposed to the user
     /auth/traefik/verify:
         get:
             summary: Traefik verify
@@ -278,9 +277,6 @@ paths:
                 400:
                     description: Status bad requests.
 
-    # TODO:
-    # - internal endpoints (not accessible by the user)
-
     ### GACHAS ###
 
     /gacha/list:
@@ -365,9 +361,6 @@ paths:
                     description: User gacha details.
                 400:
                     description: Status bad requests.
-
-    # TODO:
-    # - internal endpoints (not accessible by the user)
 
     ### MARKET ###
     /market:
@@ -545,13 +538,281 @@ paths:
                 400:
                     description: Status bad requests.
 
-    # TODO:
-    # - internal endpoints (not accessible by the user)
-
     ### ADMIN ###
+    /admin/user/get_all:
+        get:
+            summary: Get all users
+            tags: [Admin]
+            security:
+                - cookieAuth: []
+            #     - oauth2:
+            #           - admin
+            responses:
+                200:
+                    description: All users obtained successfully.
+                400:
+                    description: Status bad requests.
 
-    # TODO:
-    # - internal endpoints (not accessible by the user)
+    /admin/user/{user_id}:
+        get:
+            summary: Get user details
+            tags: [Admin]
+            security:
+                - cookieAuth: []
+            #     - oauth2:
+            #           - admin
+            parameters:
+                - name: user_id
+                  in: path
+                  description: User ID
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                200:
+                    description: User details obtained successfully.
+                400:
+                    description: Status bad requests.
+        patch:
+            summary: Update user details
+            tags: [Admin]
+            security:
+                - cookieAuth: []
+            #     - oauth2:
+            #     - admin
+            parameters:
+                - name: user_id
+                  in: path
+                  description: User ID
+                  required: true
+                  schema:
+                      type: string
+            requestBody:
+                description: Update user details
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/UpdateUser"
+            responses:
+                200:
+                    description: User details updated successfully.
+                400:
+                    description: Status bad requests.
+
+    /admin/user/{user_id}/transaction_history:
+        get:
+            summary: Get user transaction history
+            tags: [Admin]
+            security:
+                - cookieAuth: []
+            #     - oauth2:
+            #           - admin
+            parameters:
+                - name: user_id
+                  in: path
+                  description: User ID
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                200:
+                    description: User transaction history obtained successfully.
+                400:
+                    description: Status bad requests.
+
+    /admin/user/{user_id}/market_history: # TODO
+        get:
+            summary: Get user market history
+            tags: [Admin]
+            security:
+                - cookieAuth: []
+            #     - oauth2:
+            #           - admin
+            parameters:
+                - name: user_id
+                  in: path
+                  description: User ID
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                501:
+                    description: Not implemented yet
+
+    /admin/gacha/add:
+        post:
+            summary: Add gacha
+            tags: [Admin]
+            security:
+                - cookieAuth: []
+            #     - oauth2:
+            #           - admin
+            requestBody:
+                description: Add gacha
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/AddGacha"
+            responses:
+                200:
+                    description: Gacha added successfully.
+                400:
+                    description: Status bad requests.
+
+    /admin/gacha/get_all:
+        get:
+            summary: Get all gachas
+            tags: [Admin]
+            security:
+                - cookieAuth: []
+            #     - oauth2:
+            #           - admin
+            responses:
+                200:
+                    description: All gachas obtained successfully.
+                400:
+                    description: Status bad requests.
+
+    /admin/gacha/{gacha_id}:
+        get:
+            summary: Get gacha details
+            tags: [Admin]
+            security:
+                - cookieAuth: []
+            #     - oauth2:
+            #           - admin
+            parameters:
+                - name: gacha_id
+                  in: path
+                  description: Gacha ID
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                200:
+                    description: Gacha details obtained successfully.
+                400:
+                    description: Status bad requests.
+        patch:
+            summary: Update gacha details
+            tags: [Admin]
+            security:
+                - cookieAuth: []
+            #     - oauth2:
+            #           - admin
+            parameters:
+                - name: gacha_id
+                  in: path
+                  description: Gacha ID
+                  required: true
+                  schema:
+                      type: string
+            requestBody:
+                description: Update gacha
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/UpdateGacha"
+            responses:
+                200:
+                    description: Gacha details updated successfully.
+                400:
+                    description: Status bad requests.A
+        delete:
+            summary: Delete gacha
+            tags: [Admin]
+            security:
+                - cookieAuth: []
+            #     - oauth2:
+            #           - admin
+            parameters:
+                - name: gacha_id
+                  in: path
+                  description: Gacha ID
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                200:
+                    description: Gacha deleted successfully.
+                400:
+                    description: Status bad requests.
+
+    /admin/market/history:
+        get:
+            summary: Get market history
+            tags: [Admin]
+            security:
+                - cookieAuth: []
+            #     - oauth2:
+            #           - admin
+            responses:
+                200:
+                    description: Market history obtained successfully.
+                400:
+                    description: Status bad requests.
+
+    /admin/market/auction/get_al:
+        get:
+            summary: Get all auctions
+            tags: [Admin]
+            security:
+                - cookieAuth: []
+            #     - oauth2:
+            #           - admin
+            responses:
+                200:
+                    description: All auctions obtained successfully.
+                400:
+                    description: Status bad requests.
+
+    /admin/market/auction/{auction_id}: # TODO
+        get:
+            summary: Get auction details
+            tags: [Admin]
+            security:
+                - cookieAuth: []
+            #     - oauth2:
+            #           - admin
+            parameters:
+                - name: auction_id
+                  in: path
+                  description: Auction ID
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                200:
+                    description: Auction details obtained successfully.
+                400:
+                    description: Status bad requests.
+        patch:
+            summary: Update auction details
+            tags: [Admin]
+            security:
+                - cookieAuth: []
+            #     - oauth2:
+            #           - admin
+            parameters:
+                - name: auction_id
+                  in: path
+                  description: Auction ID
+                  required: true
+                  schema:
+                      type: string
+            requestBody:
+                description: Update auction
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/UpdateAuction"
+            responses:
+                501:
+                    description: Not implemented yet
 
 components:
     securitySchemes:
@@ -644,4 +905,46 @@ components:
             type: object
             properties:
                 bid_amount:
+                    type: string
+
+        UpdateUser:
+            type: object
+            properties:
+                username:
+                    type: string
+                email:
+                    type: string
+                currency:
+                    type: string
+
+        AddGacha:
+            type: object
+            properties:
+                name:
+                    type: string
+                rarity:
+                    type: string
+                price:
+                    type: string
+                image_path:
+                    type: string
+
+        UpdateGacha:
+            type: object
+            properties:
+                name:
+                    type: string
+                rarity:
+                    type: string
+                price:
+                    type: string
+                image_path:
+                    type: string
+
+        UpdateAuction:
+            type: object
+            properties:
+                gacha_id:
+                    type: string
+                end_time:
                     type: string
