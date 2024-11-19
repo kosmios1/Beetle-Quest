@@ -41,10 +41,7 @@ func NewGachaRepo() *GachaRepo {
 	}
 
 	// This will create the table if it does not exist and will keep the schema updated
-	err := repo.db.AutoMigrate(&models.Gacha{})
-	if err != nil {
-		log.Printf("Failed to migrate the database: %v", err)
-	}
+	// err := repo.db.AutoMigrate(&models.Gacha{})
 
 	return repo
 }

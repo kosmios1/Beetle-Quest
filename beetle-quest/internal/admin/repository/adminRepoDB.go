@@ -40,7 +40,7 @@ func NewAdminRepo() *AdminRepo {
 	}
 
 	// This will create the table if it does not exist and will keep the schema updated
-	repo.db.AutoMigrate(&models.User{})
+	// repo.db.AutoMigrate(&models.User{})
 	return repo
 }
 

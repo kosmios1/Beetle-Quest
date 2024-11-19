@@ -39,7 +39,7 @@ func NewMarketRepo() *MarketRepo {
 		}
 	}
 
-	repo.db.AutoMigrate(&models.Auction{})
+	// repo.db.AutoMigrate(&models.Auction{})
 	return repo
 }
 
