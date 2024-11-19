@@ -65,7 +65,7 @@ docker compose down
 You fill find the Postman collection file`beetle-quest-collection.json` inside `beetle-quest/tests/postman/`, you can execute them with Postam Newman:
 
 ```sh
-docker run --rm --net beetle-quest_internal -v <path/to/repo/>V.System/beetle-quest/tests/postman/collection.json:/collection.json postman/newman run /collection.json --insecure --ignore-redirects --color on
+docker run --rm --net beetle-quest_internal -v <path/to/this/repo>/beetle-quest/tests/postman/collection.json:/collection.json postman/newman run /collection.json --insecure --ignore-redirects --color on
 ```
 
 ## Project structure
