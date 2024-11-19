@@ -1,5 +1,5 @@
 tosca_definitions_version: micro_tosca_yaml_1.1
-description: beetle-quest-architecture-microfreshener
+description: micro.tosca
 imports:
 - micro: https://di-unipi-socc.github.io/microTOSCA/1.1/microTOSCA.yaml
 topology_template:
@@ -12,7 +12,6 @@ topology_template:
       - interaction: market-service
       - interaction: auth-service
       - interaction: admin-service
-      - interaction: report-service
     user-service:
       type: micro.nodes.Service
       requirements:
@@ -27,30 +26,25 @@ topology_template:
           relationship: td
     admin-service:
       type: micro.nodes.Service
+      requirements:
+      - interaction:
+          node: gacha-service
+          relationship: tc
+      - interaction:
+          node: market-service
+          relationship: cd
+      - interaction:
+          node: user-service
+          relationship: cd
     gacha-service:
       type: micro.nodes.Service
       requirements:
       - interaction:
-          node: user-gacha-db
-          relationship: td
-      - interaction:
           node: gacha-db
           relationship: td
-      - interaction:
-          node: market-service
-          relationship: cd
     auth-service:
       type: micro.nodes.Service
       requirements:
-      - interaction:
-          node: oauth2-server
-          relationship: cd
-    oauth2-server:
-      type: micro.nodes.Service
-      requirements:
-      - interaction:
-          node: auth-service
-          relationship: cd
       - interaction:
           node: session-db
           relationship: td
@@ -58,41 +52,21 @@ topology_template:
       type: micro.nodes.Service
       requirements:
       - interaction:
-          node: transaction-db
-          relationship: td
-      - interaction:
-          node: auction-db
-          relationship: td
+          node: user-service
+          relationship: cd
       - interaction:
           node: gacha-service
           relationship: cd
       - interaction:
-          node: user-service
-          relationship: cd
-      - interaction:
-          node: bid-db
+          node: market-tb
           relationship: td
-    user-db:
-      type: micro.nodes.Datastore
-    user-gacha-db:
-      type: micro.nodes.Datastore
-    gacha-db:
-      type: micro.nodes.Datastore
-    transaction-db:
-      type: micro.nodes.Datastore
-    auction-db:
-      type: micro.nodes.Datastore
     session-db:
       type: micro.nodes.Datastore
-    bid-db:
+    user-db:
       type: micro.nodes.Datastore
-    report-service:
-      type: micro.nodes.Service
-      requirements:
-      - interaction:
-          node: report-db
-          relationship: td
-    report-db:
+    market-tb:
+      type: micro.nodes.Datastore
+    gacha-db:
       type: micro.nodes.Datastore
   groups:
     Edge:
