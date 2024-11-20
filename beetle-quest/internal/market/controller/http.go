@@ -20,10 +20,6 @@ func NewMarketController(srv *service.MarketService) *MarketController {
 	}
 }
 
-func (c *MarketController) Market(ctx *gin.Context) {
-	ctx.HTML(http.StatusOK, "market.tmpl", gin.H{"userID": ctx.MustGet("userID")})
-}
-
 func (c *MarketController) BuyBugscoin(ctx *gin.Context) {
 	var buyBugscoinRequest models.BuyBugscoinRequest
 	if err := ctx.ShouldBindJSON(&buyBugscoinRequest); err != nil {

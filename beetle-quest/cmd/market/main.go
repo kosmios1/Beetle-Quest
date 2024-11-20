@@ -47,7 +47,6 @@ func main() {
 	basePath := r.Group("/api/v1/market")
 	basePath.Use(middleware.CheckJWTAuthorizationToken())
 	{
-		basePath.GET("/", cnt.Market)
 		basePath.POST("/bugscoin/buy", cnt.BuyBugscoin)
 		basePath.GET("/gacha/roll", cnt.RollGacha)
 		basePath.GET("/gacha/:gacha_id/buy", cnt.BuyGacha)
