@@ -35,18 +35,16 @@ func (s *UserService) DeleteUserAccount(userID models.UUID, password string) err
 	}
 
 	if err := utils.CompareHashPassword([]byte(password), user.PasswordHash); err != nil {
-		return models.ErrInvalidPassword
+		return models.ErrInternalServerError
 	}
 
-	if ok := s.grepo.RemoveUserGachas(user.UserID); !ok {
-		return models.ErrCouldNotDelete
+	if err := s.grepo.RemoveUserGachas(user.UserID); err != nil {
+		return err
 	}
 
 	if ok := s.mrepo.DeleteUserTransactionHistory(user.UserID); !ok {
 		return models.ErrCouldNotDelete
 	}
-
-	// NOTE: Even if we don't invalidate the user session, the user is invalid and can't do anything
 
 	if ok := s.urepo.Delete(user); !ok {
 		return models.ErrCouldNotDelete
@@ -137,17 +135,17 @@ func (s *UserService) FindByUsername(username string) (*models.User, bool) {
 	return user, true
 }
 
-func (s *UserService) GetUserGachaList(userId string) []models.Gacha {
+func (s *UserService) GetUserGachaList(userId string) ([]models.Gacha, error) {
 	uid, err := utils.ParseUUID(userId)
 	if err != nil {
-		return []models.Gacha{}
+		return nil, models.ErrInternalServerError
 	}
 
-	gachas, ok := s.grepo.GetUserGachas(uid)
-	if !ok {
-		return []models.Gacha{}
+	if gachas, err := s.grepo.GetUserGachas(uid); err != nil {
+		return nil, err
+	} else {
+		return gachas, nil
 	}
-	return gachas
 }
 
 func (s *UserService) GetUserTransactionHistory(userId string) []models.Transaction {

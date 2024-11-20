@@ -19,9 +19,14 @@ func NewGachaController(s *service.GachaService) *GachaController {
 }
 
 func (c *GachaController) List(ctx *gin.Context) {
-	gachas, ok := c.srv.GetAll()
-	if !ok {
-		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": models.ErrGachaNotFound})
+	gachas, err := c.srv.GetAll()
+	if err != nil {
+		if err == models.ErrInternalServerError {
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err.Error()})
+			ctx.Abort()
+			return
+		}
+		ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 		return
 	}
 
@@ -42,13 +47,19 @@ func (c *GachaController) List(ctx *gin.Context) {
 func (c *GachaController) GetGachaDetails(ctx *gin.Context) {
 	id := ctx.Param("gacha_id")
 	if id == "" {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": models.ErrInvalidGachaID})
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": models.ErrInvalidGachaID})
+		ctx.Abort()
 		return
 	}
 
-	gacha, ok := c.srv.FindByID(id)
-	if !ok {
-		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": models.ErrGachaNotFound})
+	gacha, err := c.srv.FindByID(id)
+	if err != nil {
+		if err == models.ErrInternalServerError {
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err.Error()})
+			ctx.Abort()
+			return
+		}
+		ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 		return
 	}
 
@@ -64,13 +75,22 @@ func (c *GachaController) GetGachaDetails(ctx *gin.Context) {
 func (cnt *GachaController) GetUserGachaList(ctx *gin.Context) {
 	userId := ctx.Param("user_id")
 	if userId == "" {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "No User ID has been provided!"})
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": models.ErrInvalidUserID})
+		ctx.Abort()
 		return
 	}
 
-	gacha, ok := cnt.srv.GetUserGachasStr(userId)
-	if !ok {
-		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "User Gacha not found!"})
+	gacha, err := cnt.srv.GetUserGachasStr(userId)
+	if err != nil {
+		if err == models.ErrInternalServerError {
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err.Error()})
+			ctx.Abort()
+			return
+		} else if err == models.ErrInvalidData {
+			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
+		} else {
+			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err.Error()})
+		}
 		return
 	}
 
@@ -80,19 +100,29 @@ func (cnt *GachaController) GetUserGachaList(ctx *gin.Context) {
 func (cnt *GachaController) GetUserGachaDetails(ctx *gin.Context) {
 	gachaId := ctx.Param("gacha_id")
 	if gachaId == "" {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "No Gacha ID has been provided!"})
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": models.ErrInvalidGachaID})
+		ctx.Abort()
 		return
 	}
 
 	userId := ctx.Param("user_id")
 	if userId == "" {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "No User ID has been provided!"})
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": models.ErrInvalidUserID})
+		ctx.Abort()
 		return
 	}
 
-	gacha, ok := cnt.srv.GetUserGachaDetails(userId, gachaId)
-	if !ok {
-		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "User Gacha not found!"})
+	gacha, err := cnt.srv.GetUserGachaDetails(userId, gachaId)
+	if err != nil {
+		if err == models.ErrInternalServerError {
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err.Error()})
+			ctx.Abort()
+			return
+		} else if err == models.ErrInvalidData {
+			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
+		} else {
+			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err.Error()})
+		}
 		return
 	}
 
@@ -104,13 +134,19 @@ func (cnt *GachaController) GetUserGachaDetails(ctx *gin.Context) {
 func (c *GachaController) CreateGacha(ctx *gin.Context) {
 	var data models.Gacha
 	if err := ctx.ShouldBindJSON(&data); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "Invalid data submitted!"})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": models.ErrInvalidData})
 		return
 	}
 
 	if err := c.srv.CreateGacha(&data); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Error": err.Error()})
-		return
+		if err == models.ErrInternalServerError {
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Error": err})
+			return
+		} else if err == models.ErrGachaAlreadyExists {
+			ctx.AbortWithStatusJSON(http.StatusConflict, gin.H{"Error": err})
+			return
+		}
+		panic("Unreachable code")
 	}
 
 	ctx.Status(http.StatusOK)
@@ -119,13 +155,21 @@ func (c *GachaController) CreateGacha(ctx *gin.Context) {
 func (c *GachaController) UpdateGacha(ctx *gin.Context) {
 	var data models.Gacha
 	if err := ctx.ShouldBindJSON(&data); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "Invalid data submitted!"})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": models.ErrInvalidData})
 		return
 	}
 
 	if err := c.srv.UpdateGacha(&data); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Error": err.Error()})
-		return
+		if err == models.ErrInternalServerError {
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Error": err})
+		} else if err == models.ErrGachaNotFound {
+			ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"Error": err})
+			return
+		} else if err == models.ErrGachaAlreadyExists {
+			ctx.AbortWithStatusJSON(http.StatusConflict, gin.H{"Error": err})
+			return
+		}
+		panic("Unreachable code")
 	}
 
 	ctx.Status(http.StatusOK)
@@ -134,23 +178,35 @@ func (c *GachaController) UpdateGacha(ctx *gin.Context) {
 func (c *GachaController) DeleteGacha(ctx *gin.Context) {
 	var data models.Gacha
 	if err := ctx.ShouldBindJSON(&data); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "Invalid data submitted!"})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": models.ErrInvalidData})
 		return
 	}
 
 	if err := c.srv.DeleteGacha(&data); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Error": err.Error()})
-		return
+		if err == models.ErrInternalServerError {
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Error": err})
+			return
+		} else if err == models.ErrGachaNotFound {
+			ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"Error": err})
+			return
+		}
+		panic("Unreachable code")
 	}
 
 	ctx.Status(http.StatusOK)
 }
 
 func (c *GachaController) GetAll(ctx *gin.Context) {
-	gachas, ok := c.srv.GetAll()
-	if !ok {
-		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": models.ErrGachaNotFound})
-		return
+	gachas, err := c.srv.GetAll()
+	if err != nil {
+		if err == models.ErrInternalServerError {
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Error": err})
+			return
+		} else if err == models.ErrGachaNotFound {
+			ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"Error": err})
+			return
+		}
+		panic("Unreachable code")
 	}
 
 	ctx.JSON(http.StatusOK, models.GetAllGachasDataResponse{GachaList: gachas})
@@ -159,14 +215,20 @@ func (c *GachaController) GetAll(ctx *gin.Context) {
 func (c *GachaController) GetUserGachas(ctx *gin.Context) {
 	var data models.GetUserGachasData
 	if err := ctx.ShouldBindJSON(&data); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "Invalid data submitted!"})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": models.ErrInvalidData})
 		return
 	}
 
-	gachas, ok := c.srv.GetUserGachas(data.UserID)
-	if !ok {
-		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": models.ErrGachaNotFound})
-		return
+	gachas, err := c.srv.GetUserGachas(data.UserID)
+	if err != nil {
+		if err == models.ErrInternalServerError {
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Error": err})
+			return
+		} else if err == models.ErrUserNotFound {
+			ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"Error": err})
+			return
+		}
+		panic("Unreachable code")
 	}
 
 	ctx.JSON(http.StatusOK, models.GetUserGachasDataResponse{GachaList: gachas})
@@ -175,13 +237,19 @@ func (c *GachaController) GetUserGachas(ctx *gin.Context) {
 func (c *GachaController) AddGachaToUser(ctx *gin.Context) {
 	var data models.AddGachaToUserData
 	if err := ctx.ShouldBindJSON(&data); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "Invalid data submitted!"})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": models.ErrInvalidData})
 		return
 	}
 
 	if err := c.srv.AddGachaToUser(data.UserID, data.GachaID); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Error": err.Error()})
-		return
+		if err == models.ErrInternalServerError {
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Error": err})
+			return
+		} else if err == models.ErrUserAlreadyHasGacha {
+			ctx.AbortWithStatusJSON(http.StatusConflict, gin.H{"Error": err})
+			return
+		}
+		panic("Unreachable code")
 	}
 
 	ctx.Status(http.StatusOK)
@@ -190,13 +258,19 @@ func (c *GachaController) AddGachaToUser(ctx *gin.Context) {
 func (c *GachaController) RemoveGachaFromUser(ctx *gin.Context) {
 	var data models.RemoveGachaFromUserData
 	if err := ctx.ShouldBindJSON(&data); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "Invalid data submitted!"})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": models.ErrInvalidData})
 		return
 	}
 
 	if err := c.srv.RemoveGachaFromUser(data.UserID, data.GachaID); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Error": err.Error()})
-		return
+		if err == models.ErrInternalServerError {
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Error": err})
+			return
+		} else if err == models.ErrRetalationGachaUserNotFound {
+			ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"Error": err})
+			return
+		}
+		panic("Unreachable code")
 	}
 
 	ctx.Status(http.StatusOK)
@@ -205,15 +279,21 @@ func (c *GachaController) RemoveGachaFromUser(ctx *gin.Context) {
 func (c *GachaController) FindByID(ctx *gin.Context) {
 	var req models.FindGachaByIDData
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "Wrong inputs passed to the request!"})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": models.ErrInvalidData})
 		ctx.Abort()
 		return
 	}
 
-	gacha, ok := c.srv.FindByID(req.GachaID)
-	if !ok {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": models.ErrGachaNotFound})
-		return
+	gacha, err := c.srv.FindByID(req.GachaID)
+	if err != nil {
+		if err == models.ErrInternalServerError {
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Error": err})
+			return
+		} else if err == models.ErrGachaNotFound {
+			ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"Error": err})
+			return
+		}
+		panic("Unreachable code")
 	}
 
 	ctx.JSON(http.StatusOK, gacha)
@@ -227,10 +307,16 @@ func (c *GachaController) RemoveUserGachas(ctx *gin.Context) {
 		return
 	}
 
-	if ok := c.srv.RemoveUserGachas(req.UserID); !ok {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Error": models.ErrCouldNotDelete})
-		return
+	if err := c.srv.RemoveUserGachas(req.UserID); err != nil {
+		if err == models.ErrInternalServerError {
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Error": err})
+			return
+		} else if err == models.ErrRetalationGachaUserNotFound {
+			ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"Error": err})
+			return
+		}
+		panic("Unreachable code")
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"Message": "User's gachas have been removed!"})
+	ctx.Status(http.StatusOK)
 }

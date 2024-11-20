@@ -41,7 +41,17 @@ func (c *UserController) GetUserAccountDetails(ctx *gin.Context) {
 		return
 	}
 
-	gachas := c.srv.GetUserGachaList(user.UserID.String())
+	gachas, err := c.srv.GetUserGachaList(user.UserID.String())
+	if err != nil {
+		if err == models.ErrInternalServerError {
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.Abort()
+			return
+		} else {
+			gachas = []models.Gacha{}
+		}
+	}
+
 	transactions := c.srv.GetUserTransactionHistory(userID)
 
 	var transactionViews []models.TransactionView
@@ -125,8 +135,13 @@ func (c *UserController) DeleteUserAccount(ctx *gin.Context) {
 
 	err = c.srv.DeleteUserAccount(parsedUserID, password)
 	if err != nil {
-		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err})
-		ctx.Abort()
+		if err == models.ErrGachaNotFound {
+			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.Abort()
+		} else {
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.Abort()
+		}
 		return
 	}
 

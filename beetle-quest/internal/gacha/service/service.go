@@ -16,99 +16,74 @@ func NewGachaService(repo repositories.GachaRepo) *GachaService {
 	}
 }
 
-func (s *GachaService) FindByID(id string) (*models.Gacha, bool) {
+func (s *GachaService) FindByID(id string) (*models.Gacha, error) {
 	gachaID, err := utils.ParseUUID(id)
 	if err != nil {
-		return nil, false
+		return nil, models.ErrInternalServerError
 	}
 
-	gacha, ok := s.gachaRepo.FindByID(gachaID)
-	if !ok {
-		return nil, false
+	gacha, err := s.gachaRepo.FindByID(gachaID)
+	if err != nil {
+		return nil, err
 	}
-
-	return gacha, true
+	return gacha, nil
 }
 
-func (s *GachaService) GetAll() ([]models.Gacha, bool) {
+func (s *GachaService) GetAll() ([]models.Gacha, error) {
 	return s.gachaRepo.GetAll()
 }
 
 func (s *GachaService) AddGachaToUser(userID, gachaID models.UUID) error {
-	if ok := s.gachaRepo.AddGachaToUser(userID, gachaID); !ok {
-		return models.ErrCouldNotAddGachaToUser
-	}
-	return nil
+	return s.gachaRepo.AddGachaToUser(userID, gachaID)
 }
 
 func (s *GachaService) RemoveGachaFromUser(userID models.UUID, gachaID models.UUID) error {
-	if ok := s.gachaRepo.RemoveGachaFromUser(userID, gachaID); !ok {
-		return models.ErrCouldNotRemoveGachaFromUser
-	}
-	return nil
+	return s.gachaRepo.RemoveGachaFromUser(userID, gachaID)
 }
 
-func (s *GachaService) GetUserGachaDetails(userId, gachaId string) (models.Gacha, bool) {
-	gachas, ok := s.GetUserGachasStr(userId)
-	if !ok {
-		return models.Gacha{}, false
+func (s *GachaService) GetUserGachaDetails(userId, gachaId string) (*models.Gacha, error) {
+	gachas, err := s.GetUserGachasStr(userId)
+	if err != nil {
+		return nil, err
 	}
 
 	gid, err := utils.ParseUUID(gachaId)
 	if err != nil {
-		return models.Gacha{}, false
+		return nil, models.ErrInternalServerError
 	}
 
 	for _, gacha := range gachas {
 		if gacha.GachaID == gid {
-			return gacha, true
+			return &gacha, nil
 		}
 	}
-	return models.Gacha{}, false
+	return nil, models.ErrGachaNotFound
 }
 
-func (s *GachaService) GetUserGachasStr(userId string) ([]models.Gacha, bool) {
+func (s *GachaService) GetUserGachasStr(userId string) ([]models.Gacha, error) {
 	uid, err := utils.ParseUUID(userId)
 	if err != nil {
-		return []models.Gacha{}, false
+		return nil, models.ErrInternalServerError
 	}
-
-	gachas, ok := s.gachaRepo.GetUserGachas(uid)
-	if !ok {
-		return []models.Gacha{}, false
-	}
-	return gachas, true
+	return s.gachaRepo.GetUserGachas(uid)
 }
 
-func (s *GachaService) GetUserGachas(uid models.UUID) ([]models.Gacha, bool) {
-	gachas, ok := s.gachaRepo.GetUserGachas(uid)
-	if !ok {
-		return []models.Gacha{}, false
-	}
-	return gachas, true
+func (s *GachaService) GetUserGachas(uid models.UUID) ([]models.Gacha, error) {
+	return s.gachaRepo.GetUserGachas(uid)
 }
 
-func (s *GachaService) RemoveUserGachas(uid models.UUID) bool {
+func (s *GachaService) RemoveUserGachas(uid models.UUID) error {
 	return s.gachaRepo.RemoveUserGachas(uid)
 }
 
 func (s *GachaService) CreateGacha(g *models.Gacha) error {
-	if ok := s.gachaRepo.Create(g); !ok {
-		return models.ErrCouldNotCreateGacha
-	}
-	return nil
+	return s.gachaRepo.Create(g)
 }
 
 func (s *GachaService) UpdateGacha(g *models.Gacha) error {
-	if ok := s.gachaRepo.Update(g); !ok {
-		return models.ErrCouldNotUpdateGacha
-	}
-	return nil
+	return s.gachaRepo.Update(g)
 }
 
 func (s *GachaService) DeleteGacha(g *models.Gacha) error {
-	if ok := s.gachaRepo.Delete(g); !ok {
-		return models.ErrCouldNotDeleteGacha
-	}
-	return nil
+	return s.gachaRepo.Delete(g)
 }

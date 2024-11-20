@@ -23,28 +23,33 @@ func NewMarketController(srv *service.MarketService) *MarketController {
 func (c *MarketController) BuyBugscoin(ctx *gin.Context) {
 	var buyBugscoinRequest models.BuyBugscoinRequest
 	if err := ctx.ShouldBindJSON(&buyBugscoinRequest); err != nil {
-		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "wrong request format!"})
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": models.ErrInvalidData})
 		ctx.Abort()
 		return
 	}
 
 	amount, err := strconv.Atoi(buyBugscoinRequest.Amount)
 	if err != nil {
-		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "amount not correct!"})
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": models.ErrInvalidData})
 		ctx.Abort()
 		return
 	}
 
 	userId, ok := ctx.Get("user_id")
 	if !ok {
-		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "user_id not correct!"})
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": models.ErrInvalidUserID})
 		ctx.Abort()
 		return
 	}
 
 	if err := c.srv.AddBugsCoin(userId.(string), int64(amount)); err != nil {
-		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
-		ctx.Abort()
+		if err == models.ErrInternalServerError {
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.Abort()
+		} else {
+			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.Abort()
+		}
 		return
 	}
 	ctx.HTML(http.StatusOK, "successMsg.tmpl", gin.H{"Message": "Bugscoin added successfully"})
@@ -60,12 +65,13 @@ func (c *MarketController) RollGacha(ctx *gin.Context) {
 
 	msg, err := c.srv.RollGacha(userId.(string))
 	if err != nil {
-		if err == models.ErrInternalServerError {
-			ctx.AbortWithStatus(http.StatusInternalServerError)
-			return
+		if err == models.ErrGachaNotFound || err == models.ErrUserNotFound {
+			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.Abort()
+		} else {
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.Abort()
 		}
-		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
-		ctx.Abort()
 		return
 	}
 
@@ -75,21 +81,29 @@ func (c *MarketController) RollGacha(ctx *gin.Context) {
 func (c *MarketController) BuyGacha(ctx *gin.Context) {
 	gachaId := ctx.Param("gacha_id")
 	if gachaId == "" {
-		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "gacha_id not correct!"})
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": models.ErrInvalidGachaID})
 		ctx.Abort()
 		return
 	}
 
 	userId, ok := ctx.Get("user_id")
 	if !ok {
-		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "user_id not correct!"})
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": models.ErrInvalidUserID})
 		ctx.Abort()
 		return
 	}
 
 	if err := c.srv.BuyGacha(userId.(string), gachaId); err != nil {
-		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
-		ctx.Abort()
+		if err == models.ErrGachaNotFound {
+			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.Abort()
+		} else if err == models.ErrInvalidData {
+			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.Abort()
+		} else {
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.Abort()
+		}
 		return
 	}
 
@@ -120,8 +134,16 @@ func (c *MarketController) CreateAuction(ctx *gin.Context) {
 	}
 
 	if err := c.srv.CreateAuction(uid.(string), data.GachaID, endTime); err != nil {
-		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
-		ctx.Abort()
+		if err == models.ErrGachaNotFound {
+			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.Abort()
+		} else if err == models.ErrInvalidData {
+			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.Abort()
+		} else {
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.Abort()
+		}
 		return
 	}
 
@@ -131,7 +153,7 @@ func (c *MarketController) CreateAuction(ctx *gin.Context) {
 func (c *MarketController) AuctionList(ctx *gin.Context) {
 	auctions, err := c.srv.RetrieveAuctionTemplateList()
 	if err != nil {
-		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
+		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err})
 		ctx.Abort()
 		return
 	}
@@ -147,6 +169,7 @@ func (c *MarketController) AuctionDetail(ctx *gin.Context) {
 		return
 	}
 
+	// NOTE: findbyID and getBidListOfAuctionID should be atomic
 	auction, exists := c.srv.FindByID(auctionId)
 	if !exists {
 		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": models.ErrAuctionNotFound})

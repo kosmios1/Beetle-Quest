@@ -34,11 +34,11 @@ func NewMarketService(urepo repositories.UserRepo, grepo repositories.GachaRepo,
 func (s *MarketService) AddBugsCoin(userId string, amount int64) error {
 	id, err := utils.ParseUUID(userId)
 	if err != nil {
-		return models.ErrInvalidUserID
+		return models.ErrInternalServerError
 	}
 
 	if amount <= 0 {
-		return models.ErrAmountNotValid
+		return models.ErrInternalServerError
 	}
 
 	user, ok := s.urepo.FindByID(id)
@@ -74,7 +74,7 @@ func (s *MarketService) AddBugsCoin(userId string, amount int64) error {
 func (s *MarketService) RollGacha(userId string) (string, error) {
 	uid, err := utils.ParseUUID(userId)
 	if err != nil {
-		return "", models.ErrInvalidUserID
+		return "", models.ErrInternalServerError
 	}
 
 	user, exists := s.urepo.FindByID(uid)
@@ -86,9 +86,9 @@ func (s *MarketService) RollGacha(userId string) (string, error) {
 		return "", models.ErrNotEnoughMoneyToRollGacha
 	}
 
-	gachas, ok := s.grepo.GetAll()
-	if !ok {
-		return "", models.ErrInternalServerError
+	gachas, err := s.grepo.GetAll()
+	if err != nil {
+		return "", err
 	}
 	gid := gachas[rand.IntN(len(gachas))].GachaID
 
@@ -111,13 +111,13 @@ func (s *MarketService) RollGacha(userId string) (string, error) {
 		return "", models.ErrInternalServerError
 	}
 
-	gachas, ok = s.grepo.GetUserGachas(uid)
-	if !ok {
+	gachas, err = s.grepo.GetUserGachas(uid)
+	if err != nil {
 		user.Currency += 1000
 		_ = s.urepo.Update(user)
 		// TODO: What do i do here if it fails?
 		// - Report to admin
-		return "", models.ErrInternalServerError
+		return "", err
 	}
 
 	for _, gacha := range gachas {
@@ -126,12 +126,12 @@ func (s *MarketService) RollGacha(userId string) (string, error) {
 		}
 	}
 
-	if ok := s.grepo.AddGachaToUser(uid, gid); !ok {
+	if err := s.grepo.AddGachaToUser(uid, gid); err != nil {
 		user.Currency += 1000
 		_ = s.urepo.Update(user)
 		// TODO: What do i do here?
 		// - Report to admin
-		return "", models.ErrInternalServerError
+		return "", err
 	}
 
 	return "Gacha successfully obtained, check your inventory!", nil
@@ -148,9 +148,9 @@ func (s *MarketService) BuyGacha(userId string, gachaId string) error {
 		return models.ErrInvalidGachaID
 	}
 
-	userGacha, ok := s.grepo.GetUserGachas(uid)
-	if !ok {
-		return models.ErrUserAlreadyHasGacha
+	userGacha, err := s.grepo.GetUserGachas(uid)
+	if err != nil {
+		return err
 	}
 
 	for _, gacha := range userGacha {
@@ -164,9 +164,9 @@ func (s *MarketService) BuyGacha(userId string, gachaId string) error {
 		return models.ErrUserNotFound
 	}
 
-	gacha, ok := s.grepo.FindByID(gid)
-	if !ok {
-		return models.ErrGachaNotFound
+	gacha, err := s.grepo.FindByID(gid)
+	if err != nil {
+		return err
 	}
 
 	if user.Currency < gacha.Price {
@@ -192,14 +192,14 @@ func (s *MarketService) BuyGacha(userId string, gachaId string) error {
 		return models.ErrCouldNotUpdate
 	}
 
-	if ok := s.grepo.AddGachaToUser(uid, gid); !ok {
+	if err := s.grepo.AddGachaToUser(uid, gid); err != nil {
 		// Compensating transaction
 		user.Currency += gacha.Price
 		if ok := s.urepo.Update(user); !ok {
 			// TODO: What do i do here?
 			// - Report to admin
 		}
-		return models.ErrCouldNotAddGachaToUser
+		return err
 	}
 	return nil
 }
@@ -220,14 +220,14 @@ func (s *MarketService) CreateAuction(userId, gachaId string, endTime time.Time)
 		return models.ErrUserNotFound
 	}
 
-	gacha, exists := s.grepo.FindByID(gid)
-	if !exists {
-		return models.ErrGachaNotFound
+	gacha, err := s.grepo.FindByID(gid)
+	if err != nil {
+		return err
 	}
 
-	gachas, ok := s.grepo.GetUserGachas(uid)
-	if !ok {
-		return models.ErrCouldNotRetrieveUserGachas
+	gachas, err := s.grepo.GetUserGachas(uid)
+	if err != nil {
+		return err
 	}
 
 	var found bool
@@ -346,8 +346,12 @@ func (s *MarketService) RetrieveAuctionTemplateList() ([]models.AuctionTemplate,
 
 	var data []models.AuctionTemplate = []models.AuctionTemplate{}
 	for _, auction := range auctions {
-		gacha, exists := s.grepo.FindByID(auction.GachaID)
-		if !exists {
+		gacha, err := s.grepo.FindByID(auction.GachaID)
+		if err == models.ErrInternalServerError {
+			return nil, err
+		}
+
+		if err != nil {
 			gacha = &models.Gacha{
 				Name:      "Unknown",
 				ImagePath: "unknown.png",
@@ -471,7 +475,7 @@ func (s *MarketService) MakeBid(userId, auctionId string, bidAmount int64) error
 }
 
 // Timed events callbacks ================================================
-// - ...
+
 func (s *MarketService) closeAuctionCallback(aid models.UUID) {
 	auction, exists := s.mrepo.FindByID(aid)
 	if !exists {
@@ -494,8 +498,8 @@ func (s *MarketService) closeAuctionCallback(aid models.UUID) {
 
 	var maxBid int64 = 0
 	var maxBidder models.UUID
+	var totalUserBiddings map[models.UUID]int64 = make(map[models.UUID]int64)
 	{ // Give back money to the losers
-		var totalUserBiddings map[models.UUID]int64 = make(map[models.UUID]int64)
 		for _, bid := range bids {
 			if bid.AmountSpend > maxBid {
 				maxBid = bid.AmountSpend
@@ -522,8 +526,20 @@ func (s *MarketService) closeAuctionCallback(aid models.UUID) {
 		}
 	}
 
-	gacha, exists := s.grepo.FindByID(auction.GachaID)
-	if !exists {
+	gacha, err := s.grepo.FindByID(auction.GachaID)
+	if err != nil {
+		// NOTE: If we do not find the gacha, we still have informations to give back the money
+		// to the winner
+		user, exists := s.urepo.FindByID(maxBidder)
+		if !exists {
+			s.closeAuctionErrorCallback(models.ErrUserNotFound)
+			return
+		}
+
+		user.Currency += totalUserBiddings[maxBidder]
+		if ok := s.urepo.Update(user); !ok {
+			s.closeAuctionErrorCallback(models.ErrCouldNotUpdate)
+		}
 	}
 
 	{ // Winner actions
@@ -553,7 +569,7 @@ func (s *MarketService) closeAuctionCallback(aid models.UUID) {
 				return
 			}
 
-			if ok := s.grepo.AddGachaToUser(user.UserID, gacha.GachaID); !ok {
+			if err := s.grepo.AddGachaToUser(user.UserID, gacha.GachaID); err != nil {
 				s.closeAuctionErrorCallback(models.ErrCouldNotAddGachaToUser)
 				return
 			}
@@ -567,7 +583,7 @@ func (s *MarketService) closeAuctionCallback(aid models.UUID) {
 			return
 		}
 
-		if ok := s.grepo.RemoveGachaFromUser(user.UserID, gacha.GachaID); !ok {
+		if err := s.grepo.RemoveGachaFromUser(user.UserID, gacha.GachaID); err != nil {
 			s.closeAuctionErrorCallback(models.ErrCouldNotAddGachaToUser)
 			return
 		}

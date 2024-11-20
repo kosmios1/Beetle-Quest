@@ -49,19 +49,22 @@ func (c *AdminController) GetAllUsers(ctx *gin.Context) {
 func (c *AdminController) GetUserProfile(ctx *gin.Context) {
 	userId := ctx.Param("user_id")
 	if userId == "" {
-		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "user_id is required"})
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": models.ErrInvalidData})
 		ctx.Abort()
 		return
 	}
 
-	user, exists := c.srv.FindUserByID(userId)
-	if !exists {
-		ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": "User not found"})
-		ctx.Abort()
+	user, err := c.srv.FindUserByID(userId)
+	if err != nil {
+		if err == models.ErrInternalServerError {
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.Abort()
+		} else {
+			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.Abort()
+		}
 		return
 	}
-
-	// ctx.HTML(http.StatusOK, "userProfile.tmpl", gin.H{"User": user})
 	ctx.JSON(http.StatusOK, user)
 }
 
@@ -138,11 +141,15 @@ func (c *AdminController) AddGacha(ctx *gin.Context) {
 	}
 
 	if err := c.srv.AddGacha(&data); err != nil {
-		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err.Error()})
-		ctx.Abort()
+		if err == models.ErrGachaAlreadyExists {
+			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
+			ctx.Abort()
+		} else {
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err.Error()})
+			ctx.Abort()
+		}
 		return
 	}
-
 	ctx.HTML(http.StatusOK, "successMsg.tmpl", gin.H{"Message": "Gacha added successfully!"})
 }
 
@@ -154,9 +161,14 @@ func (cnt *AdminController) DeleteGacha(ctx *gin.Context) {
 		return
 	}
 
-	if ok := cnt.srv.DeleteGacha(gachaId); !ok {
-		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": "Internal server error!"})
-		ctx.Abort()
+	if err := cnt.srv.DeleteGacha(gachaId); err != nil {
+		if err == models.ErrGachaNotFound {
+			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.Abort()
+		} else {
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.Abort()
+		}
 		return
 	}
 
@@ -178,9 +190,17 @@ func (cnt *AdminController) UpdateGacha(ctx *gin.Context) {
 		return
 	}
 
-	if ok := cnt.srv.UpdateGacha(gachaId, &data); !ok {
-		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": "Internal server error!"})
-		ctx.Abort()
+	if err := cnt.srv.UpdateGacha(gachaId, &data); err != nil {
+		if err == models.ErrGachaNotFound {
+			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.Abort()
+		} else if err == models.ErrGachaAlreadyExists {
+			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.Abort()
+		} else {
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.Abort()
+		}
 		return
 	}
 
@@ -188,13 +208,17 @@ func (cnt *AdminController) UpdateGacha(ctx *gin.Context) {
 }
 
 func (cnt *AdminController) GetAllGachas(ctx *gin.Context) {
-	gachas, ok := cnt.srv.GetAllGachas()
-	if !ok {
-		ctx.Status(http.StatusInternalServerError)
-		ctx.Abort()
+	if gachas, err := cnt.srv.GetAllGachas(); err != nil {
+		if err == models.ErrGachaNotFound {
+			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": models.ErrGachaNotFound})
+		} else {
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.Abort()
+		}
 		return
+	} else {
+		ctx.JSON(http.StatusOK, gin.H{"GachaList": gachas})
 	}
-	ctx.JSON(http.StatusOK, gin.H{"GachaList": gachas})
 }
 
 func (cnt *AdminController) GetGachaDetails(ctx *gin.Context) {
@@ -205,14 +229,18 @@ func (cnt *AdminController) GetGachaDetails(ctx *gin.Context) {
 		return
 	}
 
-	gacha, exists := cnt.srv.FindGachaByID(gachaId)
-	if !exists {
-		ctx.Status(http.StatusNotFound)
-		ctx.Abort()
+	if gacha, err := cnt.srv.FindGachaByID(gachaId); err != nil {
+		if err == models.ErrGachaNotFound {
+			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.Abort()
+		} else {
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.Abort()
+		}
 		return
+	} else {
+		ctx.JSON(http.StatusOK, gacha)
 	}
-
-	ctx.JSON(http.StatusOK, gacha)
 }
 
 // Market controllers ==============================================

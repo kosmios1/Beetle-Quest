@@ -3,9 +3,9 @@ package repository
 import (
 	"beetle-quest/pkg/models"
 	"beetle-quest/pkg/utils"
+	"errors"
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"gorm.io/driver/postgres"
@@ -40,88 +40,132 @@ func NewGachaRepo() *GachaRepo {
 		}
 	}
 
-	// This will create the table if it does not exist and will keep the schema updated
-	// err := repo.db.AutoMigrate(&models.Gacha{})
-
 	return repo
 }
 
-func (r *GachaRepo) Create(gacha *models.Gacha) bool {
+func (r *GachaRepo) Create(gacha *models.Gacha) error {
 	result := r.db.Table("gachas").Create(gacha)
 	if result.Error != nil {
-		return false
+		if errors.Is(result.Error, gorm.ErrDuplicatedKey) {
+			return models.ErrGachaAlreadyExists
+		}
+		return models.ErrInternalServerError
 	}
-	return true
+
+	if result.RowsAffected == 0 {
+		return models.ErrInternalServerError
+	}
+	return nil
 }
 
-func (r *GachaRepo) Update(gacha *models.Gacha) bool {
+func (r *GachaRepo) Update(gacha *models.Gacha) error {
 	result := r.db.Table("gachas").Where("gacha_id = ?", gacha.GachaID).Updates(gacha)
 	if result.Error != nil {
-		return false
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return models.ErrGachaNotFound
+		} else if errors.Is(result.Error, gorm.ErrDuplicatedKey) {
+			return models.ErrGachaAlreadyExists
+		}
+		return models.ErrInternalServerError
 	}
-	return true
+
+	if result.RowsAffected == 0 {
+		return models.ErrInternalServerError
+	}
+	return nil
 }
 
-func (r *GachaRepo) Delete(gacha *models.Gacha) bool {
+func (r *GachaRepo) Delete(gacha *models.Gacha) error {
 	result := r.db.Table("gachas").Delete(gacha, models.Gacha{GachaID: gacha.GachaID})
 	if result.Error != nil {
-		return false
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return models.ErrGachaNotFound
+		}
+		return models.ErrInternalServerError
 	}
-	return true
+
+	if result.RowsAffected == 0 {
+		return models.ErrInternalServerError
+	}
+	return nil
 }
 
-func (r *GachaRepo) FindByID(id models.UUID) (*models.Gacha, bool) {
+func (r *GachaRepo) FindByID(id models.UUID) (*models.Gacha, error) {
 	var gacha models.Gacha
 	result := r.db.Table("gachas").First(&gacha, models.Gacha{GachaID: id})
 	if result.Error != nil {
-		return nil, false
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, models.ErrGachaNotFound
+		}
+		return nil, models.ErrInternalServerError
 	}
-	return &gacha, true
+	return &gacha, nil
 }
 
-func (r *GachaRepo) GetAll() ([]models.Gacha, bool) {
+func (r *GachaRepo) GetAll() ([]models.Gacha, error) {
 	var gachas []models.Gacha
 	result := r.db.Table("gachas").Find(&gachas)
 	if result.Error != nil {
-		return nil, false
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, models.ErrGachaNotFound
+		}
+		return nil, models.ErrInternalServerError
 	}
-	return gachas, true
+	return gachas, nil
 }
 
-func (r *GachaRepo) AddGachaToUser(uid models.UUID, gid models.UUID) bool {
+func (r *GachaRepo) AddGachaToUser(uid models.UUID, gid models.UUID) error {
 	value := models.GachaUserRelation{UserID: uid, GachaID: gid}
 	result := r.db.Table("user_gacha").Create(value)
 	if result.Error != nil {
-		if strings.Contains(result.Error.Error(), "duplicate key") {
-			return false
+		if errors.Is(result.Error, gorm.ErrDuplicatedKey) {
+			return models.ErrUserAlreadyHasGacha
 		}
-		return false
+		return models.ErrInternalServerError
 	}
-	return true
+
+	if result.RowsAffected == 0 {
+		return models.ErrInternalServerError
+	}
+	return nil
 }
 
-func (r *GachaRepo) RemoveGachaFromUser(uid models.UUID, gid models.UUID) bool {
+func (r *GachaRepo) RemoveGachaFromUser(uid models.UUID, gid models.UUID) error {
 	value := models.GachaUserRelation{UserID: uid, GachaID: gid}
 	result := r.db.Table("user_gacha").Delete(value, "user_id = ? AND gacha_id = ?", uid, gid)
 	if result.Error != nil {
-		return false
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return models.ErrRetalationGachaUserNotFound
+		}
+		return models.ErrInternalServerError
 	}
-	return true
+
+	if result.RowsAffected == 0 {
+		return models.ErrInternalServerError
+	}
+	return nil
 }
 
-func (r *GachaRepo) RemoveUserGachas(uid models.UUID) bool {
+func (r *GachaRepo) RemoveUserGachas(uid models.UUID) error {
 	result := r.db.Table("user_gacha").Delete(models.GachaUserRelation{}, models.GachaUserRelation{UserID: uid})
 	if result.Error != nil {
-		return false
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return models.ErrRetalationGachaUserNotFound
+		}
+		return models.ErrInternalServerError
 	}
-	return true
+	return nil
 }
 
-func (r *GachaRepo) GetUserGachas(uid models.UUID) ([]models.Gacha, bool) {
+func (r *GachaRepo) GetUserGachas(uid models.UUID) ([]models.Gacha, error) {
 	var gachas []models.Gacha
 	result := r.db.Table("user_gacha").Select("gachas.*").Joins("JOIN gachas ON gachas.gacha_id = user_gacha.gacha_id").Where("user_gacha.user_id = ?", uid).Find(&gachas)
+
 	if result.Error != nil {
-		return nil, false
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, models.ErrGachaNotFound
+		}
+		return nil, models.ErrInternalServerError
 	}
-	return gachas, true
+	return gachas, nil
 }

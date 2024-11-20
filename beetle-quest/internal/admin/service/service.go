@@ -28,19 +28,22 @@ func (s *AdminService) GetAllUsers() ([]models.User, error) {
 	return s.urepo.GetAll()
 }
 
-func (s *AdminService) FindUserByID(userId string) (*models.UserDetailsTemplate, bool) {
+func (s *AdminService) FindUserByID(userId string) (*models.UserDetailsTemplate, error) {
 	uid, err := utils.ParseUUID(userId)
 	if err != nil {
-		return nil, false
+		return nil, models.ErrInternalServerError
 	}
 
 	user, exists := s.urepo.FindByID(uid)
 	if !exists {
-		return nil, false
+		return nil, models.ErrInternalServerError
 	}
 
-	gachas, ok := s.grepo.GetUserGachas(uid)
-	if !ok {
+	gachas, err := s.grepo.GetUserGachas(uid)
+	if err != nil {
+		if err == models.ErrInternalServerError {
+			return nil, err
+		}
 		gachas = []models.Gacha{}
 	}
 
@@ -50,7 +53,10 @@ func (s *AdminService) FindUserByID(userId string) (*models.UserDetailsTemplate,
 	}
 
 	auctions, ok := s.mrepo.GetUserAuctions(uid)
-	if !ok {
+	if err != nil {
+		if err == models.ErrInternalServerError {
+			return nil, err
+		}
 		auctions = []models.Auction{}
 	}
 
@@ -59,7 +65,7 @@ func (s *AdminService) FindUserByID(userId string) (*models.UserDetailsTemplate,
 		Gachas:       gachas,
 		Transactions: transactions,
 		Auctions:     auctions,
-	}, true
+	}, nil
 }
 
 func (s *AdminService) UpdateUserProfile(userId string, data *models.AdminUpdateUserAccount) bool {
@@ -139,21 +145,18 @@ func (s *AdminService) AddGacha(data *models.AdminAddGachaRequest) error {
 		ImagePath: data.ImagePath,
 	}
 
-	if ok := s.grepo.Create(gacha); !ok {
-		return models.ErrGachaCreationFailed
-	}
-	return nil
+	return s.grepo.Create(gacha)
 }
 
-func (s *AdminService) UpdateGacha(gachaId string, data *models.AdminUpdateGachaRequest) bool {
+func (s *AdminService) UpdateGacha(gachaId string, data *models.AdminUpdateGachaRequest) error {
 	gid, err := utils.ParseUUID(gachaId)
 	if err != nil {
-		return false
+		return models.ErrInternalServerError
 	}
 
-	gacha, exists := s.grepo.FindByID(gid)
-	if !exists {
-		return false
+	gacha, err := s.grepo.FindByID(gid)
+	if err != nil {
+		return err
 	}
 
 	if data.Name != "" {
@@ -166,7 +169,7 @@ func (s *AdminService) UpdateGacha(gachaId string, data *models.AdminUpdateGacha
 
 	price, err := strconv.Atoi(data.Price)
 	if err != nil {
-		return false
+		return models.ErrInternalServerError
 	}
 	if price >= 0 {
 		gacha.Price = int64(price)
@@ -175,35 +178,34 @@ func (s *AdminService) UpdateGacha(gachaId string, data *models.AdminUpdateGacha
 	// FIXME: If rarity == "Common" it does not change
 	rarity, err := models.RarityFromString(data.Rarity)
 	if err != nil {
-		return false
+		return models.ErrInternalServerError
 	}
-
 	gacha.Rarity = rarity
 
 	return s.grepo.Update(gacha)
 }
 
-func (s *AdminService) DeleteGacha(gachaId string) bool {
+func (s *AdminService) DeleteGacha(gachaId string) error {
 	gid, err := utils.ParseUUID(gachaId)
 	if err != nil {
-		return false
+		return models.ErrInternalServerError
 	}
 
-	gacha, exists := s.grepo.FindByID(gid)
-	if !exists {
-		return false
+	gacha, error := s.grepo.FindByID(gid)
+	if error != nil {
+		return err
 	}
 	return s.grepo.Delete(gacha)
 }
 
-func (s *AdminService) GetAllGachas() ([]models.Gacha, bool) {
+func (s *AdminService) GetAllGachas() ([]models.Gacha, error) {
 	return s.grepo.GetAll()
 }
 
-func (s *AdminService) FindGachaByID(gachaId string) (*models.Gacha, bool) {
+func (s *AdminService) FindGachaByID(gachaId string) (*models.Gacha, error) {
 	gid, err := utils.ParseUUID(gachaId)
 	if err != nil {
-		return nil, false
+		return nil, models.ErrInternalServerError
 	}
 
 	return s.grepo.FindByID(gid)

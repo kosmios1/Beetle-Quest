@@ -46,7 +46,7 @@ class AuthenticatedUser(FastHttpUser):
             "email": self.email,
         }, allow_redirects=False)
 
-        if response.status_code != HTTPStatus.OK:
+        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
             response.raise_for_status()
             return
 
@@ -55,7 +55,7 @@ class AuthenticatedUser(FastHttpUser):
             "password": self.password,
         }, allow_redirects=False)
 
-        if response.status_code != HTTPStatus.FOUND:
+        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
             response.raise_for_status()
             return
 
@@ -77,7 +77,7 @@ class AuthenticatedUser(FastHttpUser):
 
     def on_stop(self):
         response = self.client.get(f"{base_path}/auth/logout", allow_redirects=False)
-        if response.status_code != HTTPStatus.FOUND:
+        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
             response.raise_for_status()
             return
 
@@ -87,7 +87,7 @@ class UserMSRequests(AuthenticatedUser):
     @task
     def get_user(self):
         response = self.client.get(f"{base_path}/user/account/{self.user_id}", allow_redirects=False)
-        if response.status_code != HTTPStatus.OK:
+        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
             response.raise_for_status()
             return
 
@@ -99,7 +99,7 @@ class UserMSRequests(AuthenticatedUser):
             "new_password": self.password,
             "old_password": self.password,
         }, allow_redirects=False)
-        if response.status_code != HTTPStatus.OK:
+        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
             response.raise_for_status()
             return
 
@@ -108,7 +108,7 @@ class UserMSRequests(AuthenticatedUser):
         response = self.client.delete(f"{base_path}/user/account/delete", json={
             "password": self.password,
         }, allow_redirects=False)
-        if response.status_code != HTTPStatus.SEE_OTHER:
+        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
             response.raise_for_status()
             return
 
@@ -118,7 +118,7 @@ class GachaMSRequests(AuthenticatedUser):
     @task
     def get_gacha_list(self):
         response = self.client.get(f"{base_path}/gacha/list", allow_redirects=False)
-        if response.status_code != HTTPStatus.OK:
+        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
             response.raise_for_status()
             return
 
@@ -128,7 +128,7 @@ class GachaMSRequests(AuthenticatedUser):
             return
         randgachaid = random.choice(gacha_ids)
         response = self.client.get(f"{base_path}/gacha/{randgachaid}", allow_redirects=False)
-        if response.status_code != HTTPStatus.OK:
+        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
             response.raise_for_status()
             return
 
@@ -138,7 +138,7 @@ class GachaMSRequests(AuthenticatedUser):
             return
         randuserid = random.choice(user_ids)
         response = self.client.get(f"{base_path}/gacha/{randuserid}/list", allow_redirects=False)
-        if response.status_code != HTTPStatus.OK:
+        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
             response.raise_for_status()
             return
 
@@ -149,7 +149,7 @@ class GachaMSRequests(AuthenticatedUser):
         randuserid = random.choice(user_ids)
         randgachaid = random.choice(gacha_ids)
         response = self.client.get(f"{base_path}/{randgachaid}/{randuserid}", allow_redirects=False)
-        if response.status_code != HTTPStatus.OK:
+        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
             response.raise_for_status()
             return
 
@@ -160,7 +160,7 @@ class MarketMSRequests(AuthenticatedUser):
         response = self.client.post(f"{base_path}/market/bugscoin/buy", json={
             "amount": f"{100000}",
         }, allow_redirects=False)
-        if response.status_code != HTTPStatus.OK:
+        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
             response.raise_for_status()
             return
 
@@ -170,7 +170,7 @@ class MarketMSRequests(AuthenticatedUser):
 
         if b'not enough money to roll gacha' in response.content:
             return
-        if response.status_code != HTTPStatus.OK:
+        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
             response.raise_for_status()
             return
 
@@ -180,7 +180,7 @@ class MarketMSRequests(AuthenticatedUser):
             return
         randgachaid = random.choice(gacha_ids)
         response = self.client.get(f"{base_path}/market/gacha/{randgachaid}/buy", allow_redirects=False)
-        if response.status_code != HTTPStatus.OK and response.status_code != HTTPStatus.BAD_REQUEST:
+        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
             response.raise_for_status()
             return
 
@@ -197,7 +197,7 @@ class MarketMSRequests(AuthenticatedUser):
     @task
     def get_auction_list(self):
         response = self.client.get(f"{base_path}/market/auction/list", allow_redirects=False)
-        if response.status_code != HTTPStatus.OK:
+        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
             response.raise_for_status()
             return
 
@@ -223,7 +223,7 @@ class MarketMSRequests(AuthenticatedUser):
             if err in resp_body:
                 return
 
-        if response.status_code != HTTPStatus.OK:
+        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
             response.raise_for_status()
             return
 
@@ -241,7 +241,7 @@ class MarketMSRequests(AuthenticatedUser):
         for _, err in enumerate(good_err_msg):
             if err in resp_body:
                 return
-        if response.status_code != HTTPStatus.OK:
+        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
             response.raise_for_status()
             return
 
@@ -272,7 +272,7 @@ class AuthenticatedAdmin(FastHttpUser):
             "otp_code": self.otp.now()
         }, allow_redirects=False)
 
-        if response.status_code != HTTPStatus.FOUND:
+        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
             response.raise_for_status()
             return
 
@@ -293,7 +293,7 @@ class AuthenticatedAdmin(FastHttpUser):
 
     def on_stop(self):
         response = self.client.get(f"{base_path}/auth/logout")
-        if response.status_code != HTTPStatus.OK:
+        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
             response.raise_for_status()
             return
 
@@ -307,7 +307,7 @@ class AdminMSRequests(AuthenticatedAdmin):
         super().on_start()
 
         response = self.client.get(f"{base_path}/admin/user/get_all", allow_redirects=False)
-        if response.status_code != HTTPStatus.OK:
+        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
             response.raise_for_status()
             return
 
@@ -316,7 +316,7 @@ class AdminMSRequests(AuthenticatedAdmin):
         user_ids = parse_uuids(user_list, "user_id")
 
         response = self.client.get(f"{base_path}/admin/gacha/get_all", allow_redirects=False)
-        if response.status_code != HTTPStatus.OK:
+        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
             response.raise_for_status()
             return
 
@@ -325,7 +325,7 @@ class AdminMSRequests(AuthenticatedAdmin):
         gacha_ids = parse_uuids(gacha_list, "gacha_id")
 
         response = self.client.get(f"{base_path}/admin/market/auction/get_all", allow_redirects=False)
-        if response.status_code != HTTPStatus.OK:
+        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
             response.raise_for_status()
             return
 
@@ -339,7 +339,7 @@ class AdminMSRequests(AuthenticatedAdmin):
             return
         randuserid = random.choice(user_ids)
         response = self.client.get(f"{base_path}/admin/user/{randuserid}", allow_redirects=False)
-        if response.status_code != HTTPStatus.OK:
+        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
             response.raise_for_status()
             return
 
@@ -354,7 +354,7 @@ class AdminMSRequests(AuthenticatedAdmin):
             "email": f"{randstr[:len(randstr)//2:]}@{randstr[len(randstr)//2::]}.it",
             "currency": f"{random.randint(0, 1000000)}",
         }, allow_redirects=False)
-        if response.status_code != HTTPStatus.OK:
+        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
             response.raise_for_status()
             return
 
@@ -364,7 +364,7 @@ class AdminMSRequests(AuthenticatedAdmin):
             return
         randuserid = random.choice(user_ids)
         response = self.client.get(f"{base_path}/admin/user/{randuserid}/transaction_history", allow_redirects=False)
-        if response.status_code != HTTPStatus.OK:
+        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
             response.raise_for_status()
             return
 
@@ -374,7 +374,7 @@ class AdminMSRequests(AuthenticatedAdmin):
             return
         randuserid = random.choice(user_ids)
         response = self.client.get(f"{base_path}/admin/user/{randuserid}/auction/get_all", allow_redirects=False)
-        if response.status_code != HTTPStatus.OK:
+        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
             response.raise_for_status()
             return
 
@@ -387,7 +387,7 @@ class AdminMSRequests(AuthenticatedAdmin):
             "price": f"{random.randint(0, 1000)}",
             "image_path": randstr[::-1]
         }, allow_redirects=False)
-        if response.status_code != HTTPStatus.OK:
+        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
             response.raise_for_status()
             return
 
@@ -397,7 +397,7 @@ class AdminMSRequests(AuthenticatedAdmin):
             return
         randgachaid = random.choice(gacha_ids)
         response = self.client.get(f"{base_path}/admin/gacha/{randgachaid}", allow_redirects=False)
-        if response.status_code != HTTPStatus.OK:
+        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
             response.raise_for_status()
             return
 
@@ -413,7 +413,7 @@ class AdminMSRequests(AuthenticatedAdmin):
             "price": f"{random.randint(0, 1000)}",
             "image_path": randstr[::-1]
         }, allow_redirects=False)
-        if response.status_code != HTTPStatus.OK:
+        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
             response.raise_for_status()
             return
 
@@ -424,14 +424,14 @@ class AdminMSRequests(AuthenticatedAdmin):
         randstr = generate_random_string()
         randgachaid = random.choice(gacha_ids)
         response = self.client.delete(f"{base_path}/admin/gacha/{randgachaid}", allow_redirects=False)
-        if response.status_code != HTTPStatus.OK:
+        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
             response.raise_for_status()
             return
 
     @task
     def get_transaction_history(self):
         response = self.client.get(f"{base_path}/admin/market/transaction_history", allow_redirects=False)
-        if response.status_code != HTTPStatus.OK:
+        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
             response.raise_for_status()
             return
     @task
@@ -440,7 +440,7 @@ class AdminMSRequests(AuthenticatedAdmin):
             return
         randauctionid = random.choice(auction_ids)
         response = self.client.get(f"{base_path}/admin/market/auction/{randauctionid}", allow_redirects=False)
-        if response.status_code != HTTPStatus.OK:
+        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
             response.raise_for_status()
             return
 

@@ -3,16 +3,16 @@ package repositories
 import "beetle-quest/pkg/models"
 
 type GachaRepo interface {
-	Create(*models.Gacha) bool
-	Update(*models.Gacha) bool
-	Delete(*models.Gacha) bool
+	Create(*models.Gacha) error
+	Update(*models.Gacha) error
+	Delete(*models.Gacha) error
 
-	GetAll() ([]models.Gacha, bool)
-	FindByID(models.UUID) (*models.Gacha, bool)
+	GetAll() ([]models.Gacha, error)
+	FindByID(models.UUID) (*models.Gacha, error)
 
-	AddGachaToUser(models.UUID, models.UUID) bool
-	RemoveGachaFromUser(models.UUID, models.UUID) bool
+	AddGachaToUser(models.UUID, models.UUID) error
+	RemoveGachaFromUser(models.UUID, models.UUID) error
 
-	RemoveUserGachas(models.UUID) bool
-	GetUserGachas(models.UUID) ([]models.Gacha, bool)
+	RemoveUserGachas(models.UUID) error
+	GetUserGachas(models.UUID) ([]models.Gacha, error)
 }

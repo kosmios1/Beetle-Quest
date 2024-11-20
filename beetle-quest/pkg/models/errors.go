@@ -60,6 +60,9 @@ const (
 	ErrCouldNotRetrieveAuctions        constError = "could not retrieve auctions"
 	ErrCouldNotRetrieveTransactions    constError = "could not retrieve transactions"
 
+	ErrGachaAlreadyExists          constError = "gacha already exists"
+	ErrRetalationGachaUserNotFound constError = "retalation gacha user not found"
+
 	ErrCouldNotParseTime          constError = "time format not correct"
 	ErrCouldNotDecodeUserID       constError = "could not decode user id"
 	ErrCouldNotDecodeGachaID      constError = "could not decode gacha id"
