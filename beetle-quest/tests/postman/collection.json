@@ -1,8 +1,7 @@
 {
   "info": {
     "name": "Beetle Quest API",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "_exporter_id": "39361032"
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
     {
@@ -28,11 +27,6 @@
     {
       "key": "testPasswd",
       "value": "123456",
-      "type": "string"
-    },
-    {
-      "key": "auction_id",
-      "value": "CHANGE-ME",
       "type": "string"
     }
   ],
@@ -264,7 +258,7 @@
       ]
     },
     {
-      "name": "Gachas",
+      "name": "Gachas & Market",
       "item": [
         {
           "name": "// Get cookies",
@@ -384,10 +378,329 @@
                   "pm.test('Response contains the required fields', function () {",
                   "    const jsonData = pm.response.json();",
                   "    pm.expect(jsonData).to.have.property('name', 'Druid Butterfly');",
+                  "    pm.globals.set('gachaName', 'Druid Butterfly')",
                   "    pm.expect(jsonData).to.have.property('rarity', '\\u0004');",
                   "    pm.expect(jsonData).to.have.property('price', 30000);",
                   "    pm.expect(jsonData).to.have.property('image_path', '/static/images/druid_butterfly_legendary.webp');",
                   "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /market/bugscoin/buy",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"amount\": \"1234567890\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/market/bugscoin/buy",
+              "host": ["{{baseUrl}}"],
+              "path": ["market", "bugscoin", "buy"]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('heck for successful return code', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Check if response is in HTML format', function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('text/html');",
+                  "});",
+                  "",
+                  "pm.test('Check if response contains Account Market Gachas and Logout', function () {",
+                  "    pm.expect(pm.response.text()).to.include('Bugscoin added successfully');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /market/gacha/roll",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/market/gacha/roll",
+              "host": ["{{baseUrl}}"],
+              "path": ["market", "gacha", "roll"]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('heck for successful return code', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Check if response is in HTML format', function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('text/html');",
+                  "});",
+                  "",
+                  "pm.test('Check if response contains Account Market Gachas and Logout', function () {",
+                  "    pm.expect(pm.response.text()).to.include('Gacha successfully obtained, check your inventory!');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /market/gacha/{gachaId}/buy",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/market/gacha/{{gachaId}}/buy",
+              "host": ["{{baseUrl}}"],
+              "path": ["market", "gacha", "{{gachaId}}", "buy"]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('heck for successful return code', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Check if response is in HTML format', function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('text/html');",
+                  "});",
+                  "",
+                  "pm.test('Check if response contains Account Market Gachas and Logout', function () {",
+                  "    pm.expect(pm.response.text()).to.include('Gacha bought successfully');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /market/auction",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"gacha_id\":\"{{gachaId}}\",\"end_time\":\"{{auctionTime}}\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/market/auction",
+              "host": ["{{baseUrl}}"],
+              "path": ["market", "auction"]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let now = new Date();",
+                  "now.setHours(now.getHours() + 3);",
+                  "// Format the date to YYYY-MM-DDTHH:mm",
+                  "pm.globals.set('auctionTime', now.toISOString().slice(0, 16));",
+                  "//console.log(pm.globals.get('auctionTime'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Check for successful return code', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Check if response is in HTML format', function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('text/html');",
+                  "});",
+                  "",
+                  "pm.test('Check if response contains Account Market Gachas and Logout', function () {",
+                  "    pm.expect(pm.response.text()).to.include('Auction created successfully');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /market/auction/list",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/market/auction/list",
+              "host": ["{{baseUrl}}"],
+              "path": ["market", "auction", "list"]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('heck for successful return code', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Check if response is in HTML format', function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('text/html');",
+                  "});",
+                  "",
+                  "pm.test('Check if response contains Roll Gacha', function () {",
+                  "    pm.expect(pm.response.text()).to.include('Roll Gacha');",
+                  "});",
+                  "",
+                  "pm.test('Gacha name found in the auction list', function () {",
+                  "    const gachaString = `<p>Gacha: ${pm.globals.get('gachaName')}</p>`;",
+                  "    let gachaFound = pm.response.text().includes(gachaString);",
+                  "    pm.expect(gachaFound).to.be.true;",
+                  "});",
+                  "",
+                  "const auctionIdRegex = /Auction ID: ([\\w-]+)/;",
+                  "const match = pm.response.text().match(auctionIdRegex);",
+                  "if (match && match[1]) {",
+                  "    const auctionId = match[1];",
+                  "    //console.log(`Extracted Auction ID: ${auctionId}`);",
+                  "    pm.globals.set('auctionId', auctionId);",
+                  "} else {",
+                  "    console.log('Auction ID not found.');",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /market/auction/{{auctionId}}",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/market/auction/{{auctionId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["market", "auction", "{{auctionId}}"]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Check for successful return code', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Check if response is in HTML format', function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('text/html');",
+                  "});",
+                  "pm.test('Check if response contains Roll Gacha', function () {",
+                  "    pm.expect(pm.response.text()).to.include('Auction Details');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DELETE /market/auction/{{auctionId}}",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/market/auction/{{auctionId}}?password=",
+              "host": ["{{baseUrl}}"],
+              "path": ["market", "auction", "{{auctionId}}"],
+              "query": [
+                {
+                  "key": "password",
+                  "value": "{{testPasswd}}"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log(pm.response.text());",
+                  "pm.test('Check for successful return code', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Check if response is in HTML format', function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('text/html');",
+                  "});",
+                  "pm.test('Check if response contains Auction deleted successfully', function () {",
+                  "    pm.expect(pm.response.text()).to.include('Auction deleted successfully');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+
+        {
+          "name": "POST /market/auction/{auction_id}/bid",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"bid_amount\": 1000}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/market/auction/{auction_id}/bid",
+              "host": ["{{baseUrl}}"],
+              "path": ["market", "auction", "{{auctionId}}", "bid"]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "/*console.log(pm.response.text());",
+                  "pm.test('Check for successful return code', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Check if response is in HTML format', function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('text/html');",
+                  "});",
+                  "pm.test('Check if response contains Auction deleted successfully', function () {",
+                  "    pm.expect(pm.response.text()).to.include('Auction deleted successfully');",
+                  "});*/"
                 ]
               }
             }
