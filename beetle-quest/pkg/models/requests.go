@@ -80,7 +80,7 @@ type AdminLoginRequest struct {
 type AdminUpdateUserAccount struct {
 	Username string `json:"username"`
 	Email    string `json:"email"`
-	Currency int64  `json:"currency"`
+	Currency string `json:"currency"`
 }
 
 type AdminAddGachaRequest struct {

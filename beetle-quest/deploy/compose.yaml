@@ -55,6 +55,7 @@ services:
             # Listening Port
             - "127.0.0.1:443:443" # TODO: expose on 0.0.0.0:443:443
         networks:
+            - external
             - internal
         volumes:
             - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
@@ -313,6 +314,9 @@ services:
             - ./secrets/postgress.env
 
 networks:
+    # NOTE: Used to attach locust container and test the endpoints
+    external:
+        driver: bridge
     internal:
         driver: bridge
     admin:

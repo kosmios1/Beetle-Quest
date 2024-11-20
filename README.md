@@ -9,8 +9,8 @@ Prerequisites:
 
 Before you begin, ensure you have the following installed:
 
-- Docker
-- Docker Compose
+-   Docker
+-   Docker Compose
 
 ### Cloning the repo
 
@@ -62,10 +62,21 @@ docker compose down
 
 ## Tests
 
+### Postman
+
 You fill find the Postman collection file`beetle-quest-collection.json` inside `beetle-quest/tests/postman/`, you can execute them with Postam Newman:
 
 ```sh
 docker run --rm --net beetle-quest_internal -v <path/to/this/repo>/beetle-quest/tests/postman/collection.json:/collection.json postman/newman run /collection.json --insecure --ignore-redirects --color on
+```
+
+### Locust
+
+Locust's tests can be found inside `beetle-quest/tests/locust/` folder, to start locust, and run the tests, these commands have to be executed:
+
+```sh
+docker build -t beetle-quest-locust:latest .
+docker run --rm --network=beetle-quest_external -p 8089:8089 beetle-quest-locust:latest
 ```
 
 ## Project structure
@@ -93,5 +104,5 @@ The project is structured as follows:
 
 ## References
 
-- [Project Structure 1](https://betterprogramming.pub/how-are-you-structuring-your-go-microservices-a355d6293932)
-- [Project Structure 2](https://gochronicles.com/project-structure/)
+-   [Project Structure 1](https://betterprogramming.pub/how-are-you-structuring-your-go-microservices-a355d6293932)
+-   [Project Structure 2](https://gochronicles.com/project-structure/)

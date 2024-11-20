@@ -1,15 +1,22 @@
 import jwt
 import sys
+import uuid
+import time
 import pyotp
 import string
 import random
 import logging
 import binascii
 
+from datetime import datetime
 from http import HTTPStatus
-from locust import HttpUser, task, FastHttpUser
+from locust import HttpUser, task, FastHttpUser, between
 
 base_path = "/api/v1"
+
+user_ids = []
+gacha_ids = []
+auction_ids = []
 
 class AuthenticatedUser(FastHttpUser):
     abstract = True
@@ -69,14 +76,14 @@ class AuthenticatedUser(FastHttpUser):
         self.user_id = self.access_token["sub"]
 
     def on_stop(self):
-        response = self.client.delete(f"{base_path}/user/account/delete", json={
-            "password": self.password,
-        })
-        if response.status_code != HTTPStatus.OK:
+        response = self.client.get(f"{base_path}/auth/logout", allow_redirects=False)
+        if response.status_code != HTTPStatus.FOUND:
             response.raise_for_status()
             return
 
 class UserMSRequests(AuthenticatedUser):
+    wait_time = between(1, 2)
+
     @task
     def get_user(self):
         response = self.client.get(f"{base_path}/user/account/{self.user_id}", allow_redirects=False)
@@ -86,46 +93,158 @@ class UserMSRequests(AuthenticatedUser):
 
     @task
     def update_user(self):
-        response = self.client.put(f"{base_path}/user/account/{self.user_id}", json={
-            "email": self.email,
-            "password": self.password,
+        response = self.client.patch(f"{base_path}/user/account/{self.user_id}", json={
+            "username": "",
+            "email": "",
+            "new_password": self.password,
+            "old_password": self.password,
         }, allow_redirects=False)
         if response.status_code != HTTPStatus.OK:
             response.raise_for_status()
             return
 
-    # NOTE: delete user is called when inside the on_stop function of the AuthenticatedUser class
+    @task
+    def delete_user(self):
+        response = self.client.delete(f"{base_path}/user/account/delete", json={
+            "password": self.password,
+        }, allow_redirects=False)
+        if response.status_code != HTTPStatus.SEE_OTHER:
+            response.raise_for_status()
+            return
 
 class GachaMSRequests(AuthenticatedUser):
+    wait_time = between(1, 2)
+
     @task
     def get_gacha_list(self):
-        response = self.client.get(f"{base_path}/gacha", allow_redirects=False)
+        response = self.client.get(f"{base_path}/gacha/list", allow_redirects=False)
         if response.status_code != HTTPStatus.OK:
             response.raise_for_status()
             return
 
     @task
     def get_gacha(self):
-        response = self.client.get(f"{base_path}/gacha/{self.gacha_id}", allow_redirects=False)
+        if len(gacha_ids) == 0:
+            return
+        randgachaid = random.choice(gacha_ids)
+        response = self.client.get(f"{base_path}/gacha/{randgachaid}", allow_redirects=False)
         if response.status_code != HTTPStatus.OK:
             response.raise_for_status()
             return
 
     @task
     def get_users_gacha_list(self):
-        response = self.client.get(f"{base_path}/gacha/{self.user_id}/list", allow_redirects=False)
+        if len(user_ids) == 0:
+            return
+        randuserid = random.choice(user_ids)
+        response = self.client.get(f"{base_path}/gacha/{randuserid}/list", allow_redirects=False)
         if response.status_code != HTTPStatus.OK:
             response.raise_for_status()
             return
 
     @task
     def get_users_gacha(self):
-        response = self.client.get(f"{base_path}/{self.gacha_id}/{self.user_id}", allow_redirects=False)
+        if len(gacha_ids) == 0 or len(user_ids) == 0:
+            return
+        randuserid = random.choice(user_ids)
+        randgachaid = random.choice(gacha_ids)
+        response = self.client.get(f"{base_path}/{randgachaid}/{randuserid}", allow_redirects=False)
         if response.status_code != HTTPStatus.OK:
             response.raise_for_status()
             return
 
-# TODO: class MarketMSRequests(AuthenticatedUser):
+class MarketMSRequests(AuthenticatedUser):
+    wait_time = between(1, 2)
+    @task
+    def buy_bugscoin(self):
+        response = self.client.post(f"{base_path}/market/bugscoin/buy", json={
+            "amount": f"{100000}",
+        }, allow_redirects=False)
+        if response.status_code != HTTPStatus.OK:
+            response.raise_for_status()
+            return
+
+    @task
+    def roll_gacha(self):
+        response = self.client.get(f"{base_path}/market/gacha/roll", allow_redirects=False)
+
+        if b'not enough money to roll gacha' in response.content:
+            return
+        if response.status_code != HTTPStatus.OK:
+            response.raise_for_status()
+            return
+
+    @task
+    def buy_gacha(self):
+        if len(gacha_ids) == 0:
+            return
+        randgachaid = random.choice(gacha_ids)
+        response = self.client.get(f"{base_path}/market/gacha/{randgachaid}/buy", allow_redirects=False)
+        if response.status_code != HTTPStatus.OK and response.status_code != HTTPStatus.BAD_REQUEST:
+            response.raise_for_status()
+            return
+
+    @task
+    def create_auction(self):
+        if len(gacha_ids) == 0:
+            return
+        randgachaid = random.choice(gacha_ids)
+        response = self.client.post(f"{base_path}/market/auction", json={
+            "gacha_id": randgachaid,
+            "end_time": datetime.fromtimestamp(time.time() + 3600).strftime("%Y-%m-%dT%H:%M"),
+        }, allow_redirects=False)
+
+    @task
+    def get_auction_list(self):
+        response = self.client.get(f"{base_path}/market/auction/list", allow_redirects=False)
+        if response.status_code != HTTPStatus.OK:
+            response.raise_for_status()
+            return
+
+    @task
+    def get_auction_details(self):
+        if len(auction_ids) == 0:
+            return
+        randauctionid = random.choice(auction_ids)
+        response = self.client.get(f"{base_path}/market/auction/{randauctionid}", allow_redirects=False)
+
+    @task
+    def bid_to_auction(self):
+        if len(auction_ids) == 0:
+            return
+        randauctionid = random.choice(auction_ids)
+        response = self.client.post(f"{base_path}/market/auction/{randauctionid}/bid", data={
+            "bid_amount": f"{random.randint(0, 10000000)}",
+        }, allow_redirects=False)
+
+        resp_body = response.content
+        good_err_msg = [ b'owner cannot bid', b'bid amount not enough', b'auction already ended', b'' ]
+        for _, err in enumerate(good_err_msg):
+            if err in resp_body:
+                return
+
+        if response.status_code != HTTPStatus.OK:
+            response.raise_for_status()
+            return
+
+    @task
+    def delete_auction(self):
+        if len(auction_ids) == 0:
+            return
+        randauctionid = random.choice(auction_ids)
+        response = self.client.delete(f"{base_path}/market/auction/{randauctionid}", data={
+            "password": self.password,
+        }, allow_redirects=False)
+
+        resp_body = response.content
+        good_err_msg = [ b'user not owner', b'invalid password', b'auction already ended', b'auction is too close to end', b'auction has bids']
+        for _, err in enumerate(good_err_msg):
+            if err in resp_body:
+                return
+        if response.status_code != HTTPStatus.OK:
+            response.raise_for_status()
+            return
+
 
 # ==============================================================================
 # Admin
@@ -150,7 +269,7 @@ class AuthenticatedAdmin(FastHttpUser):
         response = self.client.post(f"{base_path}/auth/admin/login", json={
             "admin_id": self.admin_id,
             "password": self.password,
-            "otp_code": "123456",
+            "otp_code": self.otp.now()
         }, allow_redirects=False)
 
         if response.status_code != HTTPStatus.FOUND:
@@ -179,27 +298,61 @@ class AuthenticatedAdmin(FastHttpUser):
             return
 
 class AdminMSRequests(AuthenticatedAdmin):
-    @task
-    def get_users(self):
+    wait_time = between(1, 2)
+    """
+    Login as an admin and then retrieve information to be used in the other tasks.
+    """
+    def on_start(self):
+        global user_ids, gacha_ids, auction_ids
+        super().on_start()
+
         response = self.client.get(f"{base_path}/admin/user/get_all", allow_redirects=False)
         if response.status_code != HTTPStatus.OK:
             response.raise_for_status()
             return
 
+        response_data = response.json()
+        user_list = response_data.get("UserList", [])
+        user_ids = parse_uuids(user_list, "user_id")
+
+        response = self.client.get(f"{base_path}/admin/gacha/get_all", allow_redirects=False)
+        if response.status_code != HTTPStatus.OK:
+            response.raise_for_status()
+            return
+
+        response_data = response.json()
+        gacha_list = response_data.get("GachaList", [])
+        gacha_ids = parse_uuids(gacha_list, "gacha_id")
+
+        response = self.client.get(f"{base_path}/admin/market/auction/get_all", allow_redirects=False)
+        if response.status_code != HTTPStatus.OK:
+            response.raise_for_status()
+            return
+
+        response_data = response.json()
+        auction_list = response_data.get("AuctionList", [])
+        auction_ids = parse_uuids(auction_list, "auction_id")
+
     @task
     def get_user(self):
-        response = self.client.get(f"{base_path}/admin/user/{self.user_id}", allow_redirects=False)
+        if len(user_ids) == 0:
+            return
+        randuserid = random.choice(user_ids)
+        response = self.client.get(f"{base_path}/admin/user/{randuserid}", allow_redirects=False)
         if response.status_code != HTTPStatus.OK:
             response.raise_for_status()
             return
 
     @task
     def update_user(self):
+        if len(user_ids) == 0:
+            return
         randstr = generate_random_string()
-        response = self.client.patch(f"{base_path}/admin/user/{self.user_id}", json={
+        randuserid = random.choice(user_ids)
+        response = self.client.patch(f"{base_path}/admin/user/{randuserid}", json={
             "username": randstr,
             "email": f"{randstr[:len(randstr)//2:]}@{randstr[len(randstr)//2::]}.it",
-            "currency": f"{random.randint(0, 1000)}",
+            "currency": f"{random.randint(0, 1000000)}",
         }, allow_redirects=False)
         if response.status_code != HTTPStatus.OK:
             response.raise_for_status()
@@ -207,14 +360,20 @@ class AdminMSRequests(AuthenticatedAdmin):
 
     @task
     def get_user_transactions(self):
-        response = self.client.get(f"{base_path}/admin/user/{self.user_id}/transaction_history", allow_redirects=False)
+        if len(user_ids) == 0:
+            return
+        randuserid = random.choice(user_ids)
+        response = self.client.get(f"{base_path}/admin/user/{randuserid}/transaction_history", allow_redirects=False)
         if response.status_code != HTTPStatus.OK:
             response.raise_for_status()
             return
 
     @task
     def get_user_auctions(self):
-        response = self.client.get(f"{base_path}/admin/user/{self.user_id}/get_all", allow_redirects=False)
+        if len(user_ids) == 0:
+            return
+        randuserid = random.choice(user_ids)
+        response = self.client.get(f"{base_path}/admin/user/{randuserid}/auction/get_all", allow_redirects=False)
         if response.status_code != HTTPStatus.OK:
             response.raise_for_status()
             return
@@ -233,23 +392,22 @@ class AdminMSRequests(AuthenticatedAdmin):
             return
 
     @task
-    def get_all_gacha(self):
-        response = self.client.get(f"{base_path}/admin/gacha/get_all", allow_redirects=False)
-        if response.status_code != HTTPStatus.OK:
-            response.raise_for_status()
-            return
-
-    @task
     def get_gacha_details(self):
-        response = self.client.get(f"{base_path}/admin/gacha/{self.gacha_id}", allow_redirects=False)
+        if len(gacha_ids) == 0:
+            return
+        randgachaid = random.choice(gacha_ids)
+        response = self.client.get(f"{base_path}/admin/gacha/{randgachaid}", allow_redirects=False)
         if response.status_code != HTTPStatus.OK:
             response.raise_for_status()
             return
 
     @task
     def update_gacha(self):
+        if len(gacha_ids) == 0:
+            return
         randstr = generate_random_string()
-        response = self.client.patch(f"{base_path}/admin/gacha/{self.gacha_id}", json={
+        randgachaid = random.choice(gacha_ids)
+        response = self.client.patch(f"{base_path}/admin/gacha/{randgachaid}", json={
             "name": randstr,
             "rarity": random.choice(["Common", "Uncommon", "Rare", "Epic", "Legendary"]),
             "price": f"{random.randint(0, 1000)}",
@@ -261,8 +419,11 @@ class AdminMSRequests(AuthenticatedAdmin):
 
     @task
     def delete_gacha(self):
+        if len(gacha_ids) == 0:
+            return
         randstr = generate_random_string()
-        response = self.client.delete(f"{base_path}/admin/gacha/{self.gacha_id}", allow_redirects=False)
+        randgachaid = random.choice(gacha_ids)
+        response = self.client.delete(f"{base_path}/admin/gacha/{randgachaid}", allow_redirects=False)
         if response.status_code != HTTPStatus.OK:
             response.raise_for_status()
             return
@@ -274,23 +435,22 @@ class AdminMSRequests(AuthenticatedAdmin):
             response.raise_for_status()
             return
     @task
-    def get_all_auctions(self):
-        response = self.client.get(f"{base_path}/admin/market/auction/get_all", allow_redirects=False)
-        if response.status_code != HTTPStatus.OK:
-            response.raise_for_status()
-            return
-
-    @task
     def get_auction_details(self):
-        response = self.client.get(f"{base_path}/admin/market/auction/{self.auction_id}", allow_redirects=False)
+        if len(auction_ids) == 0:
+            return
+        randauctionid = random.choice(auction_ids)
+        response = self.client.get(f"{base_path}/admin/market/auction/{randauctionid}", allow_redirects=False)
         if response.status_code != HTTPStatus.OK:
             response.raise_for_status()
             return
 
     @task
     def update_auction(self):
+        if len(auction_ids) == 0:
+            return
+        randauctionid = random.choice(auction_ids)
         randstr = generate_random_string()
-        response = self.client.patch(f"{base_path}/admin/market/auction/{self.auction_id}", allow_redirects=False)
+        response = self.client.patch(f"{base_path}/admin/market/auction/{randauctionid}", allow_redirects=False)
         if response.status_code != HTTPStatus.NOT_IMPLEMENTED: # TODO: Change to OK
             response.raise_for_status()
             return
@@ -310,3 +470,9 @@ def parse_jwt(token: str, algorithms=["HS256"]) -> dict | None:
         return decoded_token
     except Exception:
         return None
+
+def parse_uuids(data_list, uuid_field_name: str) -> list[str]:
+    uuids = [str(
+        uuid.UUID(bytes=bytes(data[uuid_field_name]))
+    ) for data in data_list]
+    return uuids

@@ -429,6 +429,11 @@ paths:
                   required: true
                   schema:
                       type: string
+                - name: password
+                  in: query
+                  required: true
+                  schema:
+                      type: string
             responses:
                 200:
                     description: Auction deleted successfully.

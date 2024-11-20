@@ -15,4 +15,4 @@ RUN pip3 install -r requirements.txt
 EXPOSE 8089
 
 COPY ./locustfile.py locustfile.py
-CMD ["locust", "-f", "locustfile.py"]
+CMD ["locust", "-f", "locustfile.py", "--host=https://reverse-proxy"]

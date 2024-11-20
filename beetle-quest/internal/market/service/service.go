@@ -131,7 +131,7 @@ func (s *MarketService) RollGacha(userId string) (string, error) {
 		_ = s.urepo.Update(user)
 		// TODO: What do i do here?
 		// - Report to admin
-		return "", models.ErrCouldNotAddGachaToUser
+		return "", models.ErrInternalServerError
 	}
 
 	return "Gacha successfully obtained, check your inventory!", nil

@@ -81,9 +81,12 @@ func (s *AdminService) UpdateUserProfile(userId string, data *models.AdminUpdate
 		user.Username = data.Username
 	}
 
-	if data.Currency >= 0 {
-		// FIXME: Con currency := 0 non funziona
-		user.Currency = data.Currency
+	currency, err := strconv.Atoi(data.Currency)
+	if err != nil {
+		return false
+	}
+	if currency >= 0 {
+		user.Currency = int64(currency)
 	}
 
 	return s.urepo.Update(user)
