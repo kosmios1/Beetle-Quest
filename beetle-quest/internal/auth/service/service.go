@@ -63,11 +63,11 @@ func (s *AuthService) Login(username, password string) (token *jwt.Token, tokenS
 
 	token, tokenString, err = utils.GenerateJWTToken(user.UserID.String(), "user", jwtSecretKey)
 	if err != nil {
-		return nil, "", err
+		return nil, "", models.ErrInternalServerError
 	}
 
 	if err := s.sesRepo.CreateSession(tokenString); err != nil {
-		return nil, "", err
+		return nil, "", models.ErrInternalServerError
 	}
 
 	return token, tokenString, nil
@@ -120,11 +120,11 @@ func (s *AuthService) AdminLogin(id, password, otp string) (token *jwt.Token, to
 
 	token, tokenString, err = utils.GenerateJWTToken(admin.AdminId.String(), "admin", jwtSecretKey)
 	if err != nil {
-		return nil, "", err
+		return nil, "", models.ErrInternalServerError
 	}
 
 	if err := s.sesRepo.CreateSession(tokenString); err != nil {
-		return nil, "", err
+		return nil, "", models.ErrInternalServerError
 	}
 
 	return token, tokenString, nil
