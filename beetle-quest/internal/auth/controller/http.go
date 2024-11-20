@@ -47,6 +47,11 @@ func (c *AuthController) Login(ctx *gin.Context) {
 
 	token, tokenString, err := c.srv.Login(loginData.Username, loginData.Password)
 	if err != nil {
+		if err == models.ErrInternalServerError {
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": "internal server error"})
+			ctx.Abort()
+			return
+		}
 		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err})
 		ctx.Abort()
 		return
@@ -123,6 +128,11 @@ func (c *AuthController) AdminLogin(ctx *gin.Context) {
 
 	token, tokenString, err := c.srv.AdminLogin(loginData.AdminID, loginData.Password, loginData.OtpCode)
 	if err != nil {
+		if err == models.ErrInternalServerError {
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": "internal server error"})
+			ctx.Abort()
+			return
+		}
 		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err})
 		ctx.Abort()
 		return
