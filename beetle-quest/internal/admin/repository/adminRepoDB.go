@@ -3,6 +3,7 @@ package repository
 import (
 	"beetle-quest/pkg/models"
 	"beetle-quest/pkg/utils"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -44,11 +45,14 @@ func NewAdminRepo() *AdminRepo {
 	return repo
 }
 
-func (r *AdminRepo) FindByID(id models.UUID) (*models.Admin, bool) {
+func (r *AdminRepo) FindByID(id models.UUID) (*models.Admin, error) {
 	var admin models.Admin
 	result := r.db.Table("admins").First(&admin, models.Admin{AdminId: id})
 	if result.Error != nil {
-		return nil, false
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, models.ErrAdminNotFound
+		}
+		return nil, models.ErrInternalServerError
 	}
-	return &admin, true
+	return &admin, nil
 }

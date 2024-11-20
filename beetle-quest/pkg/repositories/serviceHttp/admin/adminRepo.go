@@ -27,14 +27,14 @@ func NewAdminRepo() *AdminRepo {
 	}
 }
 
-func (r *AdminRepo) FindByID(id models.UUID) (*models.Admin, bool) {
+func (r *AdminRepo) FindByID(id models.UUID) (*models.Admin, error) {
 	requestData := models.FindAdminByIDData{
 		AdminID: id,
 	}
 
 	jsonData, err := json.Marshal(requestData)
 	if err != nil {
-		return nil, false
+		return nil, models.ErrInternalServerError
 	}
 
 	resp, err := r.cb.Execute(func() (*http.Response, error) {
@@ -52,18 +52,24 @@ func (r *AdminRepo) FindByID(id models.UUID) (*models.Admin, bool) {
 	})
 
 	if err != nil {
-		return nil, false
+		return nil, models.ErrInternalServerError
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		return nil, false
+	if resp.StatusCode == http.StatusInternalServerError {
+		return nil, models.ErrInternalServerError
+	} else if resp.StatusCode == http.StatusNotFound {
+		return nil, models.ErrAdminNotFound
 	}
 
-	var admin models.Admin
-	err = json.NewDecoder(resp.Body).Decode(&admin)
-	if err != nil {
-		return nil, false
+	if resp.StatusCode == http.StatusOK {
+		var admin models.Admin
+		err = json.NewDecoder(resp.Body).Decode(&admin)
+		if err != nil {
+			return nil, models.ErrInternalServerError
+		}
+
+		return &admin, nil
 	}
 
-	return &admin, true
+	panic("unreachable code")
 }

@@ -19,7 +19,7 @@ func NewAdminService(arepo repositories.AdminRepo, mrepo repositories.MarketRepo
 	return &AdminService{arepo: arepo, mrepo: mrepo, urepo: urepo, grepo: grepo}
 }
 
-func (s *AdminService) FindByID(aid models.UUID) (*models.Admin, bool) {
+func (s *AdminService) FindByID(aid models.UUID) (*models.Admin, error) {
 	return s.arepo.FindByID(aid)
 }
 

@@ -18,20 +18,6 @@ func NewAdminController(srv *service.AdminService) *AdminController {
 	}
 }
 
-func (c *AdminController) FindByID(ctx *gin.Context) {
-	var data models.FindAdminByIDData
-	if err := ctx.ShouldBindJSON(&data); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	admin, exists := c.srv.FindByID(data.AdminID)
-	if !exists {
-		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Admin not found"})
-		return
-	}
-	ctx.JSON(http.StatusOK, admin)
-}
-
 // User controllers =================================================
 
 func (c *AdminController) GetAllUsers(ctx *gin.Context) {
@@ -284,4 +270,25 @@ func (cnt *AdminController) GetAuctionDetails(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, auction)
+}
+
+// Internal =================================================
+func (c *AdminController) FindByID(ctx *gin.Context) {
+	var data models.FindAdminByIDData
+	if err := ctx.ShouldBindJSON(&data); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	admin, err := c.srv.FindByID(data.AdminID)
+	if err != nil {
+		if err == models.ErrInternalServerError {
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+			return
+		} else if err == models.ErrAdminNotFound {
+			ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": err})
+			return
+		}
+		panic("unreachable code")
+	}
+	ctx.JSON(http.StatusOK, admin)
 }

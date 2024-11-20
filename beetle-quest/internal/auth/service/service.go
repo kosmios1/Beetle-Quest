@@ -105,8 +105,10 @@ func (s *AuthService) AdminLogin(id, password, otp string) (token *jwt.Token, to
 		return nil, "", models.ErrInvalidAdminIDOrPassOrOTOP
 	}
 
-	admin, ok := s.arepo.FindByID(aid)
-	if !ok {
+	admin, err := s.arepo.FindByID(aid)
+	if err != nil {
+		// NOTE: Even if the server has the capability to know that the admin does not exist, it should not return
+		// this information to the client.
 		return nil, "", models.ErrInvalidAdminIDOrPassOrOTOP
 	}
 
