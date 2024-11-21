@@ -253,7 +253,7 @@ paths:
                 400:
                     description: Status bad requests.
 
-    /gacha/{user_id}/list:
+    /gacha/user/{user_id}/list:
         get:
             summary: Get user gacha list
             tags: [Gachas]
@@ -274,7 +274,7 @@ paths:
                 400:
                     description: Status bad requests.
 
-    /gacha/{gacha_id}/{user_id}:
+    /gacha/user/{gacha_id}/{user_id}:
         get:
             summary: Get user gacha details
             tags: [Gachas]
