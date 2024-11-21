@@ -428,40 +428,6 @@
           ]
         },
         {
-          "name": "GET /market/gacha/roll",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/market/gacha/roll",
-              "host": ["{{baseUrl}}"],
-              "path": ["market", "gacha", "roll"]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('heck for successful return code', function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test('Check if response is in HTML format', function () {",
-                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('text/html');",
-                  "});",
-                  "",
-                  "pm.test('Check if response contains Account Market Gachas and Logout', function () {",
-                  "    pm.expect(pm.response.text()).to.include('Gacha successfully obtained, check your inventory!');",
-                  "});"
-                ]
-              }
-            }
-          ]
-        },
-        {
           "name": "GET /market/gacha/{gachaId}/buy",
           "request": {
             "method": "GET",
@@ -707,14 +673,14 @@
         },
 
         {
-          "name": "GET /gacha/{testID}/list",
+          "name": "GET /gacha/user/{testID}/list",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/gacha/{{testID}}/list",
+              "raw": "{{baseUrl}}/gacha/user/{{testID}}/list",
               "host": ["{{baseUrl}}"],
-              "path": ["gacha", "{{testID}}", "list"]
+              "path": ["gacha", "user", "{{testID}}", "list"]
             }
           },
           "response": [],
@@ -724,8 +690,6 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "",
-                  "/*    console.log(pm.response.text());",
                   "pm.test('Status code is 200', function () {",
                   "  pm.response.to.have.status(200);",
                   "});",
@@ -733,23 +697,35 @@
                   "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
                   "});",
                   "pm.test('Response should contain user gacha list', function () {",
-                  "    const responseBody = pm.response.json();",
-                  "    pm.expect(responseBody).to.have.property('Gachas');",
-                  "});*/"
+                  "   var jsonData = pm.response.json();",
+                  "   var expectedItem = {",
+                  "       name: 'Druid Butterfly',",
+                  "       rarity: 4,",
+                  "       price: 30000,",
+                  "       image_path: '/static/images/druid_butterfly_legendary.webp'",
+                  "   };",
+                  "   var itemFound = jsonData.some(function(item) {",
+                  "       return item.name === expectedItem.name &&",
+                  "              item.rarity === expectedItem.rarity &&",
+                  "              item.price === expectedItem.price &&",
+                  "              item.image_path === expectedItem.image_path;",
+                  "   });",
+                  "   pm.expect(itemFound).to.be.true;",
+                  "});"
                 ]
               }
             }
           ]
         },
         {
-          "name": "GET /gacha/{{gachaId}}/{{testID}}",
+          "name": "GET /gacha/{{gachaId}}/user/{{testID}}",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/gacha/{{gachaId}}/{{testID}}",
+              "raw": "{{baseUrl}}/gacha/{{gachaId}}/user/{{testID}}",
               "host": ["{{baseUrl}}"],
-              "path": ["gacha", "{{gachaId}}", "{{testID}}"]
+              "path": ["gacha", "{{gachaId}}", "user", "{{testID}}"]
             }
           },
           "response": [],
@@ -771,6 +747,40 @@
                   "    pm.expect(jsonData).to.have.property('rarity', 4);",
                   "    pm.expect(jsonData).to.have.property('price', 30000);",
                   "    pm.expect(jsonData).to.have.property('image_path', '/static/images/druid_butterfly_legendary.webp');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /market/gacha/roll",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/market/gacha/roll",
+              "host": ["{{baseUrl}}"],
+              "path": ["market", "gacha", "roll"]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('heck for successful return code', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Check if response is in HTML format', function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('text/html');",
+                  "});",
+                  "",
+                  "pm.test('Check if response contains Account Market Gachas and Logout', function () {",
+                  "    pm.expect(pm.response.text()).to.include('Gacha successfully obtained, check your inventory!');",
                   "});"
                 ]
               }
