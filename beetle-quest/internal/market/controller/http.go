@@ -53,7 +53,7 @@ func (c *MarketController) BuyBugscoin(ctx *gin.Context) {
 			ctx.Abort()
 			return
 		case models.ErrMaxMoneyExceeded:
-			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err})
 			ctx.Abort()
 			return
 		}

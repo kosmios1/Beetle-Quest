@@ -84,6 +84,10 @@ func (c *AdminController) UpdateUserProfile(ctx *gin.Context) {
 			ctx.Abort()
 			return
 		case models.ErrUsernameOrEmailAlreadyExists:
+			ctx.HTML(http.StatusConflict, "errorMsg.tmpl", gin.H{"error": err})
+			ctx.Abort()
+			return
+		case models.ErrInvalidData:
 			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"error": err})
 			ctx.Abort()
 			return
@@ -215,7 +219,7 @@ func (cnt *AdminController) UpdateGacha(ctx *gin.Context) {
 			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err})
 			ctx.Abort()
 		} else if err == models.ErrGachaAlreadyExists {
-			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.HTML(http.StatusConflict, "errorMsg.tmpl", gin.H{"Error": err})
 			ctx.Abort()
 		} else {
 			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err})

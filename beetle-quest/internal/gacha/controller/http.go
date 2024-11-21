@@ -21,6 +21,7 @@ func NewGachaController(s *service.GachaService) *GachaController {
 func (c *GachaController) List(ctx *gin.Context) {
 	gachas, err := c.srv.GetAll()
 	if err != nil {
+		// TODO: use switch
 		if err == models.ErrInternalServerError {
 			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
@@ -54,6 +55,7 @@ func (c *GachaController) GetGachaDetails(ctx *gin.Context) {
 
 	gacha, err := c.srv.FindByID(id)
 	if err != nil {
+		// TODO: use switch
 		if err == models.ErrInternalServerError {
 			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
@@ -82,6 +84,7 @@ func (cnt *GachaController) GetUserGachaList(ctx *gin.Context) {
 
 	gacha, err := cnt.srv.GetUserGachasStr(userId)
 	if err != nil {
+		// TODO: use switch
 		if err == models.ErrInternalServerError {
 			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
@@ -114,6 +117,7 @@ func (cnt *GachaController) GetUserGachaDetails(ctx *gin.Context) {
 
 	gacha, err := cnt.srv.GetUserGachaDetails(userId, gachaId)
 	if err != nil {
+		// TODO: use switch
 		if err == models.ErrInternalServerError {
 			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
@@ -139,6 +143,7 @@ func (c *GachaController) CreateGacha(ctx *gin.Context) {
 	}
 
 	if err := c.srv.CreateGacha(&data); err != nil {
+		// TODO: use switch
 		if err == models.ErrInternalServerError {
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Error": err})
 			return
@@ -160,6 +165,7 @@ func (c *GachaController) UpdateGacha(ctx *gin.Context) {
 	}
 
 	if err := c.srv.UpdateGacha(&data); err != nil {
+		// TODO: use switch
 		if err == models.ErrInternalServerError {
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Error": err})
 		} else if err == models.ErrGachaNotFound {
@@ -183,6 +189,7 @@ func (c *GachaController) DeleteGacha(ctx *gin.Context) {
 	}
 
 	if err := c.srv.DeleteGacha(&data); err != nil {
+		// TODO: use switch
 		if err == models.ErrInternalServerError {
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Error": err})
 			return
@@ -199,6 +206,7 @@ func (c *GachaController) DeleteGacha(ctx *gin.Context) {
 func (c *GachaController) GetAll(ctx *gin.Context) {
 	gachas, err := c.srv.GetAll()
 	if err != nil {
+		// TODO: use switch
 		if err == models.ErrInternalServerError {
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Error": err})
 			return
@@ -221,6 +229,7 @@ func (c *GachaController) GetUserGachas(ctx *gin.Context) {
 
 	gachas, err := c.srv.GetUserGachas(data.UserID)
 	if err != nil {
+		// TODO: use switch
 		if err == models.ErrInternalServerError {
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Error": err})
 			return
@@ -242,6 +251,7 @@ func (c *GachaController) AddGachaToUser(ctx *gin.Context) {
 	}
 
 	if err := c.srv.AddGachaToUser(data.UserID, data.GachaID); err != nil {
+		// TODO: use switch
 		if err == models.ErrInternalServerError {
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Error": err})
 			return
@@ -263,6 +273,7 @@ func (c *GachaController) RemoveGachaFromUser(ctx *gin.Context) {
 	}
 
 	if err := c.srv.RemoveGachaFromUser(data.UserID, data.GachaID); err != nil {
+		// TODO: use switch
 		if err == models.ErrInternalServerError {
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Error": err})
 			return
@@ -286,6 +297,7 @@ func (c *GachaController) FindByID(ctx *gin.Context) {
 
 	gacha, err := c.srv.FindByID(req.GachaID)
 	if err != nil {
+		// TODO: use switch
 		if err == models.ErrInternalServerError {
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Error": err})
 			return
@@ -308,6 +320,7 @@ func (c *GachaController) RemoveUserGachas(ctx *gin.Context) {
 	}
 
 	if err := c.srv.RemoveUserGachas(req.UserID); err != nil {
+		// TODO: use switch
 		if err == models.ErrInternalServerError {
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Error": err})
 			return

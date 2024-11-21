@@ -43,7 +43,7 @@ func (c *AuthController) Register(ctx *gin.Context) {
 		panic("unreachable code")
 	}
 
-	ctx.HTML(http.StatusOK, "successMsg.tmpl", gin.H{"Message": "User registered successfully!"})
+	ctx.HTML(http.StatusCreated, "successMsg.tmpl", gin.H{"Message": "User registered successfully!"})
 }
 
 func (c *AuthController) Login(ctx *gin.Context) {

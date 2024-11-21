@@ -32,7 +32,9 @@ paths:
                 201:
                     description: user registered successfully.
                 400:
-                    description: invalid request data.
+                    description: Status bad requests.
+                500:
+                    description: internal server error.
 
     /auth/login:
         post:
@@ -53,9 +55,9 @@ paths:
                             schema:
                                 type: string
                 400:
-                    description: Invalid request data.
-                401:
-                    description: Invalid username or password.
+                    description: Status bad request.
+                404:
+                    description: Status not found.
                 500:
                     description: Internal server error.
 
@@ -69,10 +71,8 @@ paths:
             #           - user
             #           - admin
             responses:
-                200:
+                302:
                     description: Logout successfull.
-                401:
-                    description: Unauthorized.
                 500:
                     description: Internal server error.
 
@@ -89,7 +89,7 @@ paths:
                 200:
                     description: Session is valid.
                 404:
-                    description: Unauthorized.
+                    description: Status Not found.
                 500:
                     description: Internal server error.
 
@@ -105,8 +105,8 @@ paths:
             responses:
                 200:
                     description: Authorized.
-                404:
-                    description: Unauthorized.
+                302:
+                    description: Status found.
                 500:
                     description: Internal server error.
 
@@ -122,7 +122,7 @@ paths:
                         schema:
                             $ref: "#/components/schemas/AdminLogin"
             responses:
-                200:
+                302:
                     description: Admin login successfull.
                 400:
                     description: Invalid request data.
@@ -148,6 +148,8 @@ paths:
                     description: Static file.
                 404:
                     description: File not found.
+                500:
+                    description: Internal server error.
 
     ### USERS ###
     /user/account/{user_id}:
@@ -170,6 +172,8 @@ paths:
                     description: User account details.
                 400:
                     description: Status bad requests.
+                500:
+                    description: Internal server error.
         patch:
             summary: Modify user account
             tags: [Users]
@@ -196,6 +200,10 @@ paths:
                     description: User account modified successfully.
                 400:
                     description: Status bad requests.
+                404:
+                    description: Status not found.
+                500:
+                    description: Internal server error.
         delete:
             summary: Delete user account
             tags: [Users]
@@ -215,6 +223,10 @@ paths:
                     description: Status see other (redirect to login).
                 400:
                     description: Status bad requests.
+                404:
+                    description: Status not found.
+                500:
+                    description: Internal server error.
 
     ### GACHAS ###
 
@@ -229,8 +241,10 @@ paths:
             responses:
                 200:
                     description: System's gacha list.
-                400:
+                404:
                     description: Status bad requests.
+                500:
+                    description: Internal server error.
 
     /gacha/{gacha_id}:
         get:
@@ -250,8 +264,10 @@ paths:
             responses:
                 200:
                     description: System's gacha details.
-                400:
+                404:
                     description: Status bad requests.
+                500:
+                    description: Internal server error.
 
     /gacha/user/{user_id}/list:
         get:
@@ -273,6 +289,10 @@ paths:
                     description: User gacha list.
                 400:
                     description: Status bad requests.
+                404:
+                    description: Status not found.
+                500:
+                    description: Internal server error.
 
     /gacha/{gacha_id}/user/{user_id}:
         get:
@@ -300,6 +320,10 @@ paths:
                     description: User gacha details.
                 400:
                     description: Status bad requests.
+                404:
+                    description: Status not found.
+                500:
+                    description: Internal server error.
 
     ### MARKET ###
     /market/bugscoin/buy:
@@ -322,6 +346,10 @@ paths:
                     description: Bugscoin bought successfully.
                 400:
                     description: Status bad requests.
+                404:
+                    description: Status not found.
+                500:
+                    description: Internal server error.
 
     /market/gacha/roll:
         get:
@@ -336,6 +364,8 @@ paths:
                     description: Gacha rolled successfully.
                 400:
                     description: Status bad requests.
+                404:
+                    description: Status not found.
                 500:
                     description: Internal server error.
 
@@ -359,6 +389,10 @@ paths:
                     description: Gacha bought successfully.
                 400:
                     description: Status bad requests.
+                404:
+                    description: Status not found.
+                500:
+                    description: Internal server error.
 
     /market/auction:
         post:
@@ -380,6 +414,12 @@ paths:
                     description: Auction created successfully.
                 400:
                     description: Status bad requests.
+                404:
+                    description: Status not found.
+                409:
+                    description: Status conflict.
+                500:
+                    description: Internal server error.
 
     /market/auction/list:
         get:
@@ -392,8 +432,10 @@ paths:
             responses:
                 200:
                     description: Auction list obtained successfully.
-                400:
-                    description: Status bad requests.
+                404:
+                    description: Status not found.
+                500:
+                    description: Internal server error.
 
     /market/auction/{auction_id}:
         get:
@@ -412,9 +454,13 @@ paths:
                       type: string
             responses:
                 200:
-                    description: Auction details obtained successfully.
+                    description: Auction deleted successfully.
                 400:
                     description: Status bad requests.
+                404:
+                    description: Status not found.
+                500:
+                    description: Internal server error.
         delete:
             summary: Delete auction
             tags: [Market]
@@ -439,6 +485,10 @@ paths:
                     description: Auction deleted successfully.
                 400:
                     description: Status bad requests.
+                404:
+                    description: Status not found.
+                500:
+                    description: Internal server error.
 
     /market/auction/{auction_id}/bid:
         post:
@@ -467,6 +517,10 @@ paths:
                     description: Auction bid successfully.
                 400:
                     description: Status bad requests.
+                404:
+                    description: Status not found.
+                500:
+                    description: Internal server error.
 
     ### ADMIN ###
     /admin/user/get_all:
@@ -480,8 +534,8 @@ paths:
             responses:
                 200:
                     description: All users obtained successfully.
-                400:
-                    description: Status bad requests.
+                500:
+                    description: Internal server error.
 
     /admin/user/{user_id}:
         get:
@@ -503,6 +557,10 @@ paths:
                     description: User details obtained successfully.
                 400:
                     description: Status bad requests.
+                404:
+                    description: Status not found.
+                500:
+                    description: Internal server error.
         patch:
             summary: Update user details
             tags: [Admin]
@@ -529,6 +587,12 @@ paths:
                     description: User details updated successfully.
                 400:
                     description: Status bad requests.
+                404:
+                    description: Status not found.
+                409:
+                    description: Status conflict.
+                500:
+                    description: Internal server error.
 
     /admin/user/{user_id}/transaction_history:
         get:
@@ -550,6 +614,10 @@ paths:
                     description: User transaction history obtained successfully.
                 400:
                     description: Status bad requests.
+                404:
+                    description: Status not found.
+                500:
+                    description: Internal server error.
 
     /admin/user/{user_id}/auction/get_all: # TODO
         get:
@@ -572,7 +640,9 @@ paths:
                 400:
                     description: Status bad requests.
                 404:
-                    description: User not found.
+                    description: Status not found.
+                500:
+                    description: Internal server error.
 
     /admin/gacha/add:
         post:
@@ -594,6 +664,8 @@ paths:
                     description: Gacha added successfully.
                 400:
                     description: Status bad requests.
+                500:
+                    description: Internal server error.
 
     /admin/gacha/get_all:
         get:
@@ -608,6 +680,10 @@ paths:
                     description: All gachas obtained successfully.
                 400:
                     description: Status bad requests.
+                404:
+                    description: Status not found.
+                500:
+                    description: Internal server error.
 
     /admin/gacha/{gacha_id}:
         get:
@@ -629,6 +705,10 @@ paths:
                     description: Gacha details obtained successfully.
                 400:
                     description: Status bad requests.
+                404:
+                    description: Status not found.
+                500:
+                    description: Internal server error.
         patch:
             summary: Update gacha details
             tags: [Admin]
@@ -654,7 +734,13 @@ paths:
                 200:
                     description: Gacha details updated successfully.
                 400:
-                    description: Status bad requests.A
+                    description: Status bad requests.
+                404:
+                    description: Status not found.
+                409:
+                    description: Status conflict.
+                500:
+                    description: Internal server error.
         delete:
             summary: Delete gacha
             tags: [Admin]
@@ -674,6 +760,10 @@ paths:
                     description: Gacha deleted successfully.
                 400:
                     description: Status bad requests.
+                404:
+                    description: Status not found.
+                500:
+                    description: Internal server error.
 
     /admin/market/transaction_history:
         get:
@@ -686,8 +776,10 @@ paths:
             responses:
                 200:
                     description: Market history obtained successfully.
-                400:
-                    description: Status bad requests.
+                404:
+                    description: Status not found.
+                500:
+                    description: Internal server error.
 
     /admin/market/auction/get_all:
         get:
@@ -700,8 +792,10 @@ paths:
             responses:
                 200:
                     description: All auctions obtained successfully.
-                400:
-                    description: Status bad requests.
+                404:
+                    description: Status not found.
+                500:
+                    description: Internal server error.
 
     /admin/market/auction/{auction_id}: # TODO
         get:
@@ -723,6 +817,10 @@ paths:
                     description: Auction details obtained successfully.
                 400:
                     description: Status bad requests.
+                404:
+                    description: Status not found.
+                500:
+                    description: Internal server error.
         patch:
             summary: Update auction details
             tags: [Admin]
