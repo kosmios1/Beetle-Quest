@@ -619,7 +619,7 @@ paths:
                 500:
                     description: Internal server error.
 
-    /admin/user/{user_id}/auction/get_all: # TODO
+    /admin/user/{user_id}/auction/get_all:
         get:
             summary: Get user auction list
             tags: [Admin]
@@ -797,7 +797,7 @@ paths:
                 500:
                     description: Internal server error.
 
-    /admin/market/auction/{auction_id}: # TODO
+    /admin/market/auction/{auction_id}:
         get:
             summary: Get auction details
             tags: [Admin]
@@ -821,7 +821,7 @@ paths:
                     description: Status not found.
                 500:
                     description: Internal server error.
-        patch:
+        patch: # TODO
             summary: Update auction details
             tags: [Admin]
             security:

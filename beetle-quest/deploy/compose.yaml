@@ -127,7 +127,7 @@ services:
         environment:
             <<: [*common-services-environments]
 
-            REDIS_HOST: market-timed-events-redis
+            REDIS_HOST: sessions-redis
             REDIS_PORT: 6379
             REDIS_USERNAME: beetle
             REDIS_PASSWORD: secret
