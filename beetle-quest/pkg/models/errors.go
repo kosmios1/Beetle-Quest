@@ -63,6 +63,7 @@ const (
 	ErrGachaAlreadyExists          constError = "gacha already exists"
 	ErrRetalationGachaUserNotFound constError = "retalation gacha user not found"
 	ErrAdminNotFound               constError = "admin not found"
+	ErrUserTransactionNotFound     constError = "user transaction not found"
 
 	ErrCouldNotParseTime          constError = "time format not correct"
 	ErrCouldNotDecodeUserID       constError = "could not decode user id"

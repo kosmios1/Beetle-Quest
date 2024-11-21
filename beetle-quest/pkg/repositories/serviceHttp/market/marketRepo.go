@@ -33,14 +33,14 @@ func NewMarketRepo() *MarketRepo {
 	}
 }
 
-func (r *MarketRepo) GetUserTransactionHistory(userID models.UUID) ([]models.Transaction, bool) {
+func (r *MarketRepo) GetUserTransactionHistory(userID models.UUID) ([]models.Transaction, error) {
 	requestData := models.GetUserTransactionHistoryData{
 		UserID: userID,
 	}
 
 	jsonData, err := json.Marshal(requestData)
 	if err != nil {
-		return []models.Transaction{}, false
+		return nil, models.ErrInternalServerError
 	}
 
 	resp, err := r.cb.Execute(func() (*http.Response, error) {
@@ -59,30 +59,36 @@ func (r *MarketRepo) GetUserTransactionHistory(userID models.UUID) ([]models.Tra
 	defer resp.Body.Close()
 
 	if err != nil {
-		return []models.Transaction{}, false
+		return nil, models.ErrInternalServerError
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		return []models.Transaction{}, false
+	switch resp.StatusCode {
+	case http.StatusInternalServerError:
+		return nil, models.ErrInternalServerError
+	case http.StatusNotFound:
+		return nil, models.ErrTransactionNotFound
 	}
 
-	var result models.GetUserTransactionHistoryDataResponse
-	err = json.NewDecoder(resp.Body).Decode(&result)
-	if err != nil {
-		return []models.Transaction{}, false
+	if resp.StatusCode == http.StatusOK {
+		var result models.GetUserTransactionHistoryDataResponse
+		err = json.NewDecoder(resp.Body).Decode(&result)
+		if err != nil {
+			return nil, models.ErrInternalServerError
+		}
+		return result.TransactionHistory, nil
 	}
 
-	return result.TransactionHistory, true
+	panic("unreachable code")
 }
 
-func (r *MarketRepo) DeleteUserTransactionHistory(userID models.UUID) bool {
+func (r *MarketRepo) DeleteUserTransactionHistory(userID models.UUID) error {
 	requestData := models.DeleteUserTransactionHistoryData{
 		UserID: userID,
 	}
 
 	jsonData, err := json.Marshal(requestData)
 	if err != nil {
-		return false
+		return models.ErrInternalServerError
 	}
 
 	resp, err := r.cb.Execute(func() (*http.Response, error) {
@@ -101,17 +107,24 @@ func (r *MarketRepo) DeleteUserTransactionHistory(userID models.UUID) bool {
 	defer resp.Body.Close()
 
 	if err != nil {
-		return false
+		return models.ErrInternalServerError
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		return false
+	switch resp.StatusCode {
+	case http.StatusInternalServerError:
+		return models.ErrInternalServerError
+	case http.StatusNotFound:
+		return models.ErrTransactionNotFound
 	}
 
-	return true
+	if resp.StatusCode == http.StatusOK {
+		return nil
+	}
+
+	panic("unreachable code")
 }
 
-func (r *MarketRepo) GetAll() ([]models.Auction, bool) {
+func (r *MarketRepo) GetAll() ([]models.Auction, error) {
 	resp, err := r.cb.Execute(func() (*http.Response, error) {
 		resp, err := r.client.Get(getAllAuctionsEndpoint)
 		if err != nil {
@@ -123,23 +136,29 @@ func (r *MarketRepo) GetAll() ([]models.Auction, bool) {
 	defer resp.Body.Close()
 
 	if err != nil {
-		return []models.Auction{}, false
+		return nil, models.ErrInternalServerError
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		return []models.Auction{}, false
+	switch resp.StatusCode {
+	case http.StatusInternalServerError:
+		return nil, models.ErrInternalServerError
+	case http.StatusNotFound:
+		return nil, models.ErrAuctionNotFound
 	}
 
-	var result models.GetAllAuctionDataResponse
-	err = json.NewDecoder(resp.Body).Decode(&result)
-	if err != nil {
-		return []models.Auction{}, false
-	}
+	if resp.StatusCode == http.StatusOK {
+		var result models.GetAllAuctionDataResponse
+		err = json.NewDecoder(resp.Body).Decode(&result)
+		if err != nil {
+			return nil, models.ErrInternalServerError
+		}
 
-	return result.AuctionList, true
+		return result.AuctionList, nil
+	}
+	panic("unreachable code")
 }
 
-func (r *MarketRepo) GetAllTransactions() ([]models.Transaction, bool) {
+func (r *MarketRepo) GetAllTransactions() ([]models.Transaction, error) {
 	resp, err := r.cb.Execute(func() (*http.Response, error) {
 		resp, err := r.client.Get(getAllTransactionsEndpoint)
 		if err != nil {
@@ -151,30 +170,35 @@ func (r *MarketRepo) GetAllTransactions() ([]models.Transaction, bool) {
 	defer resp.Body.Close()
 
 	if err != nil {
-		return []models.Transaction{}, false
+		return nil, models.ErrInternalServerError
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		return []models.Transaction{}, false
+	switch resp.StatusCode {
+	case http.StatusInternalServerError:
+		return nil, models.ErrInternalServerError
+	case http.StatusNotFound:
+		return nil, models.ErrAuctionNotFound
 	}
 
-	var result models.GetAllTransactionDataResponse
-	err = json.NewDecoder(resp.Body).Decode(&result)
-	if err != nil {
-		return []models.Transaction{}, false
+	if resp.StatusCode == http.StatusOK {
+		var result models.GetAllTransactionDataResponse
+		err = json.NewDecoder(resp.Body).Decode(&result)
+		if err != nil {
+			return nil, models.ErrInternalServerError
+		}
+		return result.TransactionHistory, nil
 	}
-
-	return result.TransactionHistory, true
+	panic("unreachable code")
 }
 
-func (r *MarketRepo) FindByID(aid models.UUID) (*models.Auction, bool) {
+func (r *MarketRepo) FindByID(aid models.UUID) (*models.Auction, error) {
 	requestData := models.FindAuctionByIDData{
 		AuctionID: aid,
 	}
 
 	jsonData, err := json.Marshal(requestData)
 	if err != nil {
-		return nil, false
+		return nil, models.ErrInternalServerError
 	}
 
 	resp, err := r.cb.Execute(func() (*http.Response, error) {
@@ -193,30 +217,38 @@ func (r *MarketRepo) FindByID(aid models.UUID) (*models.Auction, bool) {
 	defer resp.Body.Close()
 
 	if err != nil {
-		return nil, false
+		return nil, models.ErrInternalServerError
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		return nil, false
+	switch resp.StatusCode {
+	case http.StatusInternalServerError:
+		return nil, models.ErrInternalServerError
+	case http.StatusNotFound:
+		return nil, models.ErrAuctionNotFound
 	}
 
-	var result models.FindAuctionByIDDataResponse
-	err = json.NewDecoder(resp.Body).Decode(&result)
-	if err != nil {
-		return nil, false
+	if resp.StatusCode == http.StatusOK {
+
+		var result models.FindAuctionByIDDataResponse
+		err = json.NewDecoder(resp.Body).Decode(&result)
+		if err != nil {
+			return nil, models.ErrInternalServerError
+		}
+
+		return result.Auction, nil
 	}
 
-	return result.Auction, true
+	panic("unreachable code")
 }
 
-func (r *MarketRepo) GetUserAuctions(uid models.UUID) ([]models.Auction, bool) {
+func (r *MarketRepo) GetUserAuctions(uid models.UUID) ([]models.Auction, error) {
 	requestData := models.GetUserAuctionsData{
 		UserID: uid,
 	}
 
 	jsonData, err := json.Marshal(requestData)
 	if err != nil {
-		return []models.Auction{}, false
+		return nil, models.ErrInternalServerError
 	}
 
 	resp, err := r.cb.Execute(func() (*http.Response, error) {
@@ -235,29 +267,35 @@ func (r *MarketRepo) GetUserAuctions(uid models.UUID) ([]models.Auction, bool) {
 	defer resp.Body.Close()
 
 	if err != nil {
-		return []models.Auction{}, false
+		return nil, models.ErrInternalServerError
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		return []models.Auction{}, false
+	switch resp.StatusCode {
+	case http.StatusInternalServerError:
+		return nil, models.ErrInternalServerError
+	case http.StatusNotFound:
+		return nil, models.ErrAuctionNotFound
 	}
 
-	var result models.GetUserAuctionsDataResponse
-	err = json.NewDecoder(resp.Body).Decode(&result)
-	if err != nil {
-		return []models.Auction{}, false
+	if resp.StatusCode == http.StatusOK {
+		var result models.GetUserAuctionsDataResponse
+		err = json.NewDecoder(resp.Body).Decode(&result)
+		if err != nil {
+			return nil, models.ErrInternalServerError
+		}
+		return result.AuctionList, nil
 	}
 
-	return result.AuctionList, true
+	panic("unreachable code")
 }
 
 // Not to be implemented, never used
 
-func (r *MarketRepo) Create(*models.Auction) bool { return false }
-func (r *MarketRepo) Update(*models.Auction) bool { return false }
-func (r *MarketRepo) Delete(*models.Auction) bool { return false }
-func (r *MarketRepo) GetBidListOfAuction(models.UUID) ([]models.Bid, bool) {
-	return []models.Bid{}, false
+func (r *MarketRepo) Create(*models.Auction) error { return nil }
+func (r *MarketRepo) Update(*models.Auction) error { return nil }
+func (r *MarketRepo) Delete(*models.Auction) error { return nil }
+func (r *MarketRepo) GetBidListOfAuction(models.UUID) ([]models.Bid, error) {
+	return []models.Bid{}, nil
 }
-func (r *MarketRepo) BidToAuction(*models.Bid) bool           { return false }
-func (r *MarketRepo) AddTransaction(*models.Transaction) bool { return false }
+func (r *MarketRepo) BidToAuction(*models.Bid) error           { return nil }
+func (r *MarketRepo) AddTransaction(*models.Transaction) error { return nil }

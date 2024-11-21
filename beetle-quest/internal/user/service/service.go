@@ -42,12 +42,12 @@ func (s *UserService) DeleteUserAccount(userID models.UUID, password string) err
 		return err
 	}
 
-	if ok := s.mrepo.DeleteUserTransactionHistory(user.UserID); !ok {
-		return models.ErrCouldNotDelete
+	if err := s.mrepo.DeleteUserTransactionHistory(user.UserID); err != nil {
+		return err
 	}
 
 	if ok := s.urepo.Delete(user); !ok {
-		return models.ErrCouldNotDelete
+		return models.ErrInternalServerError
 	}
 	return nil
 }
@@ -154,8 +154,8 @@ func (s *UserService) GetUserTransactionHistory(userId string) []models.Transact
 		return []models.Transaction{}
 	}
 
-	transactions, ok := s.mrepo.GetUserTransactionHistory(uid)
-	if !ok {
+	transactions, nil := s.mrepo.GetUserTransactionHistory(uid)
+	if err != nil {
 		return []models.Transaction{}
 	}
 	return transactions

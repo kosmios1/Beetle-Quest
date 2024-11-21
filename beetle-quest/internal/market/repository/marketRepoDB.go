@@ -3,6 +3,7 @@ package repository
 import (
 	"beetle-quest/pkg/models"
 	"beetle-quest/pkg/utils"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -38,115 +39,169 @@ func NewMarketRepo() *MarketRepo {
 			break
 		}
 	}
-
-	// repo.db.AutoMigrate(&models.Auction{})
 	return repo
 }
 
-func (r *MarketRepo) Create(auction *models.Auction) bool {
+func (r *MarketRepo) Create(auction *models.Auction) error {
 	result := r.db.Table("auctions").Create(auction)
 	if result.Error != nil {
-		return false
+		if errors.Is(result.Error, gorm.ErrDuplicatedKey) {
+			return models.ErrAuctionAltreadyExists
+		}
+		return models.ErrInternalServerError
 	}
-	return true
+
+	if result.RowsAffected == 0 {
+		return models.ErrInternalServerError
+	}
+	return nil
 }
 
-func (r *MarketRepo) Update(auction *models.Auction) bool {
+func (r *MarketRepo) Update(auction *models.Auction) error {
 	result := r.db.Table("auctions").Where("auction_id = ?", auction.AuctionID).Updates(auction)
 	if result.Error != nil {
-		return false
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return models.ErrAuctionNotFound
+		} else if errors.Is(result.Error, gorm.ErrDuplicatedKey) {
+			return models.ErrGachaAlreadyExists
+		}
+		return models.ErrInternalServerError
 	}
-	return true
+
+	if result.RowsAffected == 0 {
+		return models.ErrInternalServerError
+	}
+	return nil
 }
 
-func (r *MarketRepo) Delete(auction *models.Auction) bool {
+func (r *MarketRepo) Delete(auction *models.Auction) error {
 	result := r.db.Table("auctions").Delete(auction, models.Auction{AuctionID: auction.AuctionID})
 	if result.Error != nil {
-		return false
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return models.ErrAuctionNotFound
+		}
+		return models.ErrInternalServerError
 	}
-	return true
+
+	if result.RowsAffected == 0 {
+		return models.ErrInternalServerError
+	}
+	return nil
 }
 
-func (r *MarketRepo) FindByID(id models.UUID) (*models.Auction, bool) {
+func (r *MarketRepo) FindByID(id models.UUID) (*models.Auction, error) {
 	var auction models.Auction
 	result := r.db.Table("auctions").First(&auction, models.Auction{AuctionID: id})
 	if result.Error != nil {
-		return nil, false
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, models.ErrAuctionNotFound
+		}
+		return nil, models.ErrInternalServerError
 	}
-	return &auction, true
+	return &auction, nil
 }
 
-func (r *MarketRepo) DeleteUserTransactionHistory(uid models.UUID) bool {
+func (r *MarketRepo) DeleteUserTransactionHistory(uid models.UUID) error {
 	result := r.db.Table("transactions").Delete(models.Transaction{}, models.Transaction{UserID: uid})
 	if result.Error != nil {
-		return false
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) || errors.Is(result.Error, gorm.ErrEmptySlice) {
+			return models.ErrUserTransactionNotFound
+		}
+		return models.ErrInternalServerError
 	}
-	return true
+
+	if result.RowsAffected == 0 {
+		return models.ErrInternalServerError
+	}
+	return nil
 }
 
-func (r *MarketRepo) GetUserTransactionHistory(uid models.UUID) ([]models.Transaction, bool) {
+func (r *MarketRepo) GetUserTransactionHistory(uid models.UUID) ([]models.Transaction, error) {
 	var transactions []models.Transaction
 	result := r.db.Table("transactions").Where("user_id = ?", uid).Find(&transactions)
 	if result.Error != nil {
-		if result.Error == gorm.ErrEmptySlice {
-			return []models.Transaction{}, true
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) || errors.Is(result.Error, gorm.ErrEmptySlice) {
+			return nil, models.ErrTransactionNotFound
 		}
-		return []models.Transaction{}, false
+		return nil, models.ErrInternalServerError
 	}
-	return transactions, true
+	return transactions, nil
 }
 
-func (r *MarketRepo) GetUserAuctions(uid models.UUID) ([]models.Auction, bool) {
+func (r *MarketRepo) GetUserAuctions(uid models.UUID) ([]models.Auction, error) {
 	var auctions []models.Auction
 	result := r.db.Table("auctions").Where("owner_id = ?", uid).Find(&auctions)
 	if result.Error != nil {
-		if result.Error == gorm.ErrEmptySlice {
-			return []models.Auction{}, true
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) || errors.Is(result.Error, gorm.ErrEmptySlice) {
+			return nil, models.ErrAuctionNotFound
 		}
-		return []models.Auction{}, false
+		return nil, models.ErrInternalServerError
 	}
-	return auctions, true
+	return auctions, nil
 }
 
-func (r *MarketRepo) GetAll() ([]models.Auction, bool) {
+func (r *MarketRepo) GetAll() ([]models.Auction, error) {
 	var auctions []models.Auction
 	result := r.db.Table("auctions").Find(&auctions)
 	if result.Error != nil {
-		return nil, false
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) || errors.Is(result.Error, gorm.ErrEmptySlice) {
+			return nil, models.ErrAuctionNotFound
+		}
+		return nil, models.ErrInternalServerError
 	}
-	return auctions, true
+	return auctions, nil
 }
 
-func (r *MarketRepo) BidToAuction(bid *models.Bid) bool {
+func (r *MarketRepo) BidToAuction(bid *models.Bid) error {
 	result := r.db.Table("bids").Create(bid)
 	if result.Error != nil {
-		return false
+		if errors.Is(result.Error, gorm.ErrDuplicatedKey) {
+			return models.ErrCouldNotBidToAuction
+		}
+		return models.ErrInternalServerError
 	}
-	return true
+
+	if result.RowsAffected == 0 {
+		return models.ErrInternalServerError
+	}
+	return nil
 }
 
-func (r *MarketRepo) GetBidListOfAuction(aid models.UUID) ([]models.Bid, bool) {
+func (r *MarketRepo) GetBidListOfAuction(aid models.UUID) ([]models.Bid, error) {
 	var bids []models.Bid
 	result := r.db.Table("bids").Where("auction_id = ?", aid).Find(&bids)
 	if result.Error != nil {
-		return nil, false
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) || errors.Is(result.Error, gorm.ErrEmptySlice) {
+			return nil, models.ErrBidsNotFound
+		}
+		return nil, models.ErrInternalServerError
 	}
-	return bids, true
+	return bids, nil
 }
 
-func (r *MarketRepo) AddTransaction(transaction *models.Transaction) bool {
+func (r *MarketRepo) AddTransaction(transaction *models.Transaction) error {
 	result := r.db.Table("transactions").Create(transaction)
 	if result.Error != nil {
-		return false
+		if errors.Is(result.Error, gorm.ErrDuplicatedKey) {
+			return models.ErrCouldNotAddTransaction
+		}
+		return models.ErrInternalServerError
 	}
-	return true
+
+	if result.RowsAffected == 0 {
+		return models.ErrInternalServerError
+	}
+	return nil
 }
 
-func (r *MarketRepo) GetAllTransactions() ([]models.Transaction, bool) {
+func (r *MarketRepo) GetAllTransactions() ([]models.Transaction, error) {
 	var transactions []models.Transaction
 	result := r.db.Table("transactions").Find(&transactions)
 	if result.Error != nil {
-		return nil, false
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) || errors.Is(result.Error, gorm.ErrEmptySlice) {
+			return nil, models.ErrTransactionNotFound
+		}
+		return nil, models.ErrInternalServerError
 	}
-	return transactions, true
+	return transactions, nil
 }

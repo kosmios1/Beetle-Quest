@@ -106,7 +106,7 @@ func (r *GachaRepo) GetAll() ([]models.Gacha, error) {
 	var gachas []models.Gacha
 	result := r.db.Table("gachas").Find(&gachas)
 	if result.Error != nil {
-		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) || errors.Is(result.Error, gorm.ErrEmptySlice) {
 			return nil, models.ErrGachaNotFound
 		}
 		return nil, models.ErrInternalServerError
@@ -134,7 +134,7 @@ func (r *GachaRepo) RemoveGachaFromUser(uid models.UUID, gid models.UUID) error 
 	value := models.GachaUserRelation{UserID: uid, GachaID: gid}
 	result := r.db.Table("user_gacha").Delete(value, "user_id = ? AND gacha_id = ?", uid, gid)
 	if result.Error != nil {
-		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) || errors.Is(result.Error, gorm.ErrEmptySlice) {
 			return models.ErrRetalationGachaUserNotFound
 		}
 		return models.ErrInternalServerError
@@ -154,6 +154,10 @@ func (r *GachaRepo) RemoveUserGachas(uid models.UUID) error {
 		}
 		return models.ErrInternalServerError
 	}
+
+	if result.RowsAffected == 0 {
+		return models.ErrInternalServerError
+	}
 	return nil
 }
 
@@ -162,8 +166,8 @@ func (r *GachaRepo) GetUserGachas(uid models.UUID) ([]models.Gacha, error) {
 	result := r.db.Table("user_gacha").Select("gachas.*").Joins("JOIN gachas ON gachas.gacha_id = user_gacha.gacha_id").Where("user_gacha.user_id = ?", uid).Find(&gachas)
 
 	if result.Error != nil {
-		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return nil, models.ErrGachaNotFound
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) || errors.Is(result.Error, gorm.ErrEmptySlice) {
+			return nil, models.ErrUserNotFound
 		}
 		return nil, models.ErrInternalServerError
 	}

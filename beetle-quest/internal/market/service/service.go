@@ -56,7 +56,9 @@ func (s *MarketService) AddBugsCoin(userId string, amount int64) error {
 		EventID:         models.UUID{},
 	}
 
-	if ok := s.mrepo.AddTransaction(t); !ok {
+	if err := s.mrepo.AddTransaction(t); err != nil {
+		// NOTE: The client doesn't need to know why the request
+		// failed, so we can just return a generic error.
 		return models.ErrInternalServerError
 	}
 
@@ -66,7 +68,7 @@ func (s *MarketService) AddBugsCoin(userId string, amount int64) error {
 
 	user.Currency += amount
 	if ok := s.urepo.Update(user); !ok {
-		return models.ErrCouldNotUpdate
+		return models.ErrInternalServerError
 	}
 	return nil
 }
@@ -102,7 +104,9 @@ func (s *MarketService) RollGacha(userId string) (string, error) {
 		EventID:         models.UUID{},
 	}
 
-	if ok := s.mrepo.AddTransaction(t); !ok {
+	if err := s.mrepo.AddTransaction(t); err != nil {
+		// NOTE: The client doesn't need to know why the request
+		// failed, so we can just return a generic error.
 		return "", models.ErrInternalServerError
 	}
 
@@ -140,12 +144,12 @@ func (s *MarketService) RollGacha(userId string) (string, error) {
 func (s *MarketService) BuyGacha(userId string, gachaId string) error {
 	uid, err := utils.ParseUUID(userId)
 	if err != nil {
-		return models.ErrInvalidUserID
+		return models.ErrInternalServerError
 	}
 
 	gid, err := utils.ParseUUID(gachaId)
 	if err != nil {
-		return models.ErrInvalidGachaID
+		return models.ErrInternalServerError
 	}
 
 	userGacha, err := s.grepo.GetUserGachas(uid)
@@ -183,13 +187,17 @@ func (s *MarketService) BuyGacha(userId string, gachaId string) error {
 		EventID:         models.UUID{},
 	}
 
-	if ok := s.mrepo.AddTransaction(t); !ok {
+	if err := s.mrepo.AddTransaction(t); err != nil {
+		// NOTE: The client doesn't need to know why the request
+		// failed, so we can just return a generic error.
 		return models.ErrInternalServerError
 	}
 
 	user.Currency -= gacha.Price
 	if ok := s.urepo.Update(user); !ok {
-		return models.ErrCouldNotUpdate
+		// NOTE: The client doesn't need to know why the request
+		// failed, so we can just return a generic error.
+		return models.ErrInternalServerError
 	}
 
 	if err := s.grepo.AddGachaToUser(uid, gid); err != nil {
@@ -207,12 +215,12 @@ func (s *MarketService) BuyGacha(userId string, gachaId string) error {
 func (s *MarketService) CreateAuction(userId, gachaId string, endTime time.Time) error {
 	uid, err := utils.ParseUUID(userId)
 	if err != nil {
-		return models.ErrInvalidUserID
+		return models.ErrInternalServerError
 	}
 
 	gid, err := utils.ParseUUID(gachaId)
 	if err != nil {
-		return models.ErrInvalidGachaID
+		return models.ErrInternalServerError
 	}
 
 	user, exists := s.urepo.FindByID(uid)
@@ -242,9 +250,9 @@ func (s *MarketService) CreateAuction(userId, gachaId string, endTime time.Time)
 		return models.ErrUserDoesNotOwnGacha
 	}
 
-	auctions, ok := s.mrepo.GetUserAuctions(uid)
-	if !ok {
-		return models.ErrCouldNotRetrieveUserAuctions
+	auctions, err := s.mrepo.GetUserAuctions(uid)
+	if err != nil {
+		return err
 	}
 
 	for _, a := range auctions {
@@ -267,13 +275,12 @@ func (s *MarketService) CreateAuction(userId, gachaId string, endTime time.Time)
 		WinnerID:  models.UUID{},
 	}
 
-	if ok := s.mrepo.Create(auction); !ok {
-		return models.ErrCouldNotCreateAuction
+	if err = s.evrepo.AddEndAuctionEvent(auction); err != nil {
+		return models.ErrInternalServerError
 	}
 
-	if err = s.evrepo.AddEndAuctionEvent(auction); err != nil {
-		// TODO: Report to admin
-		return models.ErrCouldNotAddEvent
+	if err := s.mrepo.Create(auction); err != nil {
+		return err
 	}
 
 	return nil
@@ -282,12 +289,12 @@ func (s *MarketService) CreateAuction(userId, gachaId string, endTime time.Time)
 func (s *MarketService) DeleteAuction(userId, auctionId, password string) error {
 	uid, err := utils.ParseUUID(userId)
 	if err != nil {
-		return models.ErrInvalidUserID
+		return models.ErrInternalServerError
 	}
 
 	aid, err := utils.ParseUUID(auctionId)
 	if err != nil {
-		return models.ErrInvalidAuctionID
+		return models.ErrInternalServerError
 	}
 
 	user, exists := s.urepo.FindByID(uid)
@@ -295,9 +302,9 @@ func (s *MarketService) DeleteAuction(userId, auctionId, password string) error 
 		return models.ErrUserNotFound
 	}
 
-	auction, exists := s.mrepo.FindByID(aid)
-	if !exists {
-		return models.ErrAuctionNotFound
+	auction, err := s.mrepo.FindByID(aid)
+	if err != nil {
+		return err
 	}
 
 	// Check if the user is the owner of the auction
@@ -321,9 +328,9 @@ func (s *MarketService) DeleteAuction(userId, auctionId, password string) error 
 		return models.ErrAuctionIsTooCloseToEnd
 	}
 
-	bids, ok := s.mrepo.GetBidListOfAuction(aid)
-	if !ok {
-		return models.ErrCouldNotRetrieveAuctionBids
+	bids, err := s.mrepo.GetBidListOfAuction(aid)
+	if err != nil {
+		return err
 	}
 
 	// If there are bids the auction cannot be deleted
@@ -331,17 +338,17 @@ func (s *MarketService) DeleteAuction(userId, auctionId, password string) error 
 		return models.ErrAuctionHasBids
 	}
 
-	if ok := s.mrepo.Delete(auction); !ok {
-		return models.ErrCouldNotDeleteAuction
+	if err := s.mrepo.Delete(auction); err != nil {
+		return err
 	}
 
 	return nil
 }
 
 func (s *MarketService) RetrieveAuctionTemplateList() ([]models.AuctionTemplate, error) {
-	auctions, ok := s.mrepo.GetAll()
-	if !ok {
-		return nil, models.ErrRetrievingAuctions
+	auctions, err := s.mrepo.GetAll()
+	if err != nil {
+		return nil, err
 	}
 
 	var data []models.AuctionTemplate = []models.AuctionTemplate{}
@@ -376,46 +383,60 @@ func (s *MarketService) RetrieveAuctionTemplateList() ([]models.AuctionTemplate,
 	return data, nil
 }
 
-func (s *MarketService) FindByID(auctionId string) (*models.Auction, bool) {
-	aid, err := utils.ParseUUID(auctionId)
+func (s *MarketService) GetAuctionDetails(auctionId string) (*models.Auction, []models.Bid, error) {
+	auction, err := s.FindByID(auctionId)
 	if err != nil {
-		return &models.Auction{}, false
+		return nil, nil, err
 	}
 
-	auction, exists := s.mrepo.FindByID(aid)
-	if !exists {
-		return &models.Auction{}, false
+	bids, err := s.GetBidListOfAuctionID(auctionId)
+	if err != nil {
+		return nil, nil, err
 	}
-	return auction, true
+
+	return auction, bids, nil
 }
 
-func (s *MarketService) GetBidListOfAuctionID(auctionId string) ([]models.Bid, bool) {
+func (s *MarketService) FindByID(auctionId string) (*models.Auction, error) {
 	aid, err := utils.ParseUUID(auctionId)
 	if err != nil {
-		return []models.Bid{}, false
+		return nil, models.ErrInternalServerError
 	}
 
-	bids, ok := s.mrepo.GetBidListOfAuction(aid)
-	if !ok {
-		return []models.Bid{}, false
+	auction, err := s.mrepo.FindByID(aid)
+	if err != nil {
+		return nil, err
 	}
-	return bids, true
+	return auction, nil
+}
+
+func (s *MarketService) GetBidListOfAuctionID(auctionId string) ([]models.Bid, error) {
+	aid, err := utils.ParseUUID(auctionId)
+	if err != nil {
+		return nil, models.ErrInternalServerError
+	}
+
+	bids, err := s.mrepo.GetBidListOfAuction(aid)
+	if err != nil {
+		return nil, err
+	}
+	return bids, nil
 }
 
 func (s *MarketService) MakeBid(userId, auctionId string, bidAmount int64) error {
 	uid, err := utils.ParseUUID(userId)
 	if err != nil {
-		return models.ErrInvalidUserID
+		return models.ErrInternalServerError
 	}
 
 	aid, err := utils.ParseUUID(auctionId)
 	if err != nil {
-		return models.ErrInvalidAuctionID
+		return models.ErrInternalServerError
 	}
 
-	auction, exists := s.mrepo.FindByID(aid)
-	if !exists {
-		return models.ErrAuctionNotFound
+	auction, err := s.mrepo.FindByID(aid)
+	if err != nil {
+		return err
 	}
 
 	if auction.OwnerID == uid {
@@ -431,9 +452,9 @@ func (s *MarketService) MakeBid(userId, auctionId string, bidAmount int64) error
 		return models.ErrNotEnoughMoneyToBid
 	}
 
-	bids, ok := s.mrepo.GetBidListOfAuction(aid)
-	if !ok {
-		return models.ErrCouldNotRetrieveAuctionBids
+	bids, err := s.mrepo.GetBidListOfAuction(aid)
+	if err != nil {
+		return err
 	}
 
 	var maxBid int64 = 0
@@ -464,12 +485,16 @@ func (s *MarketService) MakeBid(userId, auctionId string, bidAmount int64) error
 		return models.ErrCouldNotUpdate
 	}
 
-	if ok := s.mrepo.BidToAuction(bid); !ok {
+	if err := s.mrepo.BidToAuction(bid); err != nil {
 		user.Currency += bidAmount
 		if ok := s.urepo.Update(user); !ok {
 			// TODO: What should we do here?
 		}
-		return models.ErrCouldNotBidToAuction
+		if err == models.ErrCouldNotBidToAuction {
+			return models.ErrInternalServerError
+		} else {
+			return err
+		}
 	}
 	return nil
 }
@@ -477,20 +502,20 @@ func (s *MarketService) MakeBid(userId, auctionId string, bidAmount int64) error
 // Timed events callbacks ================================================
 
 func (s *MarketService) closeAuctionCallback(aid models.UUID) {
-	auction, exists := s.mrepo.FindByID(aid)
-	if !exists {
+	auction, err := s.mrepo.FindByID(aid)
+	if err != nil {
 		s.closeAuctionErrorCallback(models.ErrAuctionNotFound)
 		return
 	}
 
-	bids, ok := s.mrepo.GetBidListOfAuction(aid)
-	if !ok {
+	bids, err := s.mrepo.GetBidListOfAuction(aid)
+	if err != nil {
 		s.closeAuctionErrorCallback(models.ErrCouldNotRetrieveAuctionBids)
 		return
 	}
 
 	if len(bids) == 0 {
-		if ok = s.mrepo.Delete(auction); !ok {
+		if err = s.mrepo.Delete(auction); err != nil {
 			s.closeAuctionErrorCallback(models.ErrCouldNotDeleteAuction)
 		}
 		return
@@ -544,7 +569,7 @@ func (s *MarketService) closeAuctionCallback(aid models.UUID) {
 
 	{ // Winner actions
 		auction.WinnerID = maxBidder
-		if ok := s.mrepo.Update(auction); !ok {
+		if err := s.mrepo.Update(auction); err != nil {
 			// NOTE: If we do not find the auction, we still have informations to give gacha to the winner
 			s.closeAuctionErrorCallback(models.ErrCouldNotUpdateAuction)
 		}
@@ -564,7 +589,7 @@ func (s *MarketService) closeAuctionCallback(aid models.UUID) {
 				EventID:         auction.AuctionID,
 			}
 
-			if ok := s.mrepo.AddTransaction(t); !ok {
+			if err := s.mrepo.AddTransaction(t); err != nil {
 				s.closeAuctionErrorCallback(models.ErrCouldNotAddTransaction)
 				return
 			}
@@ -598,7 +623,7 @@ func (s *MarketService) closeAuctionCallback(aid models.UUID) {
 			EventID:         auction.AuctionID,
 		}
 
-		if ok := s.mrepo.AddTransaction(t); !ok {
+		if err := s.mrepo.AddTransaction(t); err != nil {
 			s.closeAuctionErrorCallback(models.ErrCouldNotAddTransaction)
 		}
 
@@ -618,35 +643,21 @@ func (s *MarketService) closeAuctionErrorCallback(err error) {
 // Internal functions ====================================================
 
 func (s *MarketService) GetAuctionList() ([]models.Auction, error) {
-	if auctions, ok := s.mrepo.GetAll(); ok {
-		return auctions, nil
-	}
-	return []models.Auction{}, models.ErrCouldNotRetrieveAuctions
+	return s.mrepo.GetAll()
 }
 
 func (s *MarketService) GetAuctionListOfUser(uid models.UUID) ([]models.Auction, error) {
-	if auctions, ok := s.mrepo.GetUserAuctions(uid); ok {
-		return auctions, nil
-	}
-	return []models.Auction{}, models.ErrCouldNotRetrieveAuctions
+	return s.mrepo.GetUserAuctions(uid)
 }
 
 func (s *MarketService) GetAllTransactions() ([]models.Transaction, error) {
-	if transactions, ok := s.mrepo.GetAllTransactions(); ok {
-		return transactions, nil
-	}
-	return []models.Transaction{}, models.ErrCouldNotRetrieveTransactions
+	return s.mrepo.GetAllTransactions()
 }
 
-func (s *MarketService) GetUserTransactionHistory(uid models.UUID) ([]models.Transaction, bool) {
-	transactions, ok := s.mrepo.GetUserTransactionHistory(uid)
-	if !ok {
-		return []models.Transaction{}, false
-	}
-
-	return transactions, true
+func (s *MarketService) GetUserTransactionHistory(uid models.UUID) ([]models.Transaction, error) {
+	return s.mrepo.GetUserTransactionHistory(uid)
 }
 
-func (s *MarketService) DeleteUserTransactionHistory(uid models.UUID) bool {
+func (s *MarketService) DeleteUserTransactionHistory(uid models.UUID) error {
 	return s.mrepo.DeleteUserTransactionHistory(uid)
 }

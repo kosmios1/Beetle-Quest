@@ -135,14 +135,17 @@ func (c *UserController) DeleteUserAccount(ctx *gin.Context) {
 
 	err = c.srv.DeleteUserAccount(parsedUserID, password)
 	if err != nil {
-		if err == models.ErrGachaNotFound {
-			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err})
-			ctx.Abort()
-		} else {
+		switch err {
+		case models.ErrInternalServerError:
 			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err})
 			ctx.Abort()
+			return
+		case models.ErrUserNotFound, models.ErrRetalationGachaUserNotFound, models.ErrUserTransactionNotFound:
+			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.Abort()
+			return
 		}
-		return
+		panic("unreachable code")
 	}
 
 	ctx.Redirect(http.StatusSeeOther, "/api/v1/auth/logout")

@@ -57,20 +57,20 @@ func (c *AdminController) GetUserProfile(ctx *gin.Context) {
 func (c *AdminController) UpdateUserProfile(ctx *gin.Context) {
 	userId := ctx.Param("user_id")
 	if userId == "" {
-		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "user_id is required"})
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": models.ErrInvalidData})
 		ctx.Abort()
 		return
 	}
 
 	var data models.AdminUpdateUserAccount
 	if err := ctx.ShouldBindJSON(&data); err != nil {
-		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "user_id is required"})
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": models.ErrInvalidData})
 		ctx.Abort()
 		return
 	}
 
 	if ok := c.srv.UpdateUserProfile(userId, &data); !ok {
-		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"error": "Internal server error!"})
+		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"error": models.ErrInternalServerError})
 		ctx.Abort()
 		return
 	}
@@ -81,16 +81,24 @@ func (c *AdminController) UpdateUserProfile(ctx *gin.Context) {
 func (c *AdminController) GetUserTransactionHistory(ctx *gin.Context) {
 	userId := ctx.Param("user_id")
 	if userId == "" {
-		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "user_id is required"})
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": models.ErrInvalidData})
 		ctx.Abort()
 		return
 	}
 
-	transactions, exists := c.srv.GetUserTransactionHistory(userId)
-	if !exists {
-		ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": "User not found"})
-		ctx.Abort()
-		return
+	transactions, err := c.srv.GetUserTransactionHistory(userId)
+	if err != nil {
+		switch err {
+		case models.ErrInternalServerError:
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.Abort()
+			return
+		case models.ErrTransactionNotFound:
+			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.Abort()
+			return
+		}
+		panic("code should not reach here")
 	}
 
 	// ctx.HTML(http.StatusOK, "userTransactionHistory.tmpl", gin.H{"TransactionList": transactions})
@@ -100,16 +108,23 @@ func (c *AdminController) GetUserTransactionHistory(ctx *gin.Context) {
 func (c *AdminController) GetUserAuctionList(ctx *gin.Context) {
 	userId := ctx.Param("user_id")
 	if userId == "" {
-		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "user_id is required"})
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": models.ErrInvalidData})
 		ctx.Abort()
 		return
 	}
 
-	auctionList, exists := c.srv.GetUserAuctionList(userId)
-	if !exists {
-		ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": "User not found"})
-		ctx.Abort()
-		return
+	auctionList, err := c.srv.GetUserAuctionList(userId)
+	if err != nil {
+		switch err {
+		case models.ErrInternalServerError:
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.Abort()
+			return
+		case models.ErrAuctionNotFound:
+			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.Abort()
+			return
+		}
 	}
 
 	// ctx.HTML(http.StatusOK, "userMarketHistory.tmpl", gin.H{"MarketHistory": marketHistory})
@@ -232,11 +247,19 @@ func (cnt *AdminController) GetGachaDetails(ctx *gin.Context) {
 // Market controllers ==============================================
 
 func (cnt *AdminController) GetMarketHistory(ctx *gin.Context) {
-	transactions, ok := cnt.srv.GetMarketHistory()
-	if !ok {
-		ctx.Status(http.StatusInternalServerError)
-		ctx.Abort()
-		return
+	transactions, err := cnt.srv.GetMarketHistory()
+	if err != nil {
+		switch err {
+		case models.ErrInternalServerError:
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", err)
+			ctx.Abort()
+			return
+		case models.ErrTransactionNotFound:
+			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", err)
+			ctx.Abort()
+			return
+		}
+		panic("unreachable code")
 	}
 	ctx.JSON(http.StatusOK, gin.H{"MarketHistory": transactions})
 }
@@ -246,12 +269,22 @@ func (cnt *AdminController) UpdateAuction(ctx *gin.Context) {
 }
 
 func (cnt *AdminController) GetAllAuctions(ctx *gin.Context) {
-	if auctions, ok := cnt.srv.GetAllAuctions(); ok {
-		ctx.JSON(http.StatusOK, gin.H{"AuctionList": auctions})
-		return
+	auctions, err := cnt.srv.GetAllAuctions()
+	if err != nil {
+		switch err {
+		case models.ErrInternalServerError:
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", err)
+			ctx.Abort()
+			return
+		case models.ErrTransactionNotFound:
+			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", err)
+			ctx.Abort()
+			return
+		}
+		panic("unreachable code")
 	}
-	ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", models.ErrInternalServerError)
-	ctx.Abort()
+
+	ctx.JSON(http.StatusOK, gin.H{"AuctionList": auctions})
 }
 
 func (cnt *AdminController) GetAuctionDetails(ctx *gin.Context) {
@@ -262,11 +295,19 @@ func (cnt *AdminController) GetAuctionDetails(ctx *gin.Context) {
 		return
 	}
 
-	auction, exists := cnt.srv.FindAuctionByID(auctionId)
-	if !exists {
-		ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": "Auction not found"})
-		ctx.Abort()
-		return
+	auction, err := cnt.srv.FindAuctionByID(auctionId)
+	if err != nil {
+		switch err {
+		case models.ErrInternalServerError:
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.Abort()
+			return
+		case models.ErrAuctionNotFound:
+			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.Abort()
+			return
+		}
+		panic("unreachable code")
 	}
 
 	ctx.JSON(http.StatusOK, auction)

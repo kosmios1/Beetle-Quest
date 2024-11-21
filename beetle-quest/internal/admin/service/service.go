@@ -47,12 +47,12 @@ func (s *AdminService) FindUserByID(userId string) (*models.UserDetailsTemplate,
 		gachas = []models.Gacha{}
 	}
 
-	transactions, ok := s.mrepo.GetUserTransactionHistory(uid)
-	if !ok {
+	transactions, err := s.mrepo.GetUserTransactionHistory(uid)
+	if err != nil {
 		transactions = []models.Transaction{}
 	}
 
-	auctions, ok := s.mrepo.GetUserAuctions(uid)
+	auctions, err := s.mrepo.GetUserAuctions(uid)
 	if err != nil {
 		if err == models.ErrInternalServerError {
 			return nil, err
@@ -98,30 +98,30 @@ func (s *AdminService) UpdateUserProfile(userId string, data *models.AdminUpdate
 	return s.urepo.Update(user)
 }
 
-func (s *AdminService) GetUserTransactionHistory(userId string) ([]models.Transaction, bool) {
+func (s *AdminService) GetUserTransactionHistory(userId string) ([]models.Transaction, error) {
 	uid, err := utils.ParseUUID(userId)
 	if err != nil {
-		return []models.Transaction{}, false
+		return nil, models.ErrInternalServerError
 	}
 
-	if transactions, ok := s.mrepo.GetUserTransactionHistory(uid); ok {
-		return transactions, true
+	if transactions, err := s.mrepo.GetUserTransactionHistory(uid); err == nil {
+		return transactions, nil
 	}
 
-	return []models.Transaction{}, false
+	return nil, err
 }
 
-func (s *AdminService) GetUserAuctionList(userId string) ([]models.Auction, bool) {
+func (s *AdminService) GetUserAuctionList(userId string) ([]models.Auction, error) {
 	uid, err := utils.ParseUUID(userId)
 	if err != nil {
-		return []models.Auction{}, false
+		return nil, models.ErrInternalServerError
 	}
 
-	if auctions, ok := s.mrepo.GetUserAuctions(uid); ok {
-		return auctions, true
+	if auctions, err := s.mrepo.GetUserAuctions(uid); err == nil {
+		return auctions, nil
 	}
 
-	return []models.Auction{}, false
+	return nil, err
 }
 
 // Gacha service functions =================================================
@@ -213,19 +213,18 @@ func (s *AdminService) FindGachaByID(gachaId string) (*models.Gacha, error) {
 
 // Market service functions =================================================
 
-func (s *AdminService) GetMarketHistory() ([]models.Transaction, bool) {
+func (s *AdminService) GetMarketHistory() ([]models.Transaction, error) {
 	return s.mrepo.GetAllTransactions()
 }
 
-func (s *AdminService) GetAllAuctions() ([]models.Auction, bool) {
+func (s *AdminService) GetAllAuctions() ([]models.Auction, error) {
 	return s.mrepo.GetAll()
 }
 
-func (s *AdminService) FindAuctionByID(auctionId string) (*models.Auction, bool) {
+func (s *AdminService) FindAuctionByID(auctionId string) (*models.Auction, error) {
 	aid, err := utils.ParseUUID(auctionId)
 	if err != nil {
-		return nil, false
+		return nil, models.ErrInternalServerError
 	}
-
 	return s.mrepo.FindByID(aid)
 }

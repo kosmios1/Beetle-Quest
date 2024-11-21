@@ -88,6 +88,7 @@ services:
             GET_ALL_USERS_ENDPOINT: https://user-service/api/v1/internal/user/get_all
             UPDATE_USER_ENDPOINT: https://user-service/api/v1/internal/user/update
             FIND_USER_BY_ID_ENDPOINT: https://user-service/api/v1/internal/user/find_by_id
+
             CREATE_GACHA_ENDPOINT: https://gacha-service/api/v1/internal/gacha/create
             UPDATE_GACHA_ENDPOINT: https://gacha-service/api/v1/internal/gacha/update
             DELETE_GACHA_ENDPOINT: https://gacha-service/api/v1/internal/gacha/delete

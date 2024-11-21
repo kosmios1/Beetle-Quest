@@ -5,20 +5,20 @@ import (
 )
 
 type MarketRepo interface {
-	Create(*models.Auction) bool
-	Update(*models.Auction) bool
-	Delete(*models.Auction) bool
+	Create(*models.Auction) error
+	Update(*models.Auction) error
+	Delete(*models.Auction) error
 
-	GetAll() ([]models.Auction, bool)
-	GetUserAuctions(models.UUID) ([]models.Auction, bool)
-	FindByID(models.UUID) (*models.Auction, bool)
+	GetAll() ([]models.Auction, error)
+	GetUserAuctions(models.UUID) ([]models.Auction, error)
+	FindByID(models.UUID) (*models.Auction, error)
 
-	GetBidListOfAuction(models.UUID) ([]models.Bid, bool)
-	BidToAuction(*models.Bid) bool
+	GetBidListOfAuction(models.UUID) ([]models.Bid, error)
+	BidToAuction(*models.Bid) error
 
-	GetAllTransactions() ([]models.Transaction, bool)
-	DeleteUserTransactionHistory(models.UUID) bool
-	GetUserTransactionHistory(models.UUID) ([]models.Transaction, bool)
+	GetAllTransactions() ([]models.Transaction, error)
+	DeleteUserTransactionHistory(models.UUID) error
+	GetUserTransactionHistory(models.UUID) ([]models.Transaction, error)
 
-	AddTransaction(*models.Transaction) bool
+	AddTransaction(*models.Transaction) error
 }
