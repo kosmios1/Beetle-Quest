@@ -114,7 +114,7 @@ type CreateUserData struct {
 }
 
 type FindUserByIDData struct {
-	UserID string `json:"user_id"`
+	UserID UUID `json:"user_id"`
 }
 
 type FindUserByUsernameData struct {

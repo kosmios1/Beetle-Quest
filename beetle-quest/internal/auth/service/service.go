@@ -37,11 +37,11 @@ func (s *AuthService) Register(email, username, password string) error {
 
 	hashedPassword, err := utils.GenerateHashFromPassword([]byte(password))
 	if err != nil {
-		return models.ErrCheckingPassword
+		return models.ErrInternalServerError
 	}
 
-	if ok := s.userRepo.Create(email, username, hashedPassword, 200); !ok {
-		return models.ErrUserParametersNotValid
+	if err := s.userRepo.Create(email, username, hashedPassword, 200); err != nil {
+		return err
 	}
 
 	return nil
@@ -52,13 +52,13 @@ func (s *AuthService) Login(username, password string) (token *jwt.Token, tokenS
 		return nil, "", models.ErrInvalidUsernameOrPass
 	}
 
-	user, ok := s.userRepo.FindByUsername(username)
-	if !ok {
-		return nil, "", models.ErrInvalidUsernameOrPass
+	user, err := s.userRepo.FindByUsername(username)
+	if err != nil {
+		return nil, "", err
 	}
 
 	if err := utils.CompareHashPassword([]byte(password), user.PasswordHash); err != nil {
-		return nil, "", models.ErrInvalidUsernameOrPass
+		return nil, "", models.ErrInvalidPassword
 	}
 
 	token, tokenString, err = utils.GenerateJWTToken(user.UserID.String(), "user", jwtSecretKey)

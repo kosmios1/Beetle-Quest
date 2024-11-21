@@ -3,7 +3,6 @@ package controller
 import (
 	"beetle-quest/internal/user/service"
 	"beetle-quest/pkg/models"
-	"beetle-quest/pkg/utils"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -27,32 +26,16 @@ func (c *UserController) GetUserAccountDetails(ctx *gin.Context) {
 		return
 	}
 
-	parsedUserID, err := utils.ParseUUID(userID)
+	user, gachas, transactions, err := c.srv.GetUserAccountDetails(userID)
 	if err != nil {
-		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "Invalid User ID for this session!"})
-		ctx.Abort()
-		return
-	}
-
-	user, err := c.srv.GetUserAccountDetails(parsedUserID)
-	if err != nil {
-		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err})
-		ctx.Abort()
-		return
-	}
-
-	gachas, err := c.srv.GetUserGachaList(user.UserID.String())
-	if err != nil {
-		if err == models.ErrInternalServerError {
+		switch err {
+		case models.ErrInternalServerError:
 			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err})
 			ctx.Abort()
 			return
-		} else {
-			gachas = []models.Gacha{}
 		}
+		panic("unreachable code")
 	}
-
-	transactions := c.srv.GetUserTransactionHistory(userID)
 
 	var transactionViews []models.TransactionView
 	for _, transaction := range transactions {
@@ -85,13 +68,6 @@ func (c *UserController) UpdateUserAccountDetails(ctx *gin.Context) {
 		return
 	}
 
-	parsedUserID, err := utils.ParseUUID(userID)
-	if err != nil {
-		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "Invalid User ID for this session!"})
-		ctx.Abort()
-		return
-	}
-
 	var req models.UpdateUserAccountDetailsRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "Wrong inputs passed to the request!"})
@@ -99,11 +75,22 @@ func (c *UserController) UpdateUserAccountDetails(ctx *gin.Context) {
 		return
 	}
 
-	err = c.srv.UpdateUserAccountDetails(parsedUserID, req.Email, req.Username, req.OldPassword, req.NewPassword)
+	err := c.srv.UpdateUserAccountDetails(userID, req.Email, req.Username, req.OldPassword, req.NewPassword)
 	if err != nil {
-		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err})
-		ctx.Abort()
-		return
+		switch err {
+		case models.ErrInternalServerError:
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.Abort()
+			return
+		case models.ErrUsernameAlreadyExists, models.ErrEmailAlreadyExists, models.ErrInvalidPassword, models.ErrUsernameOrEmailAlreadyExists:
+			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.Abort()
+			return
+		case models.ErrUserNotFound:
+			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.Abort()
+			return
+		}
 	}
 
 	ctx.HTML(http.StatusOK, "successMsg.tmpl", gin.H{
@@ -119,13 +106,6 @@ func (c *UserController) DeleteUserAccount(ctx *gin.Context) {
 		return
 	}
 
-	parsedUserID, err := utils.ParseUUID(userID)
-	if err != nil {
-		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "Invalid User ID for this session!"})
-		ctx.Abort()
-		return
-	}
-
 	password, ok := ctx.GetQuery("password")
 	if !ok {
 		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "No password inserted!"})
@@ -133,7 +113,7 @@ func (c *UserController) DeleteUserAccount(ctx *gin.Context) {
 		return
 	}
 
-	err = c.srv.DeleteUserAccount(parsedUserID, password)
+	err := c.srv.DeleteUserAccount(userID, password)
 	if err != nil {
 		switch err {
 		case models.ErrInternalServerError:
@@ -154,7 +134,20 @@ func (c *UserController) DeleteUserAccount(ctx *gin.Context) {
 // Internal API ==========================================================================
 
 func (c *UserController) GetAllUsers(ctx *gin.Context) {
-	users := c.srv.GetAllUsers()
+	users, err := c.srv.GetAllUsers()
+	if err != nil {
+		switch err {
+		case models.ErrInternalServerError:
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.Abort()
+			return
+		case models.ErrUserNotFound:
+			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.Abort()
+			return
+		}
+		panic("unreachable code")
+	}
 
 	var data models.GetAllUsersDataResponse = models.GetAllUsersDataResponse{
 		UserList: users,
@@ -165,13 +158,23 @@ func (c *UserController) GetAllUsers(ctx *gin.Context) {
 func (c *UserController) CreateUser(ctx *gin.Context) {
 	var req models.CreateUserData
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "Wrong inputs passed to the request!"})
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": models.ErrInvalidData})
+		ctx.Abort()
 		return
 	}
 
-	if ok := c.srv.Create(req.Email, req.Username, req.HashedPassword, req.Currency); !ok {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Error": "internal server error!"})
-		return
+	if err := c.srv.Create(req.Email, req.Username, req.HashedPassword, req.Currency); err != nil {
+		switch err {
+		case models.ErrInternalServerError:
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.Abort()
+			return
+		case models.ErrUsernameOrEmailAlreadyExists:
+			ctx.HTML(http.StatusConflict, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.Abort()
+			return
+		}
+		panic("unreachable code")
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"Message": "User created successfully"})
@@ -180,13 +183,27 @@ func (c *UserController) CreateUser(ctx *gin.Context) {
 func (c *UserController) UpdateUser(ctx *gin.Context) {
 	var req models.User
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "Wrong inputs passed to the request!"})
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": models.ErrInvalidData})
+		ctx.Abort()
 		return
 	}
 
-	if ok := c.srv.Update(&req); !ok {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Error": "internal server error!"})
-		return
+	if err := c.srv.Update(&req); err != nil {
+		switch err {
+		case models.ErrInternalServerError:
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.Abort()
+			return
+		case models.ErrUserNotFound:
+			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.Abort()
+			return
+		case models.ErrUsernameOrEmailAlreadyExists:
+			ctx.HTML(http.StatusConflict, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.Abort()
+			return
+		}
+		panic("unreachable code")
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"Message": "User updated successfully"})
@@ -195,15 +212,24 @@ func (c *UserController) UpdateUser(ctx *gin.Context) {
 func (c *UserController) FindByID(ctx *gin.Context) {
 	var req models.FindUserByIDData
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "Wrong inputs passed to the request!"})
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": models.ErrInvalidData})
 		ctx.Abort()
 		return
 	}
 
-	user, exits := c.srv.FindByID(req.UserID)
-	if !exits {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "User not found!"})
-		return
+	user, err := c.srv.FindByID(req.UserID)
+	if err != nil {
+		switch err {
+		case models.ErrInternalServerError:
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.Abort()
+			return
+		case models.ErrUserNotFound:
+			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.Abort()
+			return
+		}
+		panic("unreachable code")
 	}
 
 	ctx.JSON(http.StatusOK, user)
@@ -212,15 +238,24 @@ func (c *UserController) FindByID(ctx *gin.Context) {
 func (c *UserController) FindByUsername(ctx *gin.Context) {
 	var req models.FindUserByUsernameData
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "Wrong inputs passed to the request!"})
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": models.ErrInvalidData})
 		ctx.Abort()
 		return
 	}
 
-	user, exits := c.srv.FindByUsername(req.Username)
-	if !exits {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "User not found!"})
-		return
+	user, err := c.srv.FindByUsername(req.Username)
+	if err != nil {
+		switch err {
+		case models.ErrInternalServerError:
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.Abort()
+			return
+		case models.ErrUserNotFound:
+			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.Abort()
+			return
+		}
+		panic("unreachable code")
 	}
 
 	ctx.JSON(http.StatusOK, user)

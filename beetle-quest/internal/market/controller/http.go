@@ -77,13 +77,16 @@ func (c *MarketController) RollGacha(ctx *gin.Context) {
 			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err})
 			ctx.Abort()
 			return
-		case models.ErrUserNotFound, models.ErrNotEnoughMoneyToRollGacha, models.ErrGachaNotFound, models.ErrUserAlreadyHasGacha:
+		case models.ErrUserNotFound, models.ErrGachaNotFound, models.ErrUserAlreadyHasGacha:
 			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err})
 			ctx.Abort()
 			return
-		default:
-			panic("unreachable code")
+		case models.ErrNotEnoughMoneyToRollGacha:
+			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.Abort()
+			return
 		}
+		panic("unreachable code")
 	}
 
 	ctx.HTML(http.StatusOK, "successMsg.tmpl", gin.H{"Message": msg})
@@ -110,7 +113,7 @@ func (c *MarketController) BuyGacha(ctx *gin.Context) {
 			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err})
 			ctx.Abort()
 			return
-		case models.ErrInvalidData, models.ErrUserAlreadyHasGacha, models.ErrNotEnoughMoneyToBuyGacha:
+		case models.ErrUserAlreadyHasGacha, models.ErrNotEnoughMoneyToBuyGacha:
 			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err})
 			ctx.Abort()
 			return
@@ -261,7 +264,6 @@ func (c *MarketController) AuctionDelete(ctx *gin.Context) {
 			ctx.Abort()
 			return
 		}
-
 		panic("unreachable code")
 	}
 

@@ -41,9 +41,9 @@ func (s *MarketService) AddBugsCoin(userId string, amount int64) error {
 		return models.ErrInternalServerError
 	}
 
-	user, ok := s.urepo.FindByID(id)
-	if !ok {
-		return models.ErrUserNotFound
+	user, err := s.urepo.FindByID(id)
+	if err != nil {
+		return err
 	}
 
 	t := &models.Transaction{
@@ -67,8 +67,14 @@ func (s *MarketService) AddBugsCoin(userId string, amount int64) error {
 	}
 
 	user.Currency += amount
-	if ok := s.urepo.Update(user); !ok {
-		return models.ErrInternalServerError
+	if err := s.urepo.Update(user); err != nil {
+		if err != models.ErrUserNotFound {
+			// NOTE: Because the client should not know how we are updating the user in the backend
+			//  and an error like models.ErrUsernameOrEmailAlreadyExists should not be reported
+			// TODO: problem
+			return models.ErrInternalServerError
+		}
+		return err
 	}
 	return nil
 }
@@ -79,9 +85,9 @@ func (s *MarketService) RollGacha(userId string) (string, error) {
 		return "", models.ErrInternalServerError
 	}
 
-	user, exists := s.urepo.FindByID(uid)
-	if !exists {
-		return "", models.ErrUserNotFound
+	user, err := s.urepo.FindByID(uid)
+	if err != nil {
+		return "", err
 	}
 
 	if user.Currency < 1000 {
@@ -105,22 +111,31 @@ func (s *MarketService) RollGacha(userId string) (string, error) {
 	}
 
 	if err := s.mrepo.AddTransaction(t); err != nil {
-		// NOTE: The client doesn't need to know why the request
+		// The client doesn't need to know why the request
 		// failed, so we can just return a generic error.
 		return "", models.ErrInternalServerError
 	}
 
 	user.Currency -= 1000
-	if ok := s.urepo.Update(user); !ok {
-		return "", models.ErrInternalServerError
+	if err := s.urepo.Update(user); err != nil {
+		if err != models.ErrUserNotFound {
+			// Because the client should not know how we are updating the user in the backend
+			//  and an error like models.ErrUsernameOrEmailAlreadyExists should not be reported
+			return "", models.ErrInternalServerError
+		}
+		return "", err
 	}
 
 	gachas, err = s.grepo.GetUserGachas(uid)
 	if err != nil {
 		user.Currency += 1000
-		_ = s.urepo.Update(user)
-		// TODO: What do i do here if it fails?
-		// - Report to admin
+		err = s.urepo.Update(user)
+		if err != models.ErrUserNotFound {
+			// Because the client should not know how we are updating the user in the backend
+			//  and an error like models.ErrUsernameOrEmailAlreadyExists should not be reported
+			// TODO: Problem
+			return "", models.ErrInternalServerError
+		}
 		return "", err
 	}
 
@@ -132,9 +147,13 @@ func (s *MarketService) RollGacha(userId string) (string, error) {
 
 	if err := s.grepo.AddGachaToUser(uid, gid); err != nil {
 		user.Currency += 1000
-		_ = s.urepo.Update(user)
-		// TODO: What do i do here?
-		// - Report to admin
+		err = s.urepo.Update(user)
+		if err != models.ErrUserNotFound {
+			// Because the client should not know how we are updating the user in the backend
+			//  and an error like models.ErrUsernameOrEmailAlreadyExists should not be reported
+			// TODO: Problem
+			return "", models.ErrInternalServerError
+		}
 		return "", err
 	}
 
@@ -163,9 +182,9 @@ func (s *MarketService) BuyGacha(userId string, gachaId string) error {
 		}
 	}
 
-	user, ok := s.urepo.FindByID(uid)
-	if !ok {
-		return models.ErrUserNotFound
+	user, err := s.urepo.FindByID(uid)
+	if err != nil {
+		return err
 	}
 
 	gacha, err := s.grepo.FindByID(gid)
@@ -194,20 +213,26 @@ func (s *MarketService) BuyGacha(userId string, gachaId string) error {
 	}
 
 	user.Currency -= gacha.Price
-	if ok := s.urepo.Update(user); !ok {
-		// NOTE: The client doesn't need to know why the request
-		// failed, so we can just return a generic error.
-		return models.ErrInternalServerError
+	if err := s.urepo.Update(user); err != nil {
+		if err != models.ErrUserNotFound {
+			// Because the client should not know how we are updating the user in the backend
+			//  and an error like models.ErrUsernameOrEmailAlreadyExists should not be reported
+			return models.ErrInternalServerError
+		}
+		return err
 	}
 
 	if err := s.grepo.AddGachaToUser(uid, gid); err != nil {
 		// Compensating transaction
-		user.Currency += gacha.Price
-		if ok := s.urepo.Update(user); !ok {
-			// TODO: What do i do here?
-			// - Report to admin
+		if err := s.urepo.Update(user); err != nil {
+			if err != models.ErrUserNotFound {
+				// Because the client should not know how we are updating the user in the backend
+				//  and an error like models.ErrUsernameOrEmailAlreadyExists should not be reported
+				return models.ErrInternalServerError
+			}
+			// If the user is not found, we can't do anything
 		}
-		return err
+		// No error should be returned to the client
 	}
 	return nil
 }
@@ -223,9 +248,9 @@ func (s *MarketService) CreateAuction(userId, gachaId string, endTime time.Time)
 		return models.ErrInternalServerError
 	}
 
-	user, exists := s.urepo.FindByID(uid)
-	if !exists {
-		return models.ErrUserNotFound
+	user, err := s.urepo.FindByID(uid)
+	if err != nil {
+		return err
 	}
 
 	gacha, err := s.grepo.FindByID(gid)
@@ -297,9 +322,9 @@ func (s *MarketService) DeleteAuction(userId, auctionId, password string) error 
 		return models.ErrInternalServerError
 	}
 
-	user, exists := s.urepo.FindByID(uid)
-	if !exists {
-		return models.ErrUserNotFound
+	user, err := s.urepo.FindByID(uid)
+	if err != nil {
+		return err
 	}
 
 	auction, err := s.mrepo.FindByID(aid)
@@ -354,19 +379,22 @@ func (s *MarketService) RetrieveAuctionTemplateList() ([]models.AuctionTemplate,
 	var data []models.AuctionTemplate = []models.AuctionTemplate{}
 	for _, auction := range auctions {
 		gacha, err := s.grepo.FindByID(auction.GachaID)
-		if err == models.ErrInternalServerError {
-			return nil, err
-		}
-
 		if err != nil {
+			if err != models.ErrGachaNotFound {
+				return nil, err
+			}
+
 			gacha = &models.Gacha{
 				Name:      "Unknown",
 				ImagePath: "unknown.png",
 			}
 		}
 
-		owner, exists := s.urepo.FindByID(auction.OwnerID)
-		if !exists {
+		owner, err := s.urepo.FindByID(auction.OwnerID)
+		if err != nil {
+			if err != models.ErrUserNotFound {
+				return nil, err
+			}
 			owner = &models.User{
 				Username: "Unknown",
 			}
@@ -443,9 +471,9 @@ func (s *MarketService) MakeBid(userId, auctionId string, bidAmount int64) error
 		return models.ErrOwnerCannotBid
 	}
 
-	user, exists := s.urepo.FindByID(uid)
-	if !exists {
-		return models.ErrUserNotFound
+	user, err := s.urepo.FindByID(uid)
+	if err != nil {
+		return err
 	}
 
 	if user.Currency < bidAmount {
@@ -481,20 +509,25 @@ func (s *MarketService) MakeBid(userId, auctionId string, bidAmount int64) error
 	}
 
 	user.Currency -= bidAmount
-	if ok := s.urepo.Update(user); !ok {
-		return models.ErrCouldNotUpdate
+	if err := s.urepo.Update(user); err != nil {
+		if err != models.ErrUserNotFound {
+			return models.ErrInternalServerError
+		}
+		return err
 	}
 
 	if err := s.mrepo.BidToAuction(bid); err != nil {
 		user.Currency += bidAmount
-		if ok := s.urepo.Update(user); !ok {
-			// TODO: What should we do here?
+		if err := s.urepo.Update(user); err != nil {
+			if err != models.ErrUserNotFound {
+				return models.ErrInternalServerError
+			}
+			return err
 		}
 		if err == models.ErrCouldNotBidToAuction {
 			return models.ErrInternalServerError
-		} else {
-			return err
 		}
+		return err
 	}
 	return nil
 }
@@ -538,14 +571,14 @@ func (s *MarketService) closeAuctionCallback(aid models.UUID) {
 				continue
 			}
 
-			user, exists := s.urepo.FindByID(uid)
-			if !exists {
+			user, err := s.urepo.FindByID(uid)
+			if err != nil {
 				s.closeAuctionErrorCallback(models.ErrUserNotFound)
 				continue
 			}
 
 			user.Currency += totBidAmount // NOTE: If we go over math.MaxInt64
-			if ok := s.urepo.Update(user); !ok {
+			if err := s.urepo.Update(user); err != nil {
 				s.closeAuctionErrorCallback(models.ErrCouldNotUpdate)
 			}
 		}
@@ -555,14 +588,14 @@ func (s *MarketService) closeAuctionCallback(aid models.UUID) {
 	if err != nil {
 		// NOTE: If we do not find the gacha, we still have informations to give back the money
 		// to the winner
-		user, exists := s.urepo.FindByID(maxBidder)
-		if !exists {
+		user, err := s.urepo.FindByID(maxBidder)
+		if err != nil {
 			s.closeAuctionErrorCallback(models.ErrUserNotFound)
 			return
 		}
 
 		user.Currency += totalUserBiddings[maxBidder]
-		if ok := s.urepo.Update(user); !ok {
+		if err := s.urepo.Update(user); err != nil {
 			s.closeAuctionErrorCallback(models.ErrCouldNotUpdate)
 		}
 	}
@@ -574,8 +607,8 @@ func (s *MarketService) closeAuctionCallback(aid models.UUID) {
 			s.closeAuctionErrorCallback(models.ErrCouldNotUpdateAuction)
 		}
 
-		user, exists := s.urepo.FindByID(maxBidder)
-		if !exists {
+		user, err := s.urepo.FindByID(maxBidder)
+		if err != nil {
 			// NOTE: If the winner does not exist, we still have informations to give back the money to the owner
 			s.closeAuctionErrorCallback(models.ErrUserNotFound)
 		} else {
@@ -602,8 +635,8 @@ func (s *MarketService) closeAuctionCallback(aid models.UUID) {
 	}
 
 	{ // Auction owner actions
-		user, exists := s.urepo.FindByID(auction.OwnerID)
-		if !exists {
+		user, err := s.urepo.FindByID(auction.OwnerID)
+		if err != nil {
 			s.closeAuctionErrorCallback(models.ErrUserNotFound)
 			return
 		}
@@ -628,9 +661,9 @@ func (s *MarketService) closeAuctionCallback(aid models.UUID) {
 		}
 
 		user.Currency += maxBid
-		if ok := s.urepo.Update(user); !ok {
+		if err := s.urepo.Update(user); err != nil {
 			s.closeAuctionErrorCallback(models.ErrCouldNotUpdate)
-			// NOTE: What should we do here ?
+			// TODO: What should we do here ?
 			return
 		}
 	}

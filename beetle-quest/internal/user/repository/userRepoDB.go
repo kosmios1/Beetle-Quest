@@ -3,9 +3,9 @@ package repository
 import (
 	"beetle-quest/pkg/models"
 	"beetle-quest/pkg/utils"
+	"errors"
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"gorm.io/driver/postgres"
@@ -39,9 +39,6 @@ func NewUserRepo() *UserRepo {
 			break
 		}
 	}
-
-	// This will create the table if it does not exist and will keep the schema updated
-	// repo.db.AutoMigrate(&models.User{})
 	return repo
 }
 
@@ -49,12 +46,15 @@ func (r *UserRepo) GetAll() ([]models.User, error) {
 	var users []models.User
 	result := r.db.Table("users").Find(&users)
 	if result.Error != nil {
-		return nil, result.Error
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) || errors.Is(result.Error, gorm.ErrEmptySlice) {
+			return nil, models.ErrUserNotFound
+		}
+		return nil, models.ErrInternalServerError
 	}
 	return users, nil
 }
 
-func (r *UserRepo) Create(email, username string, hashedPassword []byte, currency int64) bool {
+func (r *UserRepo) Create(email, username string, hashedPassword []byte, currency int64) error {
 	result := r.db.Table("users").Create(&models.User{
 		UserID:       utils.GenerateUUID(),
 		Username:     username,
@@ -62,58 +62,83 @@ func (r *UserRepo) Create(email, username string, hashedPassword []byte, currenc
 		PasswordHash: hashedPassword,
 		Currency:     currency,
 	})
-
 	if result.Error != nil {
-		if strings.Contains(result.Error.Error(), "duplicate key") {
-			return false
+		if errors.Is(result.Error, gorm.ErrDuplicatedKey) {
+			return models.ErrUsernameOrEmailAlreadyExists
 		}
-		// result.Error.Error()
-		return false
+		return models.ErrInternalServerError
 	}
-	return true
+
+	if result.RowsAffected == 0 {
+		return models.ErrInternalServerError
+	}
+	return nil
 }
 
-func (r *UserRepo) Update(user *models.User) bool {
+func (r *UserRepo) Update(user *models.User) error {
 	result := r.db.Table("users").Where("user_id = ?", user.UserID).Updates(user)
 	if result.Error != nil {
-		return false
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return models.ErrUserNotFound
+		} else if errors.Is(result.Error, gorm.ErrDuplicatedKey) {
+			return models.ErrUsernameOrEmailAlreadyExists
+		}
+		return models.ErrInternalServerError
 	}
-	return true
+
+	if result.RowsAffected == 0 {
+		return models.ErrInternalServerError
+	}
+	return nil
 }
 
-func (r *UserRepo) Delete(user *models.User) bool {
+func (r *UserRepo) Delete(user *models.User) error {
 	result := r.db.Table("users").Delete(user, models.User{UserID: user.UserID})
 	if result.Error != nil {
-		return false
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return models.ErrUserNotFound
+		}
+		return models.ErrInternalServerError
 	}
-	return true
+
+	if result.RowsAffected == 0 {
+		return models.ErrInternalServerError
+	}
+	return nil
 }
 
-func (r *UserRepo) FindByUsername(username string) (*models.User, bool) {
+func (r *UserRepo) FindByUsername(username string) (*models.User, error) {
 	var user models.User
 	result := r.db.Table("users").First(&user, models.User{Username: username})
 	if result.Error != nil {
-		// No user with that username exists
-		return nil, false
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, models.ErrUserNotFound
+		}
+		return nil, models.ErrInternalServerError
 	}
-	return &user, true
+	return &user, nil
 }
 
-func (r *UserRepo) FindByID(id models.UUID) (*models.User, bool) {
+func (r *UserRepo) FindByID(id models.UUID) (*models.User, error) {
 	var user models.User
 	result := r.db.Table("users").First(&user, models.User{UserID: id})
 	if result.Error != nil {
-		return nil, false
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, models.ErrUserNotFound
+		}
+		return nil, models.ErrInternalServerError
 	}
-	return &user, true
+	return &user, nil
 }
 
-func (r *UserRepo) FindByEmail(email string) (*models.User, bool) {
+func (r *UserRepo) FindByEmail(email string) (*models.User, error) {
 	var user models.User
 	result := r.db.Table("users").First(&user, models.User{Email: email})
 	if result.Error != nil {
-		// No user with that email exists
-		return nil, false
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, models.ErrUserNotFound
+		}
+		return nil, models.ErrInternalServerError
 	}
-	return &user, true
+	return &user, nil
 }

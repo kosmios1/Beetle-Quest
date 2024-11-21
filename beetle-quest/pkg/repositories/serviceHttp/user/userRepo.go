@@ -5,6 +5,7 @@ import (
 	"beetle-quest/pkg/utils"
 	"bytes"
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 	"os"
@@ -46,24 +47,31 @@ func (r *UserRepo) GetAll() ([]models.User, error) {
 	defer resp.Body.Close()
 
 	if err != nil {
-		return nil, err
+		return nil, models.ErrInternalServerError
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		return nil, err
+	switch resp.StatusCode {
+	case http.StatusInternalServerError:
+		return nil, models.ErrInternalServerError
+	case http.StatusNotFound:
+		return nil, models.ErrUserNotFound
+	case http.StatusBadRequest:
+		return nil, models.ErrInvalidData
 	}
 
-	var data models.GetAllUsersDataResponse
-	err = json.NewDecoder(resp.Body).Decode(&data)
-	if err != nil {
-		log.Println(err)
-		return nil, err
-	}
+	if resp.StatusCode == http.StatusOK {
+		var data models.GetAllUsersDataResponse
+		err = json.NewDecoder(resp.Body).Decode(&data)
+		if err != nil {
+			return nil, models.ErrInternalServerError
+		}
 
-	return data.UserList, nil
+		return data.UserList, nil
+	}
+	panic("unreachable code")
 }
 
-func (r *UserRepo) Create(email, username string, hashedPassword []byte, currency int64) bool {
+func (r *UserRepo) Create(email, username string, hashedPassword []byte, currency int64) error {
 	requestData := models.CreateUserData{
 		Email:          email,
 		Username:       username,
@@ -73,7 +81,7 @@ func (r *UserRepo) Create(email, username string, hashedPassword []byte, currenc
 
 	jsonData, err := json.Marshal(requestData)
 	if err != nil {
-		return false
+		return models.ErrInternalServerError
 	}
 
 	resp, err := r.cb.Execute(func() (*http.Response, error) {
@@ -92,20 +100,29 @@ func (r *UserRepo) Create(email, username string, hashedPassword []byte, currenc
 	defer resp.Body.Close()
 
 	if err != nil {
-		return false
+		return models.ErrInternalServerError
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		return false
-	} else {
-		return true
+	switch resp.StatusCode {
+	case http.StatusInternalServerError:
+		return models.ErrInternalServerError
+	case http.StatusConflict:
+		return models.ErrUsernameOrEmailAlreadyExists
+	case http.StatusBadRequest:
+		return models.ErrInvalidData
 	}
+
+	if resp.StatusCode == http.StatusOK {
+		return nil
+	}
+
+	panic("unreachable code")
 }
 
-func (r *UserRepo) Update(user *models.User) bool {
+func (r *UserRepo) Update(user *models.User) error {
 	jsonData, err := json.Marshal(user)
 	if err != nil {
-		return false
+		return models.ErrInternalServerError
 	}
 
 	resp, err := r.cb.Execute(func() (*http.Response, error) {
@@ -124,28 +141,35 @@ func (r *UserRepo) Update(user *models.User) bool {
 	defer resp.Body.Close()
 
 	if err != nil {
-		return false
+		return models.ErrInternalServerError
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		return false
+	switch resp.StatusCode {
+	case http.StatusInternalServerError:
+		return models.ErrInternalServerError
+	case http.StatusNotFound:
+		return models.ErrUserNotFound
+	case http.StatusConflict:
+		return models.ErrUsernameOrEmailAlreadyExists
+	case http.StatusBadRequest:
+		return models.ErrInvalidData
 	}
-	return true
+
+	if resp.StatusCode == http.StatusOK {
+		return nil
+	}
+
+	panic("unreachable code")
 }
 
-func (r *UserRepo) Delete(user *models.User) bool {
-	log.Println("[ERROR] Not implemented!")
-	return false
-}
-
-func (r *UserRepo) FindByID(id models.UUID) (*models.User, bool) {
+func (r *UserRepo) FindByID(id models.UUID) (*models.User, error) {
 	requestData := models.FindUserByIDData{
-		UserID: id.String(),
+		UserID: id,
 	}
 
 	jsonData, err := json.Marshal(requestData)
 	if err != nil {
-		return nil, false
+		return nil, models.ErrInternalServerError
 	}
 
 	resp, err := r.cb.Execute(func() (*http.Response, error) {
@@ -164,30 +188,38 @@ func (r *UserRepo) FindByID(id models.UUID) (*models.User, bool) {
 	defer resp.Body.Close()
 
 	if err != nil {
-		return nil, false
+		return nil, models.ErrInternalServerError
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		return nil, false
+	switch resp.StatusCode {
+	case http.StatusInternalServerError:
+		return nil, models.ErrInternalServerError
+	case http.StatusNotFound:
+		return nil, models.ErrUserNotFound
+	case http.StatusBadRequest:
+		return nil, models.ErrInvalidData
 	}
 
-	var user models.User
-	err = json.NewDecoder(resp.Body).Decode(&user)
-	if err != nil {
-		return nil, false
+	if resp.StatusCode == http.StatusOK {
+		var user models.User
+		err = json.NewDecoder(resp.Body).Decode(&user)
+		if err != nil {
+			return nil, models.ErrInternalServerError
+		}
+		return &user, nil
 	}
 
-	return &user, true
+	panic("unreachable code")
 }
 
-func (r *UserRepo) FindByUsername(username string) (*models.User, bool) {
+func (r *UserRepo) FindByUsername(username string) (*models.User, error) {
 	requestData := models.FindUserByUsernameData{
 		Username: username,
 	}
 
 	jsonData, err := json.Marshal(requestData)
 	if err != nil {
-		return nil, false
+		return nil, models.ErrInternalServerError
 	}
 
 	resp, err := r.cb.Execute(func() (*http.Response, error) {
@@ -206,60 +238,35 @@ func (r *UserRepo) FindByUsername(username string) (*models.User, bool) {
 	defer resp.Body.Close()
 
 	if err != nil {
-		return nil, false
+		return nil, models.ErrInternalServerError
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		return nil, false
+	switch resp.StatusCode {
+	case http.StatusInternalServerError:
+		return nil, models.ErrInternalServerError
+	case http.StatusNotFound:
+		return nil, models.ErrUserNotFound
+	case http.StatusBadRequest:
+		return nil, models.ErrInvalidData
 	}
 
-	var user models.User
-	err = json.NewDecoder(resp.Body).Decode(&user)
-	if err != nil {
-		return nil, false
+	if resp.StatusCode == http.StatusOK {
+		var user models.User
+		err = json.NewDecoder(resp.Body).Decode(&user)
+		if err != nil {
+			return nil, models.ErrInternalServerError
+		}
+		return &user, nil
 	}
-
-	return &user, true
+	panic("unreachable code")
 }
 
-func (r *UserRepo) FindByEmail(email string) (*models.User, bool) {
-	requestData := models.FindUserByEmailData{
-		Email: email,
-	}
+func (r *UserRepo) FindByEmail(email string) (*models.User, error) {
+	log.Fatal("[ERROR] Not implemented!")
+	return nil, errors.New("not implemented")
+}
 
-	jsonData, err := json.Marshal(requestData)
-	if err != nil {
-		return nil, false
-	}
-
-	resp, err := r.cb.Execute(func() (*http.Response, error) {
-		resp, err := r.client.Post(
-			findUserByEmailEndpoint,
-			"application/json",
-			bytes.NewBuffer(jsonData),
-		)
-
-		if err != nil {
-			return nil, err
-		}
-
-		return resp, nil
-	})
-	defer resp.Body.Close()
-
-	if err != nil {
-		return nil, false
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, false
-	}
-
-	var user models.User
-	err = json.NewDecoder(resp.Body).Decode(&user)
-	if err != nil {
-		return nil, false
-	}
-
-	return &user, true
+func (r *UserRepo) Delete(user *models.User) error {
+	log.Fatal("[ERROR] Not implemented!")
+	return errors.New("not implemented")
 }

@@ -34,9 +34,9 @@ func (s *AdminService) FindUserByID(userId string) (*models.UserDetailsTemplate,
 		return nil, models.ErrInternalServerError
 	}
 
-	user, exists := s.urepo.FindByID(uid)
-	if !exists {
-		return nil, models.ErrInternalServerError
+	user, err := s.urepo.FindByID(uid)
+	if err != nil {
+		return nil, err
 	}
 
 	gachas, err := s.grepo.GetUserGachas(uid)
@@ -68,15 +68,15 @@ func (s *AdminService) FindUserByID(userId string) (*models.UserDetailsTemplate,
 	}, nil
 }
 
-func (s *AdminService) UpdateUserProfile(userId string, data *models.AdminUpdateUserAccount) bool {
+func (s *AdminService) UpdateUserProfile(userId string, data *models.AdminUpdateUserAccount) error {
 	uid, err := utils.ParseUUID(userId)
 	if err != nil {
-		return false
+		return models.ErrInternalServerError
 	}
 
-	user, exists := s.urepo.FindByID(uid)
-	if !exists {
-		return false
+	user, err := s.urepo.FindByID(uid)
+	if err != nil {
+		return err
 	}
 
 	if data.Email != "" {
@@ -89,7 +89,7 @@ func (s *AdminService) UpdateUserProfile(userId string, data *models.AdminUpdate
 
 	currency, err := strconv.Atoi(data.Currency)
 	if err != nil {
-		return false
+		return models.ErrInternalServerError
 	}
 	if currency >= 0 {
 		user.Currency = int64(currency)

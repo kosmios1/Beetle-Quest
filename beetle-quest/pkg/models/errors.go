@@ -60,6 +60,8 @@ const (
 	ErrCouldNotRetrieveAuctions        constError = "could not retrieve auctions"
 	ErrCouldNotRetrieveTransactions    constError = "could not retrieve transactions"
 
+	ErrUsernameOrEmailAlreadyExists constError = "username or email already exists"
+
 	ErrGachaAlreadyExists          constError = "gacha already exists"
 	ErrRetalationGachaUserNotFound constError = "retalation gacha user not found"
 	ErrAdminNotFound               constError = "admin not found"

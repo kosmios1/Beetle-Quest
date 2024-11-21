@@ -29,9 +29,18 @@ func (c *AuthController) Register(ctx *gin.Context) {
 	}
 
 	if err := c.srv.Register(registerData.Email, registerData.Username, registerData.Password); err != nil {
-		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err})
-		ctx.Abort()
-		return
+		switch err {
+		case models.ErrInternalServerError:
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.Abort()
+			return
+		case models.ErrUsernameOrEmailAlreadyExists, models.ErrInvalidUsernameOrPassOrEmail:
+			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.Abort()
+			return
+
+		}
+		panic("unreachable code")
 	}
 
 	ctx.HTML(http.StatusOK, "successMsg.tmpl", gin.H{"Message": "User registered successfully!"})
@@ -40,21 +49,28 @@ func (c *AuthController) Register(ctx *gin.Context) {
 func (c *AuthController) Login(ctx *gin.Context) {
 	var loginData models.LoginRequest
 	if err := ctx.ShouldBindJSON(&loginData); err != nil {
-		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "username or password is missing"})
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": models.ErrInvalidData})
 		ctx.Abort()
 		return
 	}
 
 	token, tokenString, err := c.srv.Login(loginData.Username, loginData.Password)
 	if err != nil {
-		if err == models.ErrInternalServerError {
-			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": "internal server error"})
+		switch err {
+		case models.ErrInternalServerError:
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.Abort()
+			return
+		case models.ErrInvalidPassword:
+			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.Abort()
+			return
+		case models.ErrUserNotFound:
+			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err})
 			ctx.Abort()
 			return
 		}
-		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err})
-		ctx.Abort()
-		return
+		panic("unreachable code")
 	}
 
 	maxAge := token.Claims.(*utils.CustomClaims).ExpiresAt - time.Now().Unix()
@@ -70,7 +86,8 @@ func (c *AuthController) Logout(ctx *gin.Context) {
 	}
 
 	if ok := c.srv.RevokeToken(token); !ok {
-		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": "internal server error"})
+		// TODO: Use switch statement
+		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": models.ErrInternalServerError})
 		ctx.Abort()
 		return
 	}
@@ -87,7 +104,7 @@ func (c *AuthController) Verify(ctx *gin.Context) {
 	}
 
 	if _, ok := c.srv.VerifyToken(token); !ok {
-		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": "internal server error"})
+		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": models.ErrInternalServerError})
 		ctx.Abort()
 		return
 	}
@@ -104,7 +121,7 @@ func (c *AuthController) CheckSession(ctx *gin.Context) {
 
 	claims, ok := c.srv.VerifyToken(token)
 	if !ok {
-		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": "internal server error"})
+		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": models.ErrInternalServerError})
 		ctx.Abort()
 		return
 	}
@@ -121,21 +138,24 @@ func (c *AuthController) CheckSession(ctx *gin.Context) {
 func (c *AuthController) AdminLogin(ctx *gin.Context) {
 	var loginData models.AdminLoginRequest
 	if err := ctx.ShouldBindJSON(&loginData); err != nil {
-		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "username or password is missing"})
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": models.ErrInvalidData})
 		ctx.Abort()
 		return
 	}
 
 	token, tokenString, err := c.srv.AdminLogin(loginData.AdminID, loginData.Password, loginData.OtpCode)
 	if err != nil {
-		if err == models.ErrInternalServerError {
-			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": "internal server error"})
+		switch err {
+		case models.ErrInternalServerError:
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.Abort()
+			return
+		case models.ErrInvalidAdminIDOrPassOrOTOP:
+			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err})
 			ctx.Abort()
 			return
 		}
-		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err})
-		ctx.Abort()
-		return
+		panic("unreachable code")
 	}
 
 	maxAge := token.Claims.(*utils.CustomClaims).ExpiresAt - time.Now().Unix()

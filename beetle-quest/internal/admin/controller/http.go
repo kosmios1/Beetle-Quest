@@ -23,6 +23,7 @@ func NewAdminController(srv *service.AdminService) *AdminController {
 func (c *AdminController) GetAllUsers(ctx *gin.Context) {
 	users, err := c.srv.GetAllUsers()
 	if err != nil {
+		// TODO: Use switch statement
 		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"error": "Internal server error!"})
 		ctx.Abort()
 		return
@@ -42,14 +43,17 @@ func (c *AdminController) GetUserProfile(ctx *gin.Context) {
 
 	user, err := c.srv.FindUserByID(userId)
 	if err != nil {
-		if err == models.ErrInternalServerError {
+		switch err {
+		case models.ErrInternalServerError:
 			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err})
 			ctx.Abort()
-		} else {
+			return
+		case models.ErrUserNotFound:
 			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err})
 			ctx.Abort()
+			return
 		}
-		return
+		panic("unreachable code")
 	}
 	ctx.JSON(http.StatusOK, user)
 }
@@ -69,10 +73,22 @@ func (c *AdminController) UpdateUserProfile(ctx *gin.Context) {
 		return
 	}
 
-	if ok := c.srv.UpdateUserProfile(userId, &data); !ok {
-		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"error": models.ErrInternalServerError})
-		ctx.Abort()
-		return
+	if err := c.srv.UpdateUserProfile(userId, &data); err != nil {
+		switch err {
+		case models.ErrInternalServerError:
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.Abort()
+			return
+		case models.ErrUserNotFound:
+			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.Abort()
+			return
+		case models.ErrUsernameOrEmailAlreadyExists:
+			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"error": err})
+			ctx.Abort()
+			return
+		}
+		panic("unreachable code")
 	}
 
 	ctx.HTML(http.StatusOK, "successMsg.tmpl", gin.H{"Message": "User profile updated successfully!"})
@@ -142,6 +158,7 @@ func (c *AdminController) AddGacha(ctx *gin.Context) {
 	}
 
 	if err := c.srv.AddGacha(&data); err != nil {
+		// TODO: Use switch statement
 		if err == models.ErrGachaAlreadyExists {
 			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
@@ -163,6 +180,7 @@ func (cnt *AdminController) DeleteGacha(ctx *gin.Context) {
 	}
 
 	if err := cnt.srv.DeleteGacha(gachaId); err != nil {
+		// TODO: Use switch statement
 		if err == models.ErrGachaNotFound {
 			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err})
 			ctx.Abort()
@@ -192,6 +210,7 @@ func (cnt *AdminController) UpdateGacha(ctx *gin.Context) {
 	}
 
 	if err := cnt.srv.UpdateGacha(gachaId, &data); err != nil {
+		// TODO: Use switch statement
 		if err == models.ErrGachaNotFound {
 			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err})
 			ctx.Abort()
@@ -210,6 +229,7 @@ func (cnt *AdminController) UpdateGacha(ctx *gin.Context) {
 
 func (cnt *AdminController) GetAllGachas(ctx *gin.Context) {
 	if gachas, err := cnt.srv.GetAllGachas(); err != nil {
+		// TODO: Use switch statement
 		if err == models.ErrGachaNotFound {
 			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": models.ErrGachaNotFound})
 		} else {
@@ -231,6 +251,7 @@ func (cnt *AdminController) GetGachaDetails(ctx *gin.Context) {
 	}
 
 	if gacha, err := cnt.srv.FindGachaByID(gachaId); err != nil {
+		// TODO: Use switch statement
 		if err == models.ErrGachaNotFound {
 			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err})
 			ctx.Abort()
@@ -322,6 +343,7 @@ func (c *AdminController) FindByID(ctx *gin.Context) {
 	}
 	admin, err := c.srv.FindByID(data.AdminID)
 	if err != nil {
+		// TODO: Use switch statement
 		if err == models.ErrInternalServerError {
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
 			return

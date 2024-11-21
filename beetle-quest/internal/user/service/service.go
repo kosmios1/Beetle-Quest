@@ -20,22 +20,49 @@ func NewUserService(urepo repositories.UserRepo, grepo repositories.GachaRepo, m
 	}
 }
 
-func (s *UserService) GetUserAccountDetails(userID models.UUID) (*models.User, error) {
-	if user, ok := s.urepo.FindByID(userID); !ok {
-		return nil, models.ErrUserNotFound
-	} else {
-		return user, nil
+func (s *UserService) GetUserAccountDetails(userID string) (*models.User, []models.Gacha, []models.Transaction, error) {
+	uid, err := utils.ParseUUID(userID)
+	if err != nil {
+		return nil, nil, nil, models.ErrInternalServerError
+
 	}
+	user, err := s.urepo.FindByID(uid)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	gachas, err := s.grepo.GetUserGachas(uid)
+	if err != nil {
+		if err == models.ErrInternalServerError {
+			return nil, nil, nil, err
+		}
+		gachas = []models.Gacha{}
+	}
+
+	transactions, err := s.mrepo.GetUserTransactionHistory(uid)
+	if err != nil {
+		if err == models.ErrInternalServerError {
+			return nil, nil, nil, err
+		}
+		transactions = []models.Transaction{}
+	}
+
+	return user, gachas, transactions, nil
 }
 
-func (s *UserService) DeleteUserAccount(userID models.UUID, password string) error {
-	user, ok := s.urepo.FindByID(userID)
-	if !ok {
-		return models.ErrUserNotFound
+func (s *UserService) DeleteUserAccount(userID string, password string) error {
+	uid, err := utils.ParseUUID(userID)
+	if err != nil {
+		return models.ErrInternalServerError
+	}
+
+	user, err := s.urepo.FindByID(uid)
+	if err != nil {
+		return err
 	}
 
 	if err := utils.CompareHashPassword([]byte(password), user.PasswordHash); err != nil {
-		return models.ErrInternalServerError
+		return models.ErrInvalidPassword
 	}
 
 	if err := s.grepo.RemoveUserGachas(user.UserID); err != nil {
@@ -46,20 +73,25 @@ func (s *UserService) DeleteUserAccount(userID models.UUID, password string) err
 		return err
 	}
 
-	if ok := s.urepo.Delete(user); !ok {
+	if err := s.urepo.Delete(user); err != nil {
 		return models.ErrInternalServerError
 	}
 	return nil
 }
 
-func (s *UserService) UpdateUserAccountDetails(userID models.UUID, newEmail, newUsername, oldPassword, newPassword string) error {
-	user, ok := s.urepo.FindByID(userID)
-	if !ok {
-		return models.ErrUserNotFound
+func (s *UserService) UpdateUserAccountDetails(userID string, newEmail, newUsername, oldPassword, newPassword string) error {
+	uid, err := utils.ParseUUID(userID)
+	if err != nil {
+		return models.ErrInternalServerError
+	}
+
+	user, err := s.urepo.FindByID(uid)
+	if err != nil {
+		return err
 	}
 
 	if newUsername != "" {
-		if _, ok = s.urepo.FindByUsername(newUsername); ok {
+		if _, err = s.urepo.FindByUsername(newUsername); err != nil {
 			return models.ErrUsernameAlreadyExists
 		} else {
 			user.Username = newUsername
@@ -67,7 +99,7 @@ func (s *UserService) UpdateUserAccountDetails(userID models.UUID, newEmail, new
 	}
 
 	if newEmail != "" {
-		if _, ok = s.urepo.FindByEmail(newEmail); ok {
+		if _, err = s.urepo.FindByEmail(newEmail); err != nil {
 			return models.ErrEmailAlreadyExists
 		} else {
 			user.Email = newEmail
@@ -83,80 +115,36 @@ func (s *UserService) UpdateUserAccountDetails(userID models.UUID, newEmail, new
 	if newPassword != "" {
 		hashedPassword, err := utils.GenerateHashFromPassword([]byte(newPassword))
 		if err != nil {
-			return models.ErrCouldNotUseNewPassword
+			return models.ErrInternalServerError
 		} else {
 			user.PasswordHash = hashedPassword
 		}
 	}
 
-	if ok := s.urepo.Update(user); !ok {
-		return models.ErrCouldNotUpdate
+	if err := s.urepo.Update(user); err != nil {
+		return err
 	}
 	return nil
 }
 
 // Internal service functions =================================================================================================
 
-func (s *UserService) GetAllUsers() []models.User {
-	if users, err := s.urepo.GetAll(); err == nil {
-		return users
-	}
-	return []models.User{}
+func (s *UserService) GetAllUsers() ([]models.User, error) {
+	return s.urepo.GetAll()
 }
 
-func (s *UserService) Create(email, username string, hashedPassword []byte, currency int64) bool {
+func (s *UserService) Create(email, username string, hashedPassword []byte, currency int64) error {
 	return s.urepo.Create(email, username, hashedPassword, currency)
 }
 
-func (s *UserService) Update(user *models.User) bool {
+func (s *UserService) Update(user *models.User) error {
 	return s.urepo.Update(user)
 }
 
-func (s *UserService) FindByID(userId string) (*models.User, bool) {
-	id, err := utils.ParseUUID(userId)
-	if err != nil {
-		return nil, false
-	}
-
-	user, exits := s.urepo.FindByID(id)
-	if !exits {
-		return nil, false
-	}
-
-	return user, true
+func (s *UserService) FindByID(uid models.UUID) (*models.User, error) {
+	return s.urepo.FindByID(uid)
 }
 
-func (s *UserService) FindByUsername(username string) (*models.User, bool) {
-	user, exits := s.urepo.FindByUsername(username)
-	if !exits {
-		return nil, false
-	}
-
-	return user, true
-}
-
-func (s *UserService) GetUserGachaList(userId string) ([]models.Gacha, error) {
-	uid, err := utils.ParseUUID(userId)
-	if err != nil {
-		return nil, models.ErrInternalServerError
-	}
-
-	if gachas, err := s.grepo.GetUserGachas(uid); err != nil {
-		return nil, err
-	} else {
-		return gachas, nil
-	}
-}
-
-func (s *UserService) GetUserTransactionHistory(userId string) []models.Transaction {
-	uid, err := utils.ParseUUID(userId)
-	if err != nil {
-		return []models.Transaction{}
-	}
-
-	transactions, nil := s.mrepo.GetUserTransactionHistory(uid)
-	if err != nil {
-		return []models.Transaction{}
-	}
-	return transactions
+func (s *UserService) FindByUsername(username string) (*models.User, error) {
+	return s.urepo.FindByUsername(username)
 }
