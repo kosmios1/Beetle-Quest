@@ -388,6 +388,7 @@
             }
           ]
         },
+
         {
           "name": "POST /market/bugscoin/buy",
           "request": {
@@ -629,6 +630,43 @@
           ]
         },
         {
+          "name": "POST /market/auction/{auctionId}/bid",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"bid_amount\": \"1000\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/market/auction/{{auctionId}}}/bid",
+              "host": ["{{baseUrl}}"],
+              "path": ["market", "auction", "{{auctionId}}", "bid"]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// TODO: test buy action from other user ",
+                  "pm.test('Check for 4000 return code', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Check if response is in HTML format', function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('text/html');",
+                  "});",
+                  "pm.test('Check if response contains Auction deleted successfully', function () {",
+                  "    pm.expect(pm.response.text()).to.include('owner cannot bid');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
           "name": "DELETE /market/auction/{{auctionId}}",
           "request": {
             "method": "DELETE",
@@ -652,7 +690,6 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "console.log(pm.response.text());",
                   "pm.test('Check for successful return code', function () {",
                   "    pm.response.to.have.status(200);",
                   "});",
@@ -670,17 +707,14 @@
         },
 
         {
-          "name": "POST /market/auction/{auction_id}/bid",
+          "name": "GET /gacha/{testID}/list",
           "request": {
-            "method": "POST",
-            "body": {
-              "mode": "raw",
-              "raw": "{\"bid_amount\": 1000}"
-            },
+            "method": "GET",
+            "header": [],
             "url": {
-              "raw": "{{baseUrl}}/market/auction/{auction_id}/bid",
+              "raw": "{{baseUrl}}/gacha/{{testID}}/list",
               "host": ["{{baseUrl}}"],
-              "path": ["market", "auction", "{{auctionId}}", "bid"]
+              "path": ["gacha", "{{testID}}", "list"]
             }
           },
           "response": [],
@@ -690,17 +724,54 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "/*console.log(pm.response.text());",
-                  "pm.test('Check for successful return code', function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
                   "",
-                  "pm.test('Check if response is in HTML format', function () {",
-                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('text/html');",
+                  "/*    console.log(pm.response.text());",
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
                   "});",
-                  "pm.test('Check if response contains Auction deleted successfully', function () {",
-                  "    pm.expect(pm.response.text()).to.include('Auction deleted successfully');",
+                  "pm.test('Response should be JSON', function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+                  "});",
+                  "pm.test('Response should contain user gacha list', function () {",
+                  "    const responseBody = pm.response.json();",
+                  "    pm.expect(responseBody).to.have.property('Gachas');",
                   "});*/"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /gacha/{{gachaId}}/{{testID}}",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/gacha/{{gachaId}}/{{testID}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["gacha", "{{gachaId}}", "{{testID}}"]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Response should be JSON', function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+                  "});",
+                  "pm.test('Response should contain gacha details', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('name', pm.globals.get('gachaName'));",
+                  "    pm.expect(jsonData).to.have.property('rarity', 4);",
+                  "    pm.expect(jsonData).to.have.property('price', 30000);",
+                  "    pm.expect(jsonData).to.have.property('image_path', '/static/images/druid_butterfly_legendary.webp');",
+                  "});"
                 ]
               }
             }

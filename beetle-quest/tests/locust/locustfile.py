@@ -137,7 +137,7 @@ class GachaMSRequests(AuthenticatedUser):
         if len(user_ids) == 0:
             return
         randuserid = random.choice(user_ids)
-        response = self.client.get(f"{base_path}/gacha/{randuserid}/list", allow_redirects=False)
+        response = self.client.get(f"{base_path}/gacha/user/{randuserid}/list", allow_redirects=False)
         if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
             response.raise_for_status()
             return
@@ -148,7 +148,7 @@ class GachaMSRequests(AuthenticatedUser):
             return
         randuserid = random.choice(user_ids)
         randgachaid = random.choice(gacha_ids)
-        response = self.client.get(f"{base_path}/{randgachaid}/{randuserid}", allow_redirects=False)
+        response = self.client.get(f"{base_path}/gacha/user/{randgachaid}/{randuserid}", allow_redirects=False)
         if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
             response.raise_for_status()
             return
