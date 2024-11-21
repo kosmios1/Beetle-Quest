@@ -44,11 +44,10 @@ func (r *UserRepo) GetAll() ([]models.User, error) {
 		}
 		return resp, nil
 	})
-	defer resp.Body.Close()
-
 	if err != nil {
 		return nil, models.ErrInternalServerError
 	}
+	defer resp.Body.Close()
 
 	switch resp.StatusCode {
 	case http.StatusInternalServerError:
@@ -97,11 +96,10 @@ func (r *UserRepo) Create(email, username string, hashedPassword []byte, currenc
 
 		return resp, nil
 	})
-	defer resp.Body.Close()
-
 	if err != nil {
 		return models.ErrInternalServerError
 	}
+	defer resp.Body.Close()
 
 	switch resp.StatusCode {
 	case http.StatusInternalServerError:
@@ -138,11 +136,10 @@ func (r *UserRepo) Update(user *models.User) error {
 
 		return resp, nil
 	})
-	defer resp.Body.Close()
-
 	if err != nil {
 		return models.ErrInternalServerError
 	}
+	defer resp.Body.Close()
 
 	switch resp.StatusCode {
 	case http.StatusInternalServerError:
@@ -185,11 +182,10 @@ func (r *UserRepo) FindByID(id models.UUID) (*models.User, error) {
 
 		return resp, nil
 	})
-	defer resp.Body.Close()
-
 	if err != nil {
 		return nil, models.ErrInternalServerError
 	}
+	defer resp.Body.Close()
 
 	switch resp.StatusCode {
 	case http.StatusInternalServerError:
@@ -235,11 +231,10 @@ func (r *UserRepo) FindByUsername(username string) (*models.User, error) {
 
 		return resp, nil
 	})
-	defer resp.Body.Close()
-
 	if err != nil {
 		return nil, models.ErrInternalServerError
 	}
+	defer resp.Body.Close()
 
 	switch resp.StatusCode {
 	case http.StatusInternalServerError:

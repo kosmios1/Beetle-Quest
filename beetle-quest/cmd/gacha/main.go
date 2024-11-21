@@ -42,7 +42,7 @@ func main() {
 		basePath.GET("/:gacha_id", cnt.GetGachaDetails)
 
 		basePath.GET("/user/:user_id/list", cnt.GetUserGachaList)
-		basePath.GET("/user/:gacha_id/:user_id", cnt.GetUserGachaDetails)
+		basePath.GET("/:gacha_id/user/:user_id", cnt.GetUserGachaDetails)
 	}
 
 	internalPath := r.Group("/api/v1/internal/gacha")

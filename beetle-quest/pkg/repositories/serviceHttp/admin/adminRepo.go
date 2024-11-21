@@ -50,10 +50,10 @@ func (r *AdminRepo) FindByID(id models.UUID) (*models.Admin, error) {
 
 		return resp, nil
 	})
-
 	if err != nil {
 		return nil, models.ErrInternalServerError
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusInternalServerError {
 		return nil, models.ErrInternalServerError

@@ -57,11 +57,10 @@ func (r *GachaRepo) Create(g *models.Gacha) error {
 
 		return resp, nil
 	})
-	defer resp.Body.Close()
-
 	if err != nil {
 		return models.ErrInternalServerError
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusOK {
 		return nil
@@ -95,11 +94,10 @@ func (r *GachaRepo) Update(g *models.Gacha) error {
 
 		return resp, nil
 	})
-	defer resp.Body.Close()
-
 	if err != nil {
 		return models.ErrInternalServerError
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusOK {
 		return nil
@@ -135,11 +133,10 @@ func (r *GachaRepo) Delete(g *models.Gacha) error {
 
 		return resp, nil
 	})
-	defer resp.Body.Close()
-
 	if err != nil {
 		return models.ErrInternalServerError
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusOK {
 		return nil
@@ -164,11 +161,10 @@ func (r *GachaRepo) GetAll() ([]models.Gacha, error) {
 
 		return resp, nil
 	})
-	defer resp.Body.Close()
-
 	if err != nil {
 		return nil, models.ErrInternalServerError
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusNotFound {
 		return nil, models.ErrGachaNotFound
@@ -212,11 +208,10 @@ func (r *GachaRepo) FindByID(gid models.UUID) (*models.Gacha, error) {
 
 		return resp, nil
 	})
-	defer resp.Body.Close()
-
 	if err != nil {
 		return nil, models.ErrInternalServerError
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusNotFound {
 		return nil, models.ErrGachaNotFound
@@ -261,11 +256,10 @@ func (r *GachaRepo) AddGachaToUser(uid models.UUID, gid models.UUID) error {
 
 		return resp, nil
 	})
-	defer resp.Body.Close()
-
 	if err != nil {
 		return models.ErrInternalServerError
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusConflict {
 		return models.ErrUserAlreadyHasGacha
@@ -304,11 +298,10 @@ func (r *GachaRepo) RemoveGachaFromUser(uid models.UUID, gid models.UUID) error 
 
 		return resp, nil
 	})
-	defer resp.Body.Close()
-
 	if err != nil {
 		return models.ErrInternalServerError
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusNotFound {
 		return models.ErrRetalationGachaUserNotFound
@@ -344,11 +337,10 @@ func (r *GachaRepo) RemoveUserGachas(uid models.UUID) error {
 
 		return resp, nil
 	})
-	defer resp.Body.Close()
-
 	if err != nil {
 		return models.ErrInternalServerError
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusNotFound {
 		return models.ErrRetalationGachaUserNotFound
@@ -386,11 +378,10 @@ func (r *GachaRepo) GetUserGachas(uid models.UUID) ([]models.Gacha, error) {
 
 		return resp, nil
 	})
-	defer resp.Body.Close()
-
 	if err != nil {
 		return nil, models.ErrInternalServerError
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusInternalServerError {
 		return nil, models.ErrInternalServerError

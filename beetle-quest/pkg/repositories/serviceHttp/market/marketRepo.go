@@ -56,11 +56,10 @@ func (r *MarketRepo) GetUserTransactionHistory(userID models.UUID) ([]models.Tra
 
 		return resp, nil
 	})
-	defer resp.Body.Close()
-
 	if err != nil {
 		return nil, models.ErrInternalServerError
 	}
+	defer resp.Body.Close()
 
 	switch resp.StatusCode {
 	case http.StatusInternalServerError:
@@ -104,11 +103,10 @@ func (r *MarketRepo) DeleteUserTransactionHistory(userID models.UUID) error {
 
 		return resp, nil
 	})
-	defer resp.Body.Close()
-
 	if err != nil {
 		return models.ErrInternalServerError
 	}
+	defer resp.Body.Close()
 
 	switch resp.StatusCode {
 	case http.StatusInternalServerError:
@@ -133,11 +131,10 @@ func (r *MarketRepo) GetAll() ([]models.Auction, error) {
 
 		return resp, nil
 	})
-	defer resp.Body.Close()
-
 	if err != nil {
 		return nil, models.ErrInternalServerError
 	}
+	defer resp.Body.Close()
 
 	switch resp.StatusCode {
 	case http.StatusInternalServerError:
@@ -167,11 +164,10 @@ func (r *MarketRepo) GetAllTransactions() ([]models.Transaction, error) {
 
 		return resp, nil
 	})
-	defer resp.Body.Close()
-
 	if err != nil {
 		return nil, models.ErrInternalServerError
 	}
+	defer resp.Body.Close()
 
 	switch resp.StatusCode {
 	case http.StatusInternalServerError:
@@ -214,11 +210,10 @@ func (r *MarketRepo) FindByID(aid models.UUID) (*models.Auction, error) {
 
 		return resp, nil
 	})
-	defer resp.Body.Close()
-
 	if err != nil {
 		return nil, models.ErrInternalServerError
 	}
+	defer resp.Body.Close()
 
 	switch resp.StatusCode {
 	case http.StatusInternalServerError:
@@ -264,11 +259,10 @@ func (r *MarketRepo) GetUserAuctions(uid models.UUID) ([]models.Auction, error) 
 
 		return resp, nil
 	})
-	defer resp.Body.Close()
-
 	if err != nil {
 		return nil, models.ErrInternalServerError
 	}
+	defer resp.Body.Close()
 
 	switch resp.StatusCode {
 	case http.StatusInternalServerError:
