@@ -9,6 +9,8 @@
 !doc/*.typ
 !doc/beetle-quest-microfreshner-architecture-v2.png
 !doc/beetle-quest-architecture-microfreshener-v2.yml
+!doc/lib/
+!doc/lib/*.typ
 
 !assets/
 !assets/images/
