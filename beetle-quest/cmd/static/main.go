@@ -16,6 +16,7 @@ import (
 var staticFiles embed.FS
 
 func main() {
+	utils.GenOwnCertAndKey("static-service")
 	r := gin.Default()
 	r.Use(gin.Recovery())
 	r.Use(secure.New(secure.Config{
@@ -38,7 +39,6 @@ func main() {
 	}
 	r.StaticFS("/static", http.FS(staticFS))
 
-	utils.GenOwnCertAndKey("static")
 	server := utils.SetupHTPPSServer(r)
 	if err := server.ListenAndServeTLS("/serverCert.pem", "/serverKey.pem"); err != nil {
 		log.Fatal("Failed to start server: ", err)

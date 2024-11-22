@@ -16,7 +16,7 @@ import (
 )
 
 func main() {
-	utils.GenOwnCertAndKey("market")
+	utils.GenOwnCertAndKey("market-service")
 
 	r := gin.Default()
 	r.Use(gin.Recovery())

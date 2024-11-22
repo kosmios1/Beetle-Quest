@@ -13,6 +13,8 @@ import (
 )
 
 func main() {
+	utils.GenOwnCertAndKey("gacha-service")
+
 	r := gin.Default()
 	r.Use(gin.Recovery())
 	r.Use(secure.New(secure.Config{
@@ -59,7 +61,6 @@ func main() {
 		internalPath.GET("/get_all", cnt.GetAll)
 	}
 
-	utils.GenOwnCertAndKey("gacha")
 	server := utils.SetupHTPPSServer(r)
 	if err := server.ListenAndServeTLS("/serverCert.pem", "/serverKey.pem"); err != nil {
 		log.Fatal("Failed to start server: ", err)

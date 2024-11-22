@@ -61,6 +61,11 @@ services:
             - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
             - ./traefik/rules.yml:/etc/traefik/rules.yml:ro
 
+            - ./cacerts/cert.pem:/certs/cacert.pem:ro
+
+            - ./traefik/certs/client_internal_cert.pem:/certs/client_internal_cert.pem:ro
+            - ./traefik/certs/client_internal_key.pem:/certs/client_internal_key.pem:ro
+
             - ./traefik/certs/cert.pem:/certs/cert.pem:ro
             - ./traefik/certs/key.pem:/certs/key.pem:ro
 

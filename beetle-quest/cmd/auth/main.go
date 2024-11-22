@@ -14,7 +14,7 @@ import (
 )
 
 func main() {
-	utils.GenOwnCertAndKey("auth")
+	utils.GenOwnCertAndKey("auth-service")
 
 	r := gin.Default()
 	r.Use(gin.Recovery())

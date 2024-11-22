@@ -88,14 +88,17 @@ func GenOwnCertAndKey(serviceName string) {
 	serviceCertTemplate := &x509.Certificate{
 		SerialNumber: big.NewInt(time.Now().UnixNano()),
 		Subject: pkix.Name{
-			Organization:  []string{"BeetleQuest"},
+			Organization:  []string{"Beetle Quest"},
 			Country:       []string{"IT"},
 			Province:      []string{""},
 			Locality:      []string{""},
 			StreetAddress: []string{""},
 			PostalCode:    []string{""},
+			CommonName:    serviceName,
 		},
-		IPAddresses:           []net.IP{net.IPv4(127, 0, 0, 1), net.IPv6loopback},
+
+		IPAddresses: []net.IP{net.IPv4(127, 0, 0, 1), net.IPv6loopback},
+		// For simplicity, we use the same DNS names for all services
 		DNSNames:              []string{"reverse-proxy", "localhost", "admin-service", "auth-service", "user-service", "gacha-service", "market-service", "oauth2-service", "static-service"},
 		NotBefore:             time.Now(),
 		NotAfter:              time.Now().AddDate(1, 0, 0),
@@ -135,10 +138,8 @@ func getTlsConfig(isServerConfig bool) *tls.Config {
 
 	if isServerConfig {
 		return &tls.Config{
-			ClientCAs: caCertPool,
-			// TODO: Enable client certificate verification
-			// ClientAuth:   tls.RequireAndVerifyClientCert,
-			ClientAuth:   tls.NoClientCert,
+			ClientCAs:    caCertPool,
+			ClientAuth:   tls.RequireAndVerifyClientCert,
 			Certificates: []tls.Certificate{ownCert},
 		}
 	} else {

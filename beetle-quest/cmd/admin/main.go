@@ -18,7 +18,7 @@ import (
 )
 
 func main() {
-	utils.GenOwnCertAndKey("admin")
+	utils.GenOwnCertAndKey("admin-service")
 
 	r := gin.Default()
 	r.Use(gin.Recovery())
