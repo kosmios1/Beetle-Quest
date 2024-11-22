@@ -98,7 +98,28 @@ func (s *MarketService) RollGacha(userId string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	gid := gachas[rand.IntN(len(gachas))].GachaID
+
+	var selectedGacha *models.Gacha
+	{ // Select a random gacha
+		// NOTE: A gacha with a higher rarity value will have a lower weight,
+		// making it less likely to be selected.
+		totalWeight := 0
+		for _, gacha := range gachas {
+			totalWeight += 1000 / int(gacha.Rarity+1)
+		}
+		randomWeight := rand.IntN(totalWeight)
+
+		var cumulativeWeight int = 0
+		for _, gacha := range gachas {
+			cumulativeWeight += 1000 / int(gacha.Rarity+1)
+			if randomWeight < cumulativeWeight {
+				selectedGacha = &gacha
+				break
+			}
+		}
+	}
+
+	gid := selectedGacha.GachaID
 
 	t := &models.Transaction{
 		TransactionID:   utils.GenerateUUID(),
