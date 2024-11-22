@@ -42,7 +42,7 @@ User registration, login and logout are all managed in a centralised manner by t
 Which also provides helper endpoints to check the validity of access tokens, allowing authentication and authorization within the web-app.
 
 == _User_
-This service is responsable for managing user's account informations. A user, once logged in, can access it's account details, modify them or delete the account it selfs.
+This service is responsable for managing user's account informations. A user, once logged in, can access it's account details, modify them or delete the account itself.
 
 == _Gacha_
 Gacha collections are managed by the Gacha service. It allows users to get the list of available gachas as well as information on each one of them. User can inspect the personal inventory of different players and their personal one.
@@ -51,19 +51,19 @@ Gacha collections are managed by the Gacha service. It allows users to get the l
 The Market service allows users to perform actions involving the acquisition of `BugsCoins` and gachas. It manages auctions lifetime and transactions in the system.
 
 #linebreak()
-Through this service users can obtain gachas by performing two actions: buy and roll. To roll the user has to pay 1000 `BugsCoins`, he/she will obtain a random gacha from the system with: the probability depends on the rarity of the gacha.
+Through this service users can obtain gachas by performing two actions: buy and roll. To roll the user has to pay 1000 `BugsCoins`, he/she will obtain a random gacha from the system with a probability which depends on the rarity of the gacha.
 
 #linebreak()
 The user has the permission to create and delete it's own auctions but can not bid to them, he/she can bid to other's auctions.
 
 == _Static_
-This service is responsible for serving the static content of the web-app, like the images and the _css_ files.
+This service is responsible for serving the static content of the web-app, like the images, the _css_ and the _html_ files.
 
 
 == _Admin_
 This service provides the administrator with the necessary tools to manage the system in a controlled manner, allowing operations on users, gacha, and transactions and operation carried out in the market.
 
-It can fetch the list of users with their associated information, performs detailed searching, modifie users profile, can view all the transactions carried out by a user and can ispect user's auction list.
+It can fetch the list of users with their associated information, performs detailed searching, modify users profile, view all the transactions carried out by a user and ispect user's auction list.
 
 It can perform global actions on the gachas, like: add new one, modify/delete an existing one and get information on the system gachas. The service provides similar actions also on transactions and auctions.
 
@@ -95,58 +95,61 @@ Now we proceed analysing a few use case scenarios, to show the flow on the backe
 
 == Registration and login:
 
-When a player wants to register he sends a `POST` request to the API Gateway at\ `/auth/register` containig the the user _username_, _email_ and _password_.
+When a player wants to register he sends a `POST` request to the API Gateway at\ `/auth/register` containig the user's _username_, _email_ and _password_.
 
   - The Gateway forwards the request to the `auth` service.
   - The `auth` service checks for the validity of the provided data;
-  - if no error occurs it creates the new user;
-  - it sends a request to the `user DB` to store the new user data.
-  - If it gets no error from the `DB` it returns, to the API Gateway, a success message
+  - If no error occurs it creates the new user;
+  - It sends a request to the `user` service to create the new user data.
+  - The user service store the new user data in the `user DB`.
+  - The `user` service forward the action's status to the `auth` service.
+  - If `auth` service gets no error it returns to the API Gateway, a success message.
 
 Now the user can login trough a `POST` request to the API Gateway at `/auth/login` containig the the _username_ and the _password_.
 
   - The Gateway forwards the request to the `auth` service.
-  - The `auth` service checks for the validity of the provided data comunicating with the `user DB`.
-  - If the user exist and the provided data is correct the `auth` service returns, to the API Gateway, a respons containig a `token` that authenticates the user.
+  - The `auth` service checks for the validity of the provided data comunicating with the `user` service.
+  - The `user` service checks if the user exist in the `user DB`, and return it's data to the `auth` service.
+  - If the user exist and the provided data is correct the `auth` service returns, to the API Gateway, a response containig a `token` that authenticates the user.
 
 
 #linebreak()
 
-From now on we assume that all the requests contain the authentification `token`.
+From now on we assume that all the requests contain the authentification `token` and that every microservice will obtain the `user_id` from it.
 
 
 == Roll gacha:
 
-To roll for a gacha the user must send a `GET` request to the API Gateway at `/market/gacha/roll`
+To roll for a gacha the user must send a `GET` request to the API Gateway at\ `/market/gacha/roll`
 
 - The Gateway send the request to the `auth` service.
 - The `auth` service checks for the validity of the `token`.
-- If the `token` id valid then the request gets fowareded to the `market` service.
-- The `market` service will ask the `user` service if the user has at least 1000 `BugsCoins`,
-- if so it removes that ammount of money form the user.
-- Then the `market` service will extract a gacha, tell the `gacha DB` to assign it to the user.
+- If the `token` id is valid then the request gets fowareded to the `market` service.
+- The `market` service will ask the `user` service if the user exists and it's data, then it checks if it has at least 1000 `BugsCoins`,
+- If so it removes that amount of money form the user, saving the transaction in the `market DB`.
+- The  `market` service will request the `gacha` service to get the list of all the gachas.
+- At this point the `market` service will extract randomly a gacha and, in the case that the user does not own that gacha, forward to the `gacha` service a save operation of the gacha to the user in question.
 - If no error appears it returns a success message to the API Gateway.
 
 == Create auction:
 
-A user can create an acution sending a `POST` request to the API Gateway at `/market/auction` containig the _gacha id_ and the _expiration time_ of the action.
+A user can create an acution sending a `POST` request to the API Gateway at\ `/market/auction` containig the _gacha id_ and the _expiration time_ of the action.
 
   - The Gateway send the request to the `auth` service.
   - The `auth` service checks for the validity of the `token`.
-  - If the `token` id valid then the request gets fowareded to the `market` service.
-  - The `market` service will check if the user has the specified gacha in his inventory, comunication to the `gacha` service, then it will check if the _expiration time_ is valid.
-  - Then it will save the acution in the `market DB`.
+  - If the `token` id is valid then the request gets fowareded to the `market` service.
+  - The `market` service will check if the user has the specified gacha in his inventory, comunicating with the `gacha` service, then it will check if the _expiration time_ is valid.
+  - Then it will save the acution in the `market DB` and set a timed event in the `timed event DB` to close the auction.
   - If no error appears it returns a success message to the API Gateway.
-  - If no other user bid this auction before the _expiration time_, the `market` service will automatically remove the auction from the DB.
+  - If no other user bid to this auction before the _expiration time_, the `market` service will automatically remove the auction from the DB.
 
 == Bid an auction:
 
-To bid an auction a user has to send a `POST` request to the API Gateway at `/market/auction/<auctionId>/bid`, where `<auctionId>` is the id of the auction. The request has to include the ammount the user wants to bid.
+To bid an auction a user has to send a `POST` request to the API Gateway at\ `/market/auction/<auctionId>/bid`, where `<auctionId>` is the id of the auction. The request has to include the amount the user wants to bid.
 
   - The Gateway send the request to the `auth` service.
   - The `auth` service checks for the validity of the `token`.
-  - If the `token` id valid then the request gets fowareded to the `market` service.
-  - Now the `market` service will check with the `user` service if the user has the ammount of `BugsCoins` he wants to bid.
-  - If the check passes the `market` service will comunicate the `user` service to remove the ammount from the bidder, and add it to the owner of the auction.
-  - Then it will tell the `gacha` service to change the ownership of the auctioned gacha.
+  - If the `token` id is valid then the request gets fowarded to the `market` service.
+  - Now the `market` service will check with the `user` service if the user has the amount of `BugsCoins` he wants to bid.
+  - If the check passes the `market` service will comunicate the `user` service to remove the amount from the bidder, and store the bid in the `market DB`.
   - If no error appears it returns a success message to the API Gateway.
