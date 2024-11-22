@@ -15,18 +15,18 @@
   )
   set text(size: 12.5pt, font: "New Computer Modern")
   show raw: set text(size: 12pt, font: "IosevkaTerm NF")
-  
+
   set par(
     justify: true,
     leading: 0.55em,
     linebreaks: "optimized",
  //   first-line-indent: 1.8em,
   )
-  show par: set block(spacing: 0.55em)
+  set par(spacing: 0.55em)
 
   set heading(numbering: "1.")
   show heading: set block(above: 1.4em, below: 1em)
-  
+
   set math.equation(numbering: "(1)")
 
   align(center)[

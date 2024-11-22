@@ -2,8 +2,8 @@
 #import "lib/frontpage.typ": report
 
 #show: doc => report(
-  title: "2nd Delivery Project",
-  subtitle: "Advanced Software Engineering",
+  title: "BeetleQuest",
+  subtitle: "Advanced Software Engineering - 2nd Project Delivery",
   authors: ("Cosimo Giraldi", "Giacomo Grassi", "Michele Ivan Bruna"),
   date: "2024/2025",
   doc,
@@ -21,78 +21,132 @@
 
 
 
-= Introduction 
-The goal of this project is to develop a web app and define its architecture for creating a web-based gacha game. So the users will be able to engage in all the standard activities found in a gacha game like: *_Roll, Buy Coin, Auction, Bid_*.   
+= Introduction
+The goal of this project is to develop a web app and define its architecture for creating a web-based gacha game. So the users will be able to engage in all the standard activities found in a gacha game like: _`roll`, `buy coin`, `create auctions`, `bid`_.
 
 All these actions will be implemented through a _microservices_ architecture..
 
 
 = Microservices
 The main idea was to divide a monolithic system into a series of microservices, each of which handles a specific functionality.
-This fragmentation allows for greater modularity and control of the system. To make the web-application more scalable, the microservices have been designed to be independent and stateless. 
+This fragmentation allows for greater modularity and control of the system. To make the web-application more scalable, the microservices have been designed to be independent and stateless.
 Microservices that need to store data use their own dedicated database, which they access directly.
 However, if a service needs to access data managed by another service, it must use the internal API which is only accessible within the internal network.
 
+#linebreak()
 
-The list of the microservices implemented in the system are:
+In the following pharagraps we will examinate the implemented services, and expose their functionalities.
+
+== _Auth_
+User registration, login and logout are all managed in a centralised manner by the same service: the Auth service.
+Which also provides helper endpoints to check the validity of access tokens, allowing authentication and authorization within the web-app.
+
+== _User_
+This service is responsable for managing user's account informations. A user, once logged in, can access it's account details, modify them or delete the account it selfs.
+
+== _Gacha_
+Gacha collections are managed by the Gacha service. It allows users to get the list of available gachas as well as information on each one of them. User can inspect the personal inventory of different players and their personal one.
+
+== _Market_
+The Market service allows users to perform actions involving the acquisition of `BugsCoins` and gachas. It manages auctions lifetime and transactions in the system.
+
+#linebreak()
+Through this service users can obtain gachas by performing two actions: buy and roll. To roll the user has to pay 1000 `BugsCoins`, he/she will obtain a random gacha from the system with: the probability depends on the rarity of the gacha.
+
+#linebreak()
+The user has the permission to create and delete it's own auctions but can not bid to them, he/she can bid to other's auctions.
+
+== _Static_
+This service is responsible for serving the static content of the web-app, like the images and the _css_ files.
+
 
 == _Admin_
 This service provides the administrator with the necessary tools to manage the system in a controlled manner, allowing operations on users, gacha, and transactions and operation carried out in the market.
 
-It can fetch the list of users with their associated information, performs detailed searching, modifie users profile, can view all the transactions carried out by a user and can ispect user's auction list. 
+It can fetch the list of users with their associated information, performs detailed searching, modifie users profile, can view all the transactions carried out by a user and can ispect user's auction list.
 
-It can perform global actions on the gachas, like: add new one, modify/delete an existing one and get information on the system gachas. The service provides similar actions also on transactions and auctions. 
-
-
-
-== _Auth_ 
-Allows authentication and authorizations within the web-app.
-
-This service takes care for account *Registration*, user *Login* and *Logout*. it also has helper endpoints to check the validity of the submitted access token.
+It can perform global actions on the gachas, like: add new one, modify/delete an existing one and get information on the system gachas. The service provides similar actions also on transactions and auctions.
 
 
-== _User_ 
-This service manages user's information. The actions which can be performed are:
-getting user's account details, modify user's account details, delete user's account.
-
-
-== _Gacha_
-This service allows control over the gacha collection, it enables a user to get a view on the system's gachas, as well as getting information on a specific gacha. Other than the previous actions, the user can inspect the personal inventory of different players, and also get details about a specific gacha in the retrieved inventory.
-
-
-== _Market_ 
-The Market service allows users to perform  actions involving the acquisition of BugsCoins and gachas. It manages auctions lifetime and transactions in the system.
-
-Through this service users can obtain gachas by performing two actions: buy and roll. To roll the user has to pay 1000 BugsCoins, he/she will obtain a random gacha from the system with: the probability depends on the rarity of the gacha.
-
-The user has the permission to create and delete it's own auctions but can not bid to them, he/she can bid to other's auctions.
-
-
-== _Static_
-This service is responsible for serving the static content of the web-app, like the images and the css files.
-
-
-= Architecture with Microfreshner
+= Architecture with MicroFreshner
 The microservices architecture defined for this project is the result of a process of analysis and detection of the smells present in the original monolithic prototype, carried out using MicroFreshner.
 
 #figure(
-  image("beetle-quest-microfreshner-architecture-v2.png", width: 125%),
+  //TODO: static service in microfreshner
+  image("beetle-quest-microfreshner-architecture-v2.png", width: 110%),
   caption: [
-    beetle-quest architecture
+    BeetleQuest architecture
   ],
 )
 = Architectural Design Choices
 
 The architectural analysis of our initial system, carried out using MicroFreshner, revealed smell between the microservices. To isolate potential failures and improve the system's resilience, we introduced Circuit Breakers (CBs).
- 
+
 The introduced Circuit Breakers effectively address the issues caused by continuous failures of a microservice, preventing the cascading propagation of errors that could slow down or completely halt the entire system.
 
 Moreover, to achieve more effective control over the system, we have introduced *_Timeouts_* on database connections. This solution significantly improves resilience and reliability. If a connection or query exceeds the maximum time defined by the timeout, the system considers the operation as failed and immediately activates error-handling mechanisms, ensuring a quick response and preventing bottlenecks or slowdowns.
 
 We have also used a reverse proxy called *_Traefik_*, which acts as an intermediary between external users and the system's internal services. In this architecture, Traefik functions as an access gateway, managing and routing requests to the appropriate microservices, ensuring efficient and centralized traffic handling.
 
-
-//TODO: static service in microfreshner to do
 = Interesting Flows
 
-= Conclusion
+Now we proceed analysing a few use case scenarios, to show the flow on the backend.
+
+
+== Registration and login:
+
+When a player wants to register he sends a `POST` request to the API Gateway at\ `/auth/register` containig the the user _username_, _email_ and _password_.
+
+  - The Gateway forwards the request to the `auth` service.
+  - The `auth` service checks for the validity of the provided data;
+  - if no error occurs it creates the new user;
+  - it sends a request to the `user DB` to store the new user data.
+  - If it gets no error from the `DB` it returns, to the API Gateway, a success message
+
+Now the user can login trough a `POST` request to the API Gateway at `/auth/login` containig the the _username_ and the _password_.
+
+  - The Gateway forwards the request to the `auth` service.
+  - The `auth` service checks for the validity of the provided data comunicating with the `user DB`.
+  - If the user exist and the provided data is correct the `auth` service returns, to the API Gateway, a respons containig a `token` that authenticates the user.
+
+
+#linebreak()
+
+From now on we assume that all the requests contain the authentification `token`.
+
+
+== Roll gacha:
+
+To roll for a gacha the user must send a `GET` request to the API Gateway at `/market/gacha/roll`
+
+- The Gateway send the request to the `auth` service.
+- The `auth` service checks for the validity of the `token`.
+- If the `token` id valid then the request gets fowareded to the `market` service.
+- The `market` service will ask the `user` service if the user has at least 1000 `BugsCoins`,
+- if so it removes that ammount of money form the user.
+- Then the `market` service will extract a gacha, tell the `gacha DB` to assign it to the user.
+- If no error appears it returns a success message to the API Gateway.
+
+== Create auction:
+
+A user can create an acution sending a `POST` request to the API Gateway at `/market/auction` containig the _gacha id_ and the _expiration time_ of the action.
+
+  - The Gateway send the request to the `auth` service.
+  - The `auth` service checks for the validity of the `token`.
+  - If the `token` id valid then the request gets fowareded to the `market` service.
+  - The `market` service will check if the user has the specified gacha in his inventory, comunication to the `gacha` service, then it will check if the _expiration time_ is valid.
+  - Then it will save the acution in the `market DB`.
+  - If no error appears it returns a success message to the API Gateway.
+  - If no other user bid this auction before the _expiration time_, the `market` service will automatically remove the auction from the DB.
+
+== Bid an auction:
+
+To bid an auction a user has to send a `POST` request to the API Gateway at `/market/auction/<auctionId>/bid`, where `<auctionId>` is the id of the auction. The request has to include the ammount the user wants to bid.
+
+  - The Gateway send the request to the `auth` service.
+  - The `auth` service checks for the validity of the `token`.
+  - If the `token` id valid then the request gets fowareded to the `market` service.
+  - Now the `market` service will check with the `user` service if the user has the ammount of `BugsCoins` he wants to bid.
+  - If the check passes the `market` service will comunicate the `user` service to remove the ammount from the bidder, and add it to the owner of the auction.
+  - Then it will tell the `gacha` service to change the ownership of the auctioned gacha.
+  - If no error appears it returns a success message to the API Gateway.
