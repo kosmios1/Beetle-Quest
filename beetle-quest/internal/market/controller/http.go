@@ -303,15 +303,15 @@ func (c *MarketController) BidToAuction(ctx *gin.Context) {
 	if err != nil {
 		switch err {
 		case models.ErrInternalServerError:
-			ctx.HTML(http.StatusInternalServerError, "errormsg.tmpl", gin.H{"error": err})
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"error": err})
 			ctx.Abort()
 			return
 		case models.ErrAuctionNotFound, models.ErrUserNotFound:
-			ctx.HTML(http.StatusNotFound, "errormsg.tmpl", gin.H{"error": err})
+			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"error": err})
 			ctx.Abort()
 			return
 		case models.ErrOwnerCannotBid, models.ErrBidAmountNotEnough, models.ErrNotEnoughMoneyToBid, models.ErrAuctionEnded:
-			ctx.HTML(http.StatusBadRequest, "errormsg.tmpl", gin.H{"error": err})
+			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"error": err})
 			ctx.Abort()
 			return
 		}
