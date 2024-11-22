@@ -31,49 +31,49 @@ All these actions will be implemented through a _microservices_ architecture..
 The main idea was to divide a monolithic system into a series of microservices, each of which handles a specific functionality.
 This fragmentation allows for greater modularity and control of the system. To make the web-application more scalable, the microservices have been designed to be independent and stateless. 
 Microservices that need to store data use their own dedicated database, which they access directly.
-However, if a service needs to access data managed by another service, must use the internal API which is only accessible within the internal network.
+However, if a service needs to access data managed by another service, it must use the internal API which is only accessible within the internal network.
 
 
 The list of the microservices implemented in the system are:
 
-== _admin-service_
+== _Admin_
 This service provides the administrator with the necessary tools to manage the system in a controlled manner, allowing operations on users, gacha, and transactions and operation carried out in the market.
 
-So this service allows to retrieve a specific admin-user with *FindByID*.
-It's also possible to fetch the list of users with their associated information calling *GetAllUsers* API and perform detailed searching using *FindUserByID*. Can also manage users profile calling *UpdateUserProfile*, and can viewing all transactions carried out by a user using *GetUserTransactionHistory*.
+It can fetch the list of users with their associated information, performs detailed searching, modifie users profile, can view all the transactions carried out by a user and can ispect user's auction list. 
 
-This service also enables adding new gacha items to the system *AddGacha*, retrieving a complete list of all gacha items *GetAllGachas*, searching for a specific gacha by ID *FindGachaByID*, deleting a gacha from the system *DeleteGacha*, and upgrade an existing one *UpdateGacha*.
-
-The service provides a transaction history within the marketplace *GetMarketHistory*, a list of all auctions *GetAllAuctions*, and the permission to search for a specific auction by ID *FIndAuctionByID*, as well as allowing modifications to an active auction *UpdateAuction*.
+It can perform global actions on the gachas, like: add new one, modify/delete an existing one and get information on the system gachas. The service provides similar actions also on transactions and auctions. 
 
 
-== _auth-service_ 
-This service allows authentication within the web-app, guaranteeing access to the system.
 
-So This service takes care for account registration *Register*, manages user *Login* and *Logout*, and also enables the *Verify* and the *Revoke* of the access token.
+== _Auth_ 
+Allows authentication and authorizations within the web-app.
 
-== oauth2-service
-
-== _user-service_ 
-This service allows a user to manage all the information that concerns them.
-
-So this service allows users to view their personal information with *GetUserAccountDetails* and can update/modifie their personal profile with *UpdateUserAccountDetails*, with options to change their username, email address, and password. The user can also delete it's account with *DeleteUserAccount*.To make these changes, the current password must be entered for verification.
-The users can also track their gacha collection with *GetUserGachaList* along with related details *GetUserGachaDetails*.
+This service takes care for account *Registration*, user *Login* and *Logout*. it also has helper endpoints to check the validity of the submitted access token.
 
 
-== _gacha-service_
-This service allows to have control over the gachas in the user's collection. 
+== _User_ 
+This service manages user's information. The actions which can be performed are:
+getting user's account details, modify user's account details, delete user's account.
 
-So this service offers the possibility to add a gacha to the user's collection with *AddGachaToUser*; Additionally, this service permits removes the gacha from the user's collection if it has been sold at auction with *RemoveGachaFromUser*.
+
+== _Gacha_
+This service allows control over the gacha collection, it enables a user to get a view on the system's gachas, as well as getting information on a specific gacha. Other than the previous actions, the user can inspect the personal inventory of different players, and also get details about a specific gacha in the retrieved inventory.
 
 
-== _maket-service_ 
-This service allows you to perform all actions that involve the acquisition of BugsCoins and their movements for operation in the system.
+== _Market_ 
+The Market service allows users to perform  actions involving the acquisition of BugsCoins and gachas. It manages auctions lifetime and transactions in the system.
 
-So this service allows the user to perform a *RollGacha* to obtain gacha items and add them to their collection, if they do not already own them. Can *BuyGacha* from the market at full price, is possible also buy Bugscoin with *AddBugsCoins* and added to the personal wallet. Additionally, the user can *CreateAuction* and can *DeleteAuction* and can keep track of all active auctions, and can view the history of completed auctions with *AuctionList*. The user can *MakeBid* on auctions and view each *AuctionDetails*, such as: Auction ID, Owner ID, Gacha ID, Start Time, End Time, Winner ID, as well as the complete list of bids placed on the gacha, with details such as: Bid ID, User ID, Bugscoin Spent, and Time of Bid.
+Through this service users can obtain gachas by performing two actions: buy and roll. To roll the user has to pay 1000 BugsCoins, he/she will obtain a random gacha from the system with: the probability depends on the rarity of the gacha.
+
+The user has the permission to create and delete it's own auctions but can not bid to them, he/she can bid to other's auctions.
+
+
+== _Static_
+This service is responsible for serving the static content of the web-app, like the images and the css files.
+
 
 = Architecture with Microfreshner
-The microservices architecture defined for this project is the result of a process of analysis and detection of the smells present in the original architectural prototype, carried out using MicroFreshner.
+The microservices architecture defined for this project is the result of a process of analysis and detection of the smells present in the original monolithic prototype, carried out using MicroFreshner.
 
 #figure(
   image("beetle-quest-microfreshner-architecture-v2.png", width: 125%),
@@ -89,6 +89,10 @@ The introduced Circuit Breakers effectively address the issues caused by continu
 
 Moreover, to achieve more effective control over the system, we have introduced *_Timeouts_* on database connections. This solution significantly improves resilience and reliability. If a connection or query exceeds the maximum time defined by the timeout, the system considers the operation as failed and immediately activates error-handling mechanisms, ensuring a quick response and preventing bottlenecks or slowdowns.
 
+We have also used a reverse proxy called *_Traefik_*, which acts as an intermediary between external users and the system's internal services. In this architecture, Traefik functions as an access gateway, managing and routing requests to the appropriate microservices, ensuring efficient and centralized traffic handling.
 
-Sono stati introdotto anche dei timeOUt che permettono di 
-Chiedere jack traefink
+
+//TODO: static service in microfreshner to do
+= Interesting Flows
+
+= Conclusion

@@ -20,7 +20,7 @@
     justify: true,
     leading: 0.55em,
     linebreaks: "optimized",
-    first-line-indent: 1.8em,
+ //   first-line-indent: 1.8em,
   )
   show par: set block(spacing: 0.55em)
 
