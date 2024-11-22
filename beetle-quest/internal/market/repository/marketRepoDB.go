@@ -83,9 +83,9 @@ func (r *MarketRepo) Delete(auction *models.Auction) error {
 		return models.ErrInternalServerError
 	}
 
-	if result.RowsAffected == 0 {
-		return models.ErrInternalServerError
-	}
+	// if result.RowsAffected == 0 {
+	// 	return models.ErrInternalServerError
+	// }
 	return nil
 }
 
@@ -110,9 +110,9 @@ func (r *MarketRepo) DeleteUserTransactionHistory(uid models.UUID) error {
 		return models.ErrInternalServerError
 	}
 
-	if result.RowsAffected == 0 {
-		return models.ErrInternalServerError
-	}
+	// if result.RowsAffected == 0 {
+	// 	return models.ErrInternalServerError
+	// }
 	return nil
 }
 

@@ -101,9 +101,9 @@ func (r *UserRepo) Delete(user *models.User) error {
 		return models.ErrInternalServerError
 	}
 
-	if result.RowsAffected == 0 {
-		return models.ErrInternalServerError
-	}
+	// if result.RowsAffected == 0 {
+	// 	return models.ErrInternalServerError
+	// }
 	return nil
 }
 

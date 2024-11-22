@@ -84,9 +84,9 @@ func (r *GachaRepo) Delete(gacha *models.Gacha) error {
 		return models.ErrInternalServerError
 	}
 
-	if result.RowsAffected == 0 {
-		return models.ErrInternalServerError
-	}
+	// if result.RowsAffected == 0 {
+	// 	return models.ErrInternalServerError
+	// }
 	return nil
 }
 
@@ -140,9 +140,9 @@ func (r *GachaRepo) RemoveGachaFromUser(uid models.UUID, gid models.UUID) error 
 		return models.ErrInternalServerError
 	}
 
-	if result.RowsAffected == 0 {
-		return models.ErrInternalServerError
-	}
+	// if result.RowsAffected == 0 {
+	// 	return models.ErrInternalServerError
+	// }
 	return nil
 }
 
@@ -155,9 +155,9 @@ func (r *GachaRepo) RemoveUserGachas(uid models.UUID) error {
 		return models.ErrInternalServerError
 	}
 
-	if result.RowsAffected == 0 {
-		return models.ErrInternalServerError
-	}
+	// if result.RowsAffected == 0 {
+	// 	return models.ErrInternalServerError
+	// }
 	return nil
 }
 
