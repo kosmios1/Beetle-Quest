@@ -91,7 +91,7 @@ func (s *UserService) UpdateUserAccountDetails(userID string, newEmail, newUsern
 	}
 
 	if newUsername != "" {
-		if _, err = s.urepo.FindByUsername(newUsername); err != nil {
+		if _, err = s.urepo.FindByUsername(newUsername); err == nil {
 			return models.ErrUsernameAlreadyExists
 		} else {
 			user.Username = newUsername
@@ -99,7 +99,7 @@ func (s *UserService) UpdateUserAccountDetails(userID string, newEmail, newUsern
 	}
 
 	if newEmail != "" {
-		if _, err = s.urepo.FindByEmail(newEmail); err != nil {
+		if _, err = s.urepo.FindByEmail(newEmail); err == nil {
 			return models.ErrEmailAlreadyExists
 		} else {
 			user.Email = newEmail
