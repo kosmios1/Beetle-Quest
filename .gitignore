@@ -11,6 +11,7 @@
 !doc/beetle-quest-architecture-microfreshener-v2.yml
 !doc/lib/
 !doc/lib/*.typ
+!doc/lib/*.svg
 
 !assets/
 !assets/images/

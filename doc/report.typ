@@ -90,6 +90,5 @@ The introduced Circuit Breakers effectively address the issues caused by continu
 Moreover, to achieve more effective control over the system, we have introduced *_Timeouts_* on database connections. This solution significantly improves resilience and reliability. If a connection or query exceeds the maximum time defined by the timeout, the system considers the operation as failed and immediately activates error-handling mechanisms, ensuring a quick response and preventing bottlenecks or slowdowns.
 
 
-dasdasdfasdfasdfasdfas
 Sono stati introdotto anche dei timeOUt che permettono di 
 Chiedere jack traefink
