@@ -76,7 +76,7 @@ func (r *UserRepo) Create(email, username string, hashedPassword []byte, currenc
 }
 
 func (r *UserRepo) Update(user *models.User) error {
-	result := r.db.Table("users").Where("user_id = ?", user.UserID).Updates(user)
+	result := r.db.Table("users").Where("user_id = ?", user.UserID).Select("*").Updates(user)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return models.ErrUserNotFound

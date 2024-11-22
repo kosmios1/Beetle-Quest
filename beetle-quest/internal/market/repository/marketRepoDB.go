@@ -58,7 +58,7 @@ func (r *MarketRepo) Create(auction *models.Auction) error {
 }
 
 func (r *MarketRepo) Update(auction *models.Auction) error {
-	result := r.db.Table("auctions").Where("auction_id = ?", auction.AuctionID).Updates(auction)
+	result := r.db.Table("auctions").Where("auction_id = ?", auction.AuctionID).Select("*").Updates(auction)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return models.ErrAuctionNotFound

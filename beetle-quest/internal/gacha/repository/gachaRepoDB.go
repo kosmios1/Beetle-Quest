@@ -59,7 +59,7 @@ func (r *GachaRepo) Create(gacha *models.Gacha) error {
 }
 
 func (r *GachaRepo) Update(gacha *models.Gacha) error {
-	result := r.db.Table("gachas").Where("gacha_id = ?", gacha.GachaID).Updates(gacha)
+	result := r.db.Table("gachas").Where("gacha_id = ?", gacha.GachaID).Select("*").Updates(gacha)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return models.ErrGachaNotFound
