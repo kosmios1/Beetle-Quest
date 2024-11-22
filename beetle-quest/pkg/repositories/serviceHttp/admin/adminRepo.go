@@ -5,8 +5,10 @@ import (
 	"beetle-quest/pkg/utils"
 	"bytes"
 	"encoding/json"
+	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/sony/gobreaker/v2"
 )
@@ -23,7 +25,19 @@ type AdminRepo struct {
 func NewAdminRepo() *AdminRepo {
 	return &AdminRepo{
 		client: utils.SetupHTTPSClient(),
-		cb:     gobreaker.NewCircuitBreaker[*http.Response](gobreaker.Settings{}),
+		// closed: ok, open: service does not respond
+		cb: gobreaker.NewCircuitBreaker[*http.Response](gobreaker.Settings{
+			MaxRequests: 5,
+			Interval:    5 * time.Second,  // When to flush counters int the Closed state
+			Timeout:     10 * time.Second, // Time to switch from open -> half-open
+			ReadyToTrip: func(counts gobreaker.Counts) bool { // When to switch from closed -> open
+				failureRatio := float64(counts.TotalFailures) / float64(counts.Requests)
+				return (counts.Requests >= 10 && failureRatio >= 0.6) || counts.ConsecutiveFailures > 10
+			},
+			OnStateChange: func(name string, from gobreaker.State, to gobreaker.State) {
+				log.Printf("[INFO] Circuit breaker changed from %s to %s", from, to)
+			},
+		}),
 	}
 }
 
