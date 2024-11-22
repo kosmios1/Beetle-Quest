@@ -30,7 +30,7 @@ func (c *UserController) GetUserAccountDetails(ctx *gin.Context) {
 	if err != nil {
 		switch err {
 		case models.ErrInternalServerError:
-			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
 		}
@@ -79,15 +79,15 @@ func (c *UserController) UpdateUserAccountDetails(ctx *gin.Context) {
 	if err != nil {
 		switch err {
 		case models.ErrInternalServerError:
-			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
 		case models.ErrUsernameAlreadyExists, models.ErrEmailAlreadyExists, models.ErrInvalidPassword, models.ErrUsernameOrEmailAlreadyExists:
-			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
 		case models.ErrUserNotFound:
-			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
 		}
@@ -117,11 +117,11 @@ func (c *UserController) DeleteUserAccount(ctx *gin.Context) {
 	if err != nil {
 		switch err {
 		case models.ErrInternalServerError:
-			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
 		case models.ErrUserNotFound, models.ErrRetalationGachaUserNotFound, models.ErrUserTransactionNotFound:
-			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
 		}
@@ -138,11 +138,11 @@ func (c *UserController) GetAllUsers(ctx *gin.Context) {
 	if err != nil {
 		switch err {
 		case models.ErrInternalServerError:
-			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
 		case models.ErrUserNotFound:
-			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
 		}
@@ -166,11 +166,11 @@ func (c *UserController) CreateUser(ctx *gin.Context) {
 	if err := c.srv.Create(req.Email, req.Username, req.HashedPassword, req.Currency); err != nil {
 		switch err {
 		case models.ErrInternalServerError:
-			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
 		case models.ErrUsernameOrEmailAlreadyExists:
-			ctx.HTML(http.StatusConflict, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.HTML(http.StatusConflict, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
 		}
@@ -191,15 +191,15 @@ func (c *UserController) UpdateUser(ctx *gin.Context) {
 	if err := c.srv.Update(&req); err != nil {
 		switch err {
 		case models.ErrInternalServerError:
-			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
 		case models.ErrUserNotFound:
-			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
 		case models.ErrUsernameOrEmailAlreadyExists:
-			ctx.HTML(http.StatusConflict, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.HTML(http.StatusConflict, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
 		}
@@ -221,11 +221,11 @@ func (c *UserController) FindByID(ctx *gin.Context) {
 	if err != nil {
 		switch err {
 		case models.ErrInternalServerError:
-			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
 		case models.ErrUserNotFound:
-			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
 		}
@@ -247,11 +247,11 @@ func (c *UserController) FindByUsername(ctx *gin.Context) {
 	if err != nil {
 		switch err {
 		case models.ErrInternalServerError:
-			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
 		case models.ErrUserNotFound:
-			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
 		}

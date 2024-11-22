@@ -45,15 +45,15 @@ func (c *MarketController) BuyBugscoin(ctx *gin.Context) {
 	if err := c.srv.AddBugsCoin(userId.(string), int64(amount)); err != nil {
 		switch err {
 		case models.ErrInternalServerError:
-			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
 		case models.ErrUserNotFound:
-			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
 		case models.ErrMaxMoneyExceeded:
-			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
 		}
@@ -74,15 +74,15 @@ func (c *MarketController) RollGacha(ctx *gin.Context) {
 	if err != nil {
 		switch err {
 		case models.ErrInternalServerError:
-			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
 		case models.ErrUserNotFound, models.ErrGachaNotFound, models.ErrUserAlreadyHasGacha:
-			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
 		case models.ErrNotEnoughMoneyToRollGacha:
-			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
 		}
@@ -110,15 +110,15 @@ func (c *MarketController) BuyGacha(ctx *gin.Context) {
 	if err := c.srv.BuyGacha(userId.(string), gachaId); err != nil {
 		switch err {
 		case models.ErrGachaNotFound, models.ErrUserNotFound:
-			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
 		case models.ErrUserAlreadyHasGacha, models.ErrNotEnoughMoneyToBuyGacha:
-			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
 		case models.ErrInternalServerError:
-			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
 		}
@@ -154,19 +154,19 @@ func (c *MarketController) CreateAuction(ctx *gin.Context) {
 	if err := c.srv.CreateAuction(uid.(string), data.GachaID, endTime); err != nil {
 		switch err {
 		case models.ErrGachaNotFound, models.ErrUserNotFound, models.ErrAuctionNotFound:
-			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
 		case models.ErrInvalidData, models.ErrUserDoesNotOwnGacha, models.ErrInvalidEndTime:
-			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
 		case models.ErrAuctionAltreadyExists:
-			ctx.HTML(http.StatusConflict, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.HTML(http.StatusConflict, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
 		case models.ErrInternalServerError:
-			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
 		}
@@ -181,11 +181,11 @@ func (c *MarketController) AuctionList(ctx *gin.Context) {
 	if err != nil {
 		switch err {
 		case models.ErrInternalServerError:
-			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
 		case models.ErrAuctionNotFound:
-			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
 		}
@@ -303,15 +303,15 @@ func (c *MarketController) BidToAuction(ctx *gin.Context) {
 	if err != nil {
 		switch err {
 		case models.ErrInternalServerError:
-			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"error": err})
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
 		case models.ErrAuctionNotFound, models.ErrUserNotFound:
-			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"error": err})
+			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
 		case models.ErrOwnerCannotBid, models.ErrBidAmountNotEnough, models.ErrNotEnoughMoneyToBid, models.ErrAuctionEnded:
-			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"error": err})
+			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
 		}
@@ -328,11 +328,11 @@ func (c *MarketController) GetAllAuctions(ctx *gin.Context) {
 	if err != nil {
 		switch err {
 		case models.ErrInternalServerError:
-			ctx.JSON(http.StatusInternalServerError, gin.H{"Error": err})
+			ctx.JSON(http.StatusInternalServerError, gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
 		case models.ErrAuctionNotFound:
-			ctx.JSON(http.StatusNotFound, gin.H{"Error": err})
+			ctx.JSON(http.StatusNotFound, gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
 		}
@@ -372,11 +372,11 @@ func (c *MarketController) GetUserAuctions(ctx *gin.Context) {
 	if err != nil {
 		switch err {
 		case models.ErrAuctionNotFound:
-			ctx.JSON(http.StatusNotFound, gin.H{"Error": err})
+			ctx.JSON(http.StatusNotFound, gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
 		case models.ErrInternalServerError:
-			ctx.JSON(http.StatusInternalServerError, gin.H{"Error": err})
+			ctx.JSON(http.StatusInternalServerError, gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
 		}
@@ -398,11 +398,11 @@ func (c *MarketController) FindAuctionByID(ctx *gin.Context) {
 	if err != nil {
 		switch err {
 		case models.ErrAuctionNotFound:
-			ctx.JSON(http.StatusNotFound, gin.H{"Error": err})
+			ctx.JSON(http.StatusNotFound, gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
 		case models.ErrInternalServerError:
-			ctx.JSON(http.StatusInternalServerError, gin.H{"Error": err})
+			ctx.JSON(http.StatusInternalServerError, gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
 		}
@@ -423,11 +423,11 @@ func (c *MarketController) GetUserTransactionHistory(ctx *gin.Context) {
 	if err != nil {
 		switch err {
 		case models.ErrInternalServerError:
-			ctx.JSON(http.StatusInternalServerError, gin.H{"Error": err})
+			ctx.JSON(http.StatusInternalServerError, gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
 		case models.ErrTransactionNotFound:
-			ctx.JSON(http.StatusNotFound, gin.H{"Error": err})
+			ctx.JSON(http.StatusNotFound, gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
 		}
@@ -447,11 +447,11 @@ func (c *MarketController) DeleteUserTransactionHistory(ctx *gin.Context) {
 	if err := c.srv.DeleteUserTransactionHistory(data.UserID); err != nil {
 		switch err {
 		case models.ErrInternalServerError:
-			ctx.JSON(http.StatusInternalServerError, gin.H{"Error": err})
+			ctx.JSON(http.StatusInternalServerError, gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
 		case models.ErrTransactionNotFound:
-			ctx.JSON(http.StatusNotFound, gin.H{"Error": err})
+			ctx.JSON(http.StatusNotFound, gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
 		}

@@ -31,11 +31,11 @@ func (c *AuthController) Register(ctx *gin.Context) {
 	if err := c.srv.Register(registerData.Email, registerData.Username, registerData.Password); err != nil {
 		switch err {
 		case models.ErrInternalServerError:
-			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
 		case models.ErrUsernameOrEmailAlreadyExists, models.ErrInvalidUsernameOrPassOrEmail:
-			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
 
@@ -58,15 +58,15 @@ func (c *AuthController) Login(ctx *gin.Context) {
 	if err != nil {
 		switch err {
 		case models.ErrInternalServerError:
-			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
 		case models.ErrInvalidPassword:
-			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
 		case models.ErrUserNotFound:
-			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
 		}
@@ -147,11 +147,11 @@ func (c *AuthController) AdminLogin(ctx *gin.Context) {
 	if err != nil {
 		switch err {
 		case models.ErrInternalServerError:
-			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
 		case models.ErrInvalidAdminIDOrPassOrOTOP:
-			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err})
+			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
 		}
