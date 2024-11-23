@@ -13,7 +13,7 @@ tls:
         - certFile: /certs/client_internal_cert.pem
           keyFile: /certs/client_internal_key.pem
           stores:
-              - defaault
+              - default
 http:
     serversTransports:
         insecureTransport:
@@ -35,7 +35,10 @@ http:
                     key: /certs/client_internal_key.pem
         service-health-check:
             circuitBreaker:
-                expression: "ResponseCodeRatio(500, 600, 0, 600) > 0.25 || NetworkErrorRatio() > 0.20"
+                expression: "ResponseCodeRatio(500, 600, 0, 600) > 0.25 || NetworkErrorRatio() > 0.33"
+                CheckPeriod: 100ms
+                FallbackDuration: 5s
+                RecoveryDuration: 10s
 
         # root-redirect:
         #     redirectRegex:
