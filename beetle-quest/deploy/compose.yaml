@@ -37,10 +37,6 @@ x-common-services-environments: &common-services-environments
     LOG_LEVEL: debug
     GIN_MODE: release
 
-# In release set them to:
-# CGO_ENABLED: 0
-# LD_FLAGS: "-s -w"
-# BUILD_FLAGS: "-a"
 x-services-go-build-flags: &services-go-build-flags
     CGO_ENABLED: 0
     LD_FLAGS: "-s -w"
@@ -255,8 +251,6 @@ services:
                     memory: 50M
         environment:
             <<: [*common-services-environments]
-        # env_file:
-        #     - ./secrets/jwt.env
 
     # DB SERVICES SECTION ===============================================================================================================================================================================
     market-timed-events-redis:

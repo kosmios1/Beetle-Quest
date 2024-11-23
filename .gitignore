@@ -1,12 +1,16 @@
 *
 
 !.gitignore
+!.github/
+!.github/workflows/
+!.github/workflows/*.yml
 
 !README.md
 !openAPI.yaml
 
 !doc/
 !doc/*.typ
+!doc/*.pdf
 !doc/beetle-quest-microfreshner-architecture-v2.png
 !doc/beetle-quest-architecture-microfreshener-v2.yml
 !doc/lib/

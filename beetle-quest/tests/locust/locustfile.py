@@ -193,6 +193,9 @@ class MarketMSRequests(AuthenticatedUser):
             "gacha_id": randgachaid,
             "end_time": datetime.fromtimestamp(time.time() + 3600).strftime("%Y-%m-%dT%H:%M"),
         }, allow_redirects=False)
+        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
+            response.raise_for_status()
+            return
 
     @task
     def get_auction_list(self):
@@ -207,13 +210,16 @@ class MarketMSRequests(AuthenticatedUser):
             return
         randauctionid = random.choice(auction_ids)
         response = self.client.get(f"{base_path}/market/auction/{randauctionid}", allow_redirects=False)
+        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
+            response.raise_for_status()
+            return
 
     @task
     def bid_to_auction(self):
         if len(auction_ids) == 0:
             return
         randauctionid = random.choice(auction_ids)
-        response = self.client.post(f"{base_path}/market/auction/{randauctionid}/bid", data={
+        response = self.client.post(f"{base_path}/market/auction/{randauctionid}/bid", json={
             "bid_amount": f"{random.randint(0, 10000000)}",
         }, allow_redirects=False)
 
@@ -421,7 +427,6 @@ class AdminMSRequests(AuthenticatedAdmin):
     def delete_gacha(self):
         if len(gacha_ids) == 0:
             return
-        randstr = generate_random_string()
         randgachaid = random.choice(gacha_ids)
         response = self.client.delete(f"{base_path}/admin/gacha/{randgachaid}", allow_redirects=False)
         if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
@@ -449,7 +454,7 @@ class AdminMSRequests(AuthenticatedAdmin):
         if len(auction_ids) == 0:
             return
         randauctionid = random.choice(auction_ids)
-        randstr = generate_random_string()
+        # _ = generate_random_string()
         response = self.client.patch(f"{base_path}/admin/market/auction/{randauctionid}", allow_redirects=False)
         if response.status_code != HTTPStatus.NOT_IMPLEMENTED: # TODO: Change to OK
             response.raise_for_status()

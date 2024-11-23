@@ -1,0 +1,36 @@
+name: ci
+
+on:
+    push:
+        branches:
+            - "master"
+            - "dev"
+            - "release-v1.0a"
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Start beetle-quest services
+              uses: hoverkraft-tech/compose-action@v2.0.1
+              with:
+                  compose-file: "./beetle-quest/deploy/compose.yaml"
+                  up-flags: "--build"
+                  down-flags: "--volumes"
+
+            - name: Sleep for 15 seconds
+              run: |
+                  echo "Waiting for containers to become healthy..."
+                  sleep 15
+
+            - name: Execute postman's tests
+              run: |
+                  docker run --rm --net beetle-quest_internal -v ${{ github.workspace }}/beetle-quest/tests/postman/collection.json:/collection.json postman/newman run /collection.json --insecure --ignore-redirects --color on
+
+            - name: Execute locust's tests
+              run: |
+                  docker build -t beetle-quest-locust:latest ./${{ github.workspace }}/beetle-quest/tests/locust/
+                  docker run --rm --network=beetle-quest_external -p 127.0.0.1:8089:8089 beetle-quest-locust:latest

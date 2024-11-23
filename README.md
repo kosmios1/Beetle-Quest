@@ -28,10 +28,10 @@ The application uses environment variables to configure itself. Their values can
 ```bash
 deploy/
 ├──secrets/
-│  ├── jwt.env
-│  ├── oauth2.env
-│  ├── postgress.env
-│  └── redis.env
+│  ├── jwt.env
+│  ├── oauth2.env
+│  ├── postgress.env
+│  └── redis.env
 ...
 └──compose.yml
 ```
@@ -51,6 +51,27 @@ If you want to run the application in the background, you can use the `-d` flag:
 docker compose up -d
 ```
 
+> [!NOTE]
+> The service gui is available at `https://localhost/static`.
+
+> [!WARNING]
+> The admin interface is not available, but it can be accessed with tools like `curl`. The admin's
+> login requires `otp`, the seed can be retrieved from the qrcode inside `assets/admin_otp_qrcode.png`.
+> Admins CANNOT be created, the credentials for the development one are:
+>
+> -   AdminID: `09087f45-5209-4efa-85bd-761562a6df53`
+> -   Password: `admin`
+> -   OTP: retrieved from the qrcode
+
+An example request to login as an admin:
+
+```bash
+curl -v -k -X POST \
+  -H "Content-Type: application/json" \
+  -d '{"admin_id": "09087f45-5209-4efa-85bd-761562a6df53", "password": "admin", "otp_code": "<OTP_CODE>"}' \
+  https://localhost/api/v1/auth/admin/login
+```
+
 ### Stopping the application
 
 To stop the application, run the following command:
@@ -62,9 +83,13 @@ docker compose down
 
 ## Tests
 
+> [!IMPORTANT]
+> The tests needs to be executed in a clean environment. If the system has been used before we recommend using a
+> a `docker compose down -v` to remove all volumes and start from scratch.
+
 ### Postman
 
-You fill find the Postman collection file`beetle-quest-collection.json` inside `beetle-quest/tests/postman/`, you can execute them with Postam Newman:
+You fill find the Postman collection file`collection.json` inside `beetle-quest/tests/postman/`, you can execute them with Postam Newman:
 
 ```sh
 docker run --rm --net beetle-quest_internal -v <path/to/this/repo>/beetle-quest/tests/postman/collection.json:/collection.json postman/newman run /collection.json --insecure --ignore-redirects --color on
@@ -75,8 +100,9 @@ docker run --rm --net beetle-quest_internal -v <path/to/this/repo>/beetle-quest/
 Locust's tests can be found inside `beetle-quest/tests/locust/` folder, to start locust, and run the tests, these commands have to be executed:
 
 ```sh
+cd beetle-quest/tests/locust/
 docker build -t beetle-quest-locust:latest .
-docker run --rm --network=beetle-quest_external -p 8089:8089 beetle-quest-locust:latest
+docker run --rm --network=beetle-quest_external -p 127.0.0.1:8089:8089 beetle-quest-locust:latest
 ```
 
 ## Project structure
@@ -86,18 +112,18 @@ The project is structured as follows:
 ```bash
 .
 ├── assets/
-│   ├── drawio
-│   ├── gimp
-│   └── images
+│   ├── drawio
+│   ├── gimp
+│   └── images
 ├── beetle-quest/
-│   ├── api/
-│   ├── cmd/
-│   ├── deploy/
-│   ├── go.mod
-│   ├── go.sum
-│   ├── internal/
-│   ├── pkg/
-│   └── templates/
+│   ├── api/
+│   ├── cmd/
+│   ├── deploy/
+│   ├── go.mod
+│   ├── go.sum
+│   ├── internal/
+│   ├── pkg/
+│   └── templates/
 ├── doc/
 └── README.md
 ```
