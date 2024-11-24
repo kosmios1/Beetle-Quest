@@ -821,7 +821,7 @@ paths:
                     description: Status not found.
                 500:
                     description: Internal server error.
-        patch: # TODO
+        patch:
             summary: Update auction details
             tags: [Admin]
             security:

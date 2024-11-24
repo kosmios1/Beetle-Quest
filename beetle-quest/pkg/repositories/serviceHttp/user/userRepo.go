@@ -80,7 +80,9 @@ func (r *UserRepo) GetAll() ([]models.User, error) {
 
 		return data.UserList, nil
 	}
-	panic("unreachable code")
+
+	log.Panicf("Unreachable code, status code received: %d", resp.StatusCode)
+	return nil, models.ErrInternalServerError
 }
 
 func (r *UserRepo) Create(email, username string, hashedPassword []byte, currency int64) error {
@@ -127,7 +129,8 @@ func (r *UserRepo) Create(email, username string, hashedPassword []byte, currenc
 		return nil
 	}
 
-	panic("unreachable code")
+	log.Panicf("Unreachable code, status code received: %d", resp.StatusCode)
+	return models.ErrInternalServerError
 }
 
 func (r *UserRepo) Update(user *models.User) error {
@@ -169,7 +172,8 @@ func (r *UserRepo) Update(user *models.User) error {
 		return nil
 	}
 
-	panic("unreachable code")
+	log.Panicf("Unreachable code, status code received: %d", resp.StatusCode)
+	return models.ErrInternalServerError
 }
 
 func (r *UserRepo) FindByID(id models.UUID) (*models.User, error) {
@@ -218,7 +222,8 @@ func (r *UserRepo) FindByID(id models.UUID) (*models.User, error) {
 		return &user, nil
 	}
 
-	panic("unreachable code")
+	log.Panicf("Unreachable code, status code received: %d", resp.StatusCode)
+	return nil, models.ErrInternalServerError
 }
 
 func (r *UserRepo) FindByUsername(username string) (*models.User, error) {
@@ -266,7 +271,8 @@ func (r *UserRepo) FindByUsername(username string) (*models.User, error) {
 		}
 		return &user, nil
 	}
-	panic("unreachable code")
+	log.Panicf("Unreachable code, status code received: %d", resp.StatusCode)
+	return nil, models.ErrInternalServerError
 }
 
 func (r *UserRepo) FindByEmail(email string) (*models.User, error) {

@@ -3,6 +3,7 @@ package controller
 import (
 	"beetle-quest/internal/gacha/service"
 	"beetle-quest/pkg/models"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -21,14 +22,17 @@ func NewGachaController(s *service.GachaService) *GachaController {
 func (c *GachaController) List(ctx *gin.Context) {
 	gachas, err := c.srv.GetAll()
 	if err != nil {
-		// TODO: use switch
-		if err == models.ErrInternalServerError {
+		switch err {
+		case models.ErrInternalServerError:
 			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
+		case models.ErrGachaNotFound:
+			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err.Error()})
+			ctx.Abort()
+			return
 		}
-		ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err.Error()})
-		return
+		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 
 	gachaList := []models.GetGachaDetailsResponse{}
@@ -55,14 +59,16 @@ func (c *GachaController) GetGachaDetails(ctx *gin.Context) {
 
 	gacha, err := c.srv.FindByID(id)
 	if err != nil {
-		// TODO: use switch
-		if err == models.ErrInternalServerError {
+		switch err {
+		case models.ErrInternalServerError:
 			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
+		case models.ErrGachaNotFound:
+			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err.Error()})
+			return
 		}
-		ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err.Error()})
-		return
+		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 
 	ctx.JSON(http.StatusOK, models.GetGachaDetailsResponse{
@@ -84,17 +90,17 @@ func (cnt *GachaController) GetUserGachaList(ctx *gin.Context) {
 
 	gacha, err := cnt.srv.GetUserGachasStr(userId)
 	if err != nil {
-		// TODO: use switch
-		if err == models.ErrInternalServerError {
+		switch err {
+		case models.ErrInternalServerError:
 			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
-		} else if err == models.ErrInvalidData {
-			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
-		} else {
+		case models.ErrUserNotFound:
 			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err.Error()})
+			ctx.Abort()
+			return
 		}
-		return
+		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 
 	ctx.JSON(http.StatusOK, gacha)
@@ -117,17 +123,17 @@ func (cnt *GachaController) GetUserGachaDetails(ctx *gin.Context) {
 
 	gacha, err := cnt.srv.GetUserGachaDetails(userId, gachaId)
 	if err != nil {
-		// TODO: use switch
-		if err == models.ErrInternalServerError {
+		switch err {
+		case models.ErrInternalServerError:
 			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
-		} else if err == models.ErrInvalidData {
-			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
-		} else {
+		case models.ErrGachaNotFound, models.ErrUserNotFound:
 			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err.Error()})
+			ctx.Abort()
+			return
 		}
-		return
+		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 
 	ctx.JSON(http.StatusOK, gacha)
@@ -143,15 +149,15 @@ func (c *GachaController) CreateGacha(ctx *gin.Context) {
 	}
 
 	if err := c.srv.CreateGacha(&data); err != nil {
-		// TODO: use switch
-		if err == models.ErrInternalServerError {
+		switch err {
+		case models.ErrInternalServerError:
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Error": err.Error()})
 			return
-		} else if err == models.ErrGachaAlreadyExists {
+		case models.ErrGachaAlreadyExists:
 			ctx.AbortWithStatusJSON(http.StatusConflict, gin.H{"Error": err.Error()})
 			return
 		}
-		panic("Unreachable code")
+		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 
 	ctx.Status(http.StatusOK)
@@ -165,17 +171,18 @@ func (c *GachaController) UpdateGacha(ctx *gin.Context) {
 	}
 
 	if err := c.srv.UpdateGacha(&data); err != nil {
-		// TODO: use switch
-		if err == models.ErrInternalServerError {
+		switch err {
+		case models.ErrInternalServerError:
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Error": err.Error()})
-		} else if err == models.ErrGachaNotFound {
+			return
+		case models.ErrGachaNotFound:
 			ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"Error": err.Error()})
 			return
-		} else if err == models.ErrGachaAlreadyExists {
+		case models.ErrGachaAlreadyExists:
 			ctx.AbortWithStatusJSON(http.StatusConflict, gin.H{"Error": err.Error()})
 			return
 		}
-		panic("Unreachable code")
+		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 
 	ctx.Status(http.StatusOK)
@@ -189,15 +196,15 @@ func (c *GachaController) DeleteGacha(ctx *gin.Context) {
 	}
 
 	if err := c.srv.DeleteGacha(&data); err != nil {
-		// TODO: use switch
-		if err == models.ErrInternalServerError {
+		switch err {
+		case models.ErrInternalServerError:
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Error": err.Error()})
 			return
-		} else if err == models.ErrGachaNotFound {
+		case models.ErrGachaNotFound:
 			ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"Error": err.Error()})
 			return
 		}
-		panic("Unreachable code")
+		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 
 	ctx.Status(http.StatusOK)
@@ -206,15 +213,15 @@ func (c *GachaController) DeleteGacha(ctx *gin.Context) {
 func (c *GachaController) GetAll(ctx *gin.Context) {
 	gachas, err := c.srv.GetAll()
 	if err != nil {
-		// TODO: use switch
-		if err == models.ErrInternalServerError {
+		switch err {
+		case models.ErrInternalServerError:
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Error": err.Error()})
 			return
-		} else if err == models.ErrGachaNotFound {
+		case models.ErrGachaNotFound:
 			ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"Error": err.Error()})
 			return
 		}
-		panic("Unreachable code")
+		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 
 	ctx.JSON(http.StatusOK, models.GetAllGachasDataResponse{GachaList: gachas})
@@ -229,15 +236,15 @@ func (c *GachaController) GetUserGachas(ctx *gin.Context) {
 
 	gachas, err := c.srv.GetUserGachas(data.UserID)
 	if err != nil {
-		// TODO: use switch
-		if err == models.ErrInternalServerError {
+		switch err {
+		case models.ErrInternalServerError:
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Error": err.Error()})
 			return
-		} else if err == models.ErrUserNotFound {
+		case models.ErrUserNotFound:
 			ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"Error": err.Error()})
 			return
 		}
-		panic("Unreachable code")
+		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 
 	ctx.JSON(http.StatusOK, models.GetUserGachasDataResponse{GachaList: gachas})
@@ -251,15 +258,15 @@ func (c *GachaController) AddGachaToUser(ctx *gin.Context) {
 	}
 
 	if err := c.srv.AddGachaToUser(data.UserID, data.GachaID); err != nil {
-		// TODO: use switch
-		if err == models.ErrInternalServerError {
+		switch err {
+		case models.ErrInternalServerError:
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Error": err.Error()})
 			return
-		} else if err == models.ErrUserAlreadyHasGacha {
+		case models.ErrUserAlreadyHasGacha:
 			ctx.AbortWithStatusJSON(http.StatusConflict, gin.H{"Error": err.Error()})
 			return
 		}
-		panic("Unreachable code")
+		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 
 	ctx.Status(http.StatusOK)
@@ -273,15 +280,15 @@ func (c *GachaController) RemoveGachaFromUser(ctx *gin.Context) {
 	}
 
 	if err := c.srv.RemoveGachaFromUser(data.UserID, data.GachaID); err != nil {
-		// TODO: use switch
-		if err == models.ErrInternalServerError {
+		switch err {
+		case models.ErrInternalServerError:
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Error": err.Error()})
 			return
-		} else if err == models.ErrRetalationGachaUserNotFound {
+		case models.ErrRetalationGachaUserNotFound:
 			ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"Error": err.Error()})
 			return
 		}
-		panic("Unreachable code")
+		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 
 	ctx.Status(http.StatusOK)
@@ -297,15 +304,15 @@ func (c *GachaController) FindByID(ctx *gin.Context) {
 
 	gacha, err := c.srv.FindByID(req.GachaID)
 	if err != nil {
-		// TODO: use switch
-		if err == models.ErrInternalServerError {
+		switch err {
+		case models.ErrInternalServerError:
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Error": err.Error()})
 			return
-		} else if err == models.ErrGachaNotFound {
+		case models.ErrGachaNotFound:
 			ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"Error": err.Error()})
 			return
 		}
-		panic("Unreachable code")
+		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 
 	ctx.JSON(http.StatusOK, gacha)
@@ -320,15 +327,15 @@ func (c *GachaController) RemoveUserGachas(ctx *gin.Context) {
 	}
 
 	if err := c.srv.RemoveUserGachas(req.UserID); err != nil {
-		// TODO: use switch
-		if err == models.ErrInternalServerError {
+		switch err {
+		case models.ErrInternalServerError:
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Error": err.Error()})
 			return
-		} else if err == models.ErrRetalationGachaUserNotFound {
+		case models.ErrRetalationGachaUserNotFound:
 			ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"Error": err.Error()})
 			return
 		}
-		panic("Unreachable code")
+		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 
 	ctx.Status(http.StatusOK)

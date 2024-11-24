@@ -3,6 +3,7 @@ package controller
 import (
 	service "beetle-quest/internal/market/service"
 	"beetle-quest/pkg/models"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -57,7 +58,7 @@ func (c *MarketController) BuyBugscoin(ctx *gin.Context) {
 			ctx.Abort()
 			return
 		}
-		panic("unreachable code")
+		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 	ctx.HTML(http.StatusOK, "successMsg.tmpl", gin.H{"Message": "Bugscoin added successfully"})
 }
@@ -86,7 +87,7 @@ func (c *MarketController) RollGacha(ctx *gin.Context) {
 			ctx.Abort()
 			return
 		}
-		panic("unreachable code")
+		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 
 	ctx.HTML(http.StatusOK, "successMsg.tmpl", gin.H{"Message": msg})
@@ -122,7 +123,7 @@ func (c *MarketController) BuyGacha(ctx *gin.Context) {
 			ctx.Abort()
 			return
 		}
-		panic("unreachable code")
+		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 
 	ctx.HTML(http.StatusOK, "successMsg.tmpl", gin.H{"Message": "Gacha bought successfully"})
@@ -170,7 +171,7 @@ func (c *MarketController) CreateAuction(ctx *gin.Context) {
 			ctx.Abort()
 			return
 		}
-		panic("unreachable code")
+		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 
 	ctx.HTML(http.StatusOK, "successMsg.tmpl", gin.H{"Message": "Auction created successfully"})
@@ -189,7 +190,7 @@ func (c *MarketController) AuctionList(ctx *gin.Context) {
 			ctx.Abort()
 			return
 		}
-		panic("unreachable code")
+		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 
 	ctx.HTML(http.StatusOK, "market.tmpl", gin.H{"Auctions": auctions})
@@ -215,7 +216,7 @@ func (c *MarketController) AuctionDetail(ctx *gin.Context) {
 			ctx.Abort()
 			return
 		}
-		panic("unreachable code")
+		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 
 	data := struct {
@@ -264,7 +265,7 @@ func (c *MarketController) AuctionDelete(ctx *gin.Context) {
 			ctx.Abort()
 			return
 		}
-		panic("unreachable code")
+		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 
 	ctx.HTML(http.StatusOK, "successMsg.tmpl", gin.H{"Message": "Auction deleted successfully"})
@@ -315,7 +316,7 @@ func (c *MarketController) BidToAuction(ctx *gin.Context) {
 			ctx.Abort()
 			return
 		}
-		panic("unreachable code")
+		log.Panicf("Unreachable code, err, err: %s", err.Error())
 	}
 
 	ctx.HTML(http.StatusOK, "successMsg.tmpl", gin.H{"Message": "Bid successfully"})
@@ -336,7 +337,7 @@ func (c *MarketController) GetAllAuctions(ctx *gin.Context) {
 			ctx.Abort()
 			return
 		}
-		panic("unreachable code")
+		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 	ctx.JSON(http.StatusOK, models.GetAllAuctionDataResponse{AuctionList: auctions})
 }
@@ -354,7 +355,7 @@ func (c *MarketController) GetTransactionHistory(ctx *gin.Context) {
 			ctx.Abort()
 			return
 		}
-		panic("unreachable code")
+		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 
 	ctx.JSON(http.StatusOK, models.GetAllTransactionDataResponse{TransactionHistory: transactions})
@@ -380,7 +381,7 @@ func (c *MarketController) GetUserAuctions(ctx *gin.Context) {
 			ctx.Abort()
 			return
 		}
-		panic("unreachable code")
+		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 
 	ctx.JSON(http.StatusOK, models.GetUserAuctionsDataResponse{AuctionList: auctions})
@@ -406,7 +407,7 @@ func (c *MarketController) FindAuctionByID(ctx *gin.Context) {
 			ctx.Abort()
 			return
 		}
-		panic("unreachable code")
+		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 	ctx.JSON(http.StatusOK, models.FindAuctionByIDDataResponse{Auction: auction})
 }
@@ -431,7 +432,7 @@ func (c *MarketController) GetUserTransactionHistory(ctx *gin.Context) {
 			ctx.Abort()
 			return
 		}
-		panic("unreachable code")
+		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 	ctx.JSON(http.StatusOK, models.GetUserTransactionHistoryDataResponse{TransactionHistory: auctions})
 }
@@ -455,7 +456,7 @@ func (c *MarketController) DeleteUserTransactionHistory(ctx *gin.Context) {
 			ctx.Abort()
 			return
 		}
-		panic("unreachable code")
+		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"Message": "Transaction history deleted successfully"})

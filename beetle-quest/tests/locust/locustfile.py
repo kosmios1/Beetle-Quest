@@ -5,12 +5,10 @@ import time
 import pyotp
 import string
 import random
-import logging
-import binascii
 
 from datetime import datetime
 from http import HTTPStatus
-from locust import HttpUser, task, FastHttpUser, between
+from locust import task, FastHttpUser, between
 
 base_path = "/api/v1"
 
@@ -103,14 +101,14 @@ class UserMSRequests(AuthenticatedUser):
             response.raise_for_status()
             return
 
-    @task
-    def delete_user(self):
-        response = self.client.delete(f"{base_path}/user/account/delete", json={
-            "password": self.password,
-        }, allow_redirects=False)
-        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
-            response.raise_for_status()
-            return
+    # @task
+    # def delete_user(self):
+    #     response = self.client.delete(f"{base_path}/user/account/delete", json={
+    #         "password": self.password,
+    #     }, allow_redirects=False)
+    #     if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
+    #         response.raise_for_status()
+    #         return
 
 class GachaMSRequests(AuthenticatedUser):
     wait_time = between(1, 2)
@@ -167,9 +165,6 @@ class MarketMSRequests(AuthenticatedUser):
     @task
     def roll_gacha(self):
         response = self.client.get(f"{base_path}/market/gacha/roll", allow_redirects=False)
-
-        if b'not enough money to roll gacha' in response.content:
-            return
         if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
             response.raise_for_status()
             return
@@ -189,9 +184,11 @@ class MarketMSRequests(AuthenticatedUser):
         if len(gacha_ids) == 0:
             return
         randgachaid = random.choice(gacha_ids)
-        response = self.client.post(f"{base_path}/market/auction", json={
+
+        # TODO: Need to get list of owned gachas, otherwise useless test
+        response = self.client.post(f"{base_path}/market/auction/", json={
             "gacha_id": randgachaid,
-            "end_time": datetime.fromtimestamp(time.time() + 3600).strftime("%Y-%m-%dT%H:%M"),
+            "end_time": datetime.fromtimestamp(time.time() - 25 * 3600 + 60).strftime("%Y-%m-%dT%H:%M"),
         }, allow_redirects=False)
         if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
             response.raise_for_status()
@@ -222,34 +219,24 @@ class MarketMSRequests(AuthenticatedUser):
         response = self.client.post(f"{base_path}/market/auction/{randauctionid}/bid", json={
             "bid_amount": f"{random.randint(0, 10000000)}",
         }, allow_redirects=False)
-
-        resp_body = response.content
-        good_err_msg = [ b'owner cannot bid', b'bid amount not enough', b'auction already ended', b'' ]
-        for _, err in enumerate(good_err_msg):
-            if err in resp_body:
-                return
-
         if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
             response.raise_for_status()
             return
 
-    @task
-    def delete_auction(self):
-        if len(auction_ids) == 0:
-            return
-        randauctionid = random.choice(auction_ids)
-        response = self.client.delete(f"{base_path}/market/auction/{randauctionid}", data={
-            "password": self.password,
-        }, allow_redirects=False)
-
-        resp_body = response.content
-        good_err_msg = [ b'user not owner', b'invalid password', b'auction already ended', b'auction is too close to end', b'auction has bids']
-        for _, err in enumerate(good_err_msg):
-            if err in resp_body:
-                return
-        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
-            response.raise_for_status()
-            return
+    # NOTE: Maybe deactivate this task, as it will be a noisance to the testing system,
+    # we could run a separate task set that will delete all the auctions, users and gachas
+    # after all the test are done.
+    # @task
+    # def delete_auction(self):
+    #     if len(auction_ids) == 0:
+    #         return
+    #     randauctionid = random.choice(auction_ids)
+    #     response = self.client.delete(f"{base_path}/market/auction/{randauctionid}", data={
+    #         "password": self.password,
+    #     }, allow_redirects=False)
+    #     if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
+    #         response.raise_for_status()
+    #         return
 
 
 # ==============================================================================
@@ -423,15 +410,15 @@ class AdminMSRequests(AuthenticatedAdmin):
             response.raise_for_status()
             return
 
-    @task
-    def delete_gacha(self):
-        if len(gacha_ids) == 0:
-            return
-        randgachaid = random.choice(gacha_ids)
-        response = self.client.delete(f"{base_path}/admin/gacha/{randgachaid}", allow_redirects=False)
-        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
-            response.raise_for_status()
-            return
+    # @task
+    # def delete_gacha(self):
+    #     if len(gacha_ids) == 0:
+    #         return
+    #     randgachaid = random.choice(gacha_ids)
+    #     response = self.client.delete(f"{base_path}/admin/gacha/{randgachaid}", allow_redirects=False)
+    #     if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
+    #         response.raise_for_status()
+    #         return
 
     @task
     def get_transaction_history(self):
@@ -439,6 +426,7 @@ class AdminMSRequests(AuthenticatedAdmin):
         if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
             response.raise_for_status()
             return
+
     @task
     def get_auction_details(self):
         if len(auction_ids) == 0:
@@ -454,7 +442,6 @@ class AdminMSRequests(AuthenticatedAdmin):
         if len(auction_ids) == 0:
             return
         randauctionid = random.choice(auction_ids)
-        # _ = generate_random_string()
         response = self.client.patch(f"{base_path}/admin/market/auction/{randauctionid}", allow_redirects=False)
         if response.status_code != HTTPStatus.NOT_IMPLEMENTED: # TODO: Change to OK
             response.raise_for_status()

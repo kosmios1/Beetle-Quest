@@ -3,6 +3,7 @@ package controller
 import (
 	"beetle-quest/internal/user/service"
 	"beetle-quest/pkg/models"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -34,7 +35,7 @@ func (c *UserController) GetUserAccountDetails(ctx *gin.Context) {
 			ctx.Abort()
 			return
 		}
-		panic("unreachable code")
+		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 
 	var transactionViews []models.TransactionView
@@ -91,6 +92,7 @@ func (c *UserController) UpdateUserAccountDetails(ctx *gin.Context) {
 			ctx.Abort()
 			return
 		}
+		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 
 	ctx.HTML(http.StatusOK, "successMsg.tmpl", gin.H{
@@ -124,8 +126,12 @@ func (c *UserController) DeleteUserAccount(ctx *gin.Context) {
 			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
+		case models.ErrInvalidPassword:
+			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
+			ctx.Abort()
+			return
 		}
-		panic("unreachable code")
+		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 
 	ctx.Redirect(http.StatusSeeOther, "/api/v1/auth/logout")
@@ -146,7 +152,7 @@ func (c *UserController) GetAllUsers(ctx *gin.Context) {
 			ctx.Abort()
 			return
 		}
-		panic("unreachable code")
+		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 
 	var data models.GetAllUsersDataResponse = models.GetAllUsersDataResponse{
@@ -174,7 +180,7 @@ func (c *UserController) CreateUser(ctx *gin.Context) {
 			ctx.Abort()
 			return
 		}
-		panic("unreachable code")
+		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"Message": "User created successfully"})
@@ -203,7 +209,7 @@ func (c *UserController) UpdateUser(ctx *gin.Context) {
 			ctx.Abort()
 			return
 		}
-		panic("unreachable code")
+		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"Message": "User updated successfully"})
@@ -229,7 +235,7 @@ func (c *UserController) FindByID(ctx *gin.Context) {
 			ctx.Abort()
 			return
 		}
-		panic("unreachable code")
+		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 
 	ctx.JSON(http.StatusOK, user)
@@ -255,7 +261,7 @@ func (c *UserController) FindByUsername(ctx *gin.Context) {
 			ctx.Abort()
 			return
 		}
-		panic("unreachable code")
+		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 
 	ctx.JSON(http.StatusOK, user)

@@ -3,6 +3,7 @@ package controller
 import (
 	"beetle-quest/internal/admin/service"
 	"beetle-quest/pkg/models"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -23,20 +24,26 @@ func NewAdminController(srv *service.AdminService) *AdminController {
 func (c *AdminController) GetAllUsers(ctx *gin.Context) {
 	users, err := c.srv.GetAllUsers()
 	if err != nil {
-		// TODO: Use switch statement
-		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"error": "Internal server error!"})
-		ctx.Abort()
-		return
+		switch err {
+		case models.ErrInternalServerError:
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err.Error()})
+			ctx.Abort()
+			return
+		case models.ErrUserNotFound:
+			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err.Error()})
+			ctx.Abort()
+			return
+		}
+		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 
-	// ctx.HTML(http.StatusOK, "userList.tmpl", gin.H{"UserList": users})
 	ctx.JSON(http.StatusOK, gin.H{"UserList": users})
 }
 
 func (c *AdminController) GetUserProfile(ctx *gin.Context) {
 	userId := ctx.Param("user_id")
 	if userId == "" {
-		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": models.ErrInvalidData})
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": models.ErrInvalidData.Error()})
 		ctx.Abort()
 		return
 	}
@@ -53,7 +60,7 @@ func (c *AdminController) GetUserProfile(ctx *gin.Context) {
 			ctx.Abort()
 			return
 		}
-		panic("unreachable code")
+		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 	ctx.JSON(http.StatusOK, user)
 }
@@ -61,14 +68,14 @@ func (c *AdminController) GetUserProfile(ctx *gin.Context) {
 func (c *AdminController) UpdateUserProfile(ctx *gin.Context) {
 	userId := ctx.Param("user_id")
 	if userId == "" {
-		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": models.ErrInvalidData})
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": models.ErrInvalidData.Error()})
 		ctx.Abort()
 		return
 	}
 
 	var data models.AdminUpdateUserAccount
 	if err := ctx.ShouldBindJSON(&data); err != nil {
-		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": models.ErrInvalidData})
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": models.ErrInvalidData.Error()})
 		ctx.Abort()
 		return
 	}
@@ -92,7 +99,7 @@ func (c *AdminController) UpdateUserProfile(ctx *gin.Context) {
 			ctx.Abort()
 			return
 		}
-		panic("unreachable code")
+		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 
 	ctx.HTML(http.StatusOK, "successMsg.tmpl", gin.H{"Message": "User profile updated successfully!"})
@@ -101,7 +108,7 @@ func (c *AdminController) UpdateUserProfile(ctx *gin.Context) {
 func (c *AdminController) GetUserTransactionHistory(ctx *gin.Context) {
 	userId := ctx.Param("user_id")
 	if userId == "" {
-		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": models.ErrInvalidData})
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": models.ErrInvalidData.Error()})
 		ctx.Abort()
 		return
 	}
@@ -118,17 +125,16 @@ func (c *AdminController) GetUserTransactionHistory(ctx *gin.Context) {
 			ctx.Abort()
 			return
 		}
-		panic("code should not reach here")
+		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 
-	// ctx.HTML(http.StatusOK, "userTransactionHistory.tmpl", gin.H{"TransactionList": transactions})
 	ctx.JSON(http.StatusOK, gin.H{"TransactionList": transactions})
 }
 
 func (c *AdminController) GetUserAuctionList(ctx *gin.Context) {
 	userId := ctx.Param("user_id")
 	if userId == "" {
-		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": models.ErrInvalidData})
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": models.ErrInvalidData.Error()})
 		ctx.Abort()
 		return
 	}
@@ -145,9 +151,9 @@ func (c *AdminController) GetUserAuctionList(ctx *gin.Context) {
 			ctx.Abort()
 			return
 		}
+		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 
-	// ctx.HTML(http.StatusOK, "userMarketHistory.tmpl", gin.H{"MarketHistory": marketHistory})
 	ctx.JSON(http.StatusOK, gin.H{"AuctionList": auctionList})
 }
 
@@ -162,15 +168,21 @@ func (c *AdminController) AddGacha(ctx *gin.Context) {
 	}
 
 	if err := c.srv.AddGacha(&data); err != nil {
-		// TODO: Use switch statement
-		if err == models.ErrGachaAlreadyExists {
+		switch err {
+		case models.ErrGachaAlreadyExists:
 			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
-		} else {
+			return
+		case models.ErrInvalidRarityValue:
+			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
+			ctx.Abort()
+			return
+		case models.ErrInternalServerError:
 			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
+			return
 		}
-		return
+		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 	ctx.HTML(http.StatusOK, "successMsg.tmpl", gin.H{"Message": "Gacha added successfully!"})
 }
@@ -178,21 +190,24 @@ func (c *AdminController) AddGacha(ctx *gin.Context) {
 func (cnt *AdminController) DeleteGacha(ctx *gin.Context) {
 	gachaId := ctx.Param("gacha_id")
 	if gachaId == "" {
-		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "gacha_id is required"})
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": models.ErrInvalidData.Error()})
 		ctx.Abort()
 		return
 	}
 
 	if err := cnt.srv.DeleteGacha(gachaId); err != nil {
-		// TODO: Use switch statement
-		if err == models.ErrGachaNotFound {
+		switch err {
+		case models.ErrGachaNotFound:
 			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
-		} else {
+			return
+		case models.ErrInternalServerError:
 			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
+			return
 		}
-		return
+
+		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 
 	ctx.HTML(http.StatusOK, "successMsg.tmpl", gin.H{"Message": "Gacha deleted successfully!"})
@@ -201,7 +216,7 @@ func (cnt *AdminController) DeleteGacha(ctx *gin.Context) {
 func (cnt *AdminController) UpdateGacha(ctx *gin.Context) {
 	gachaId := ctx.Param("gacha_id")
 	if gachaId == "" {
-		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "gacha_id is required"})
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": models.ErrInvalidData.Error()})
 		ctx.Abort()
 		return
 	}
@@ -214,36 +229,42 @@ func (cnt *AdminController) UpdateGacha(ctx *gin.Context) {
 	}
 
 	if err := cnt.srv.UpdateGacha(gachaId, &data); err != nil {
-		// TODO: Use switch statement
-		if err == models.ErrGachaNotFound {
+		switch err {
+		case models.ErrGachaNotFound:
 			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
-		} else if err == models.ErrGachaAlreadyExists {
+			return
+		case models.ErrGachaAlreadyExists:
 			ctx.HTML(http.StatusConflict, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
-		} else {
+			return
+		case models.ErrInternalServerError:
 			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
+			return
 		}
-		return
+		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 
 	ctx.HTML(http.StatusOK, "successMsg.tmpl", gin.H{"Message": "Gacha updated successfully!"})
 }
 
 func (cnt *AdminController) GetAllGachas(ctx *gin.Context) {
-	if gachas, err := cnt.srv.GetAllGachas(); err != nil {
-		// TODO: Use switch statement
-		if err == models.ErrGachaNotFound {
+	gachas, err := cnt.srv.GetAllGachas()
+	if err != nil {
+		switch err {
+		case models.ErrGachaNotFound:
 			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": models.ErrGachaNotFound})
-		} else {
+			ctx.Abort()
+			return
+		case models.ErrInternalServerError:
 			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
+			return
 		}
-		return
-	} else {
-		ctx.JSON(http.StatusOK, gin.H{"GachaList": gachas})
+		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
+	ctx.JSON(http.StatusOK, gin.H{"GachaList": gachas})
 }
 
 func (cnt *AdminController) GetGachaDetails(ctx *gin.Context) {
@@ -254,19 +275,21 @@ func (cnt *AdminController) GetGachaDetails(ctx *gin.Context) {
 		return
 	}
 
-	if gacha, err := cnt.srv.FindGachaByID(gachaId); err != nil {
-		// TODO: Use switch statement
-		if err == models.ErrGachaNotFound {
+	gacha, err := cnt.srv.FindGachaByID(gachaId)
+	if err != nil {
+		switch err {
+		case models.ErrGachaNotFound:
 			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
-		} else {
+			return
+		case models.ErrInternalServerError:
 			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
+			return
 		}
-		return
-	} else {
-		ctx.JSON(http.StatusOK, gacha)
+		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
+	ctx.JSON(http.StatusOK, gacha)
 }
 
 // Market controllers ==============================================
@@ -284,13 +307,13 @@ func (cnt *AdminController) GetMarketHistory(ctx *gin.Context) {
 			ctx.Abort()
 			return
 		}
-		panic("unreachable code")
+		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 	ctx.JSON(http.StatusOK, gin.H{"MarketHistory": transactions})
 }
 
 func (cnt *AdminController) UpdateAuction(ctx *gin.Context) {
-	ctx.Status(http.StatusNotImplemented)
+	ctx.Status(http.StatusNotImplemented) // TODO: Implement this
 }
 
 func (cnt *AdminController) GetAllAuctions(ctx *gin.Context) {
@@ -306,7 +329,7 @@ func (cnt *AdminController) GetAllAuctions(ctx *gin.Context) {
 			ctx.Abort()
 			return
 		}
-		panic("unreachable code")
+		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"AuctionList": auctions})
@@ -332,7 +355,7 @@ func (cnt *AdminController) GetAuctionDetails(ctx *gin.Context) {
 			ctx.Abort()
 			return
 		}
-		panic("unreachable code")
+		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 
 	ctx.JSON(http.StatusOK, auction)
@@ -347,15 +370,15 @@ func (c *AdminController) FindByID(ctx *gin.Context) {
 	}
 	admin, err := c.srv.FindByID(data.AdminID)
 	if err != nil {
-		// TODO: Use switch statement
-		if err == models.ErrInternalServerError {
+		switch err {
+		case models.ErrInternalServerError:
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Error": err.Error()})
 			return
-		} else if err == models.ErrAdminNotFound {
+		case models.ErrAdminNotFound:
 			ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"Error": err.Error()})
 			return
 		}
-		panic("unreachable code")
+		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 	ctx.JSON(http.StatusOK, admin)
 }

@@ -76,17 +76,20 @@ func (r *GachaRepo) Create(g *models.Gacha) error {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode == http.StatusOK {
-		return nil
-	} else if resp.StatusCode == http.StatusBadRequest {
+	switch resp.StatusCode {
+	case http.StatusBadRequest:
 		return models.ErrInvalidData
-	} else if resp.StatusCode == http.StatusInternalServerError {
+	case http.StatusInternalServerError:
 		return models.ErrInternalServerError
-	} else if resp.StatusCode == http.StatusConflict {
+	case http.StatusConflict:
 		return models.ErrGachaAlreadyExists
 	}
 
-	panic("Unreachable code")
+	if resp.StatusCode == http.StatusOK {
+		return nil
+	}
+	log.Panicf("Unreachable code, status code received: %d", resp.StatusCode)
+	return models.ErrInternalServerError
 }
 
 func (r *GachaRepo) Update(g *models.Gacha) error {
@@ -113,19 +116,22 @@ func (r *GachaRepo) Update(g *models.Gacha) error {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode == http.StatusOK {
-		return nil
-	} else if resp.StatusCode == http.StatusNotFound {
+	switch resp.StatusCode {
+	case http.StatusNotFound:
 		return models.ErrGachaNotFound
-	} else if resp.StatusCode == http.StatusBadRequest {
+	case http.StatusBadRequest:
 		return models.ErrInvalidData
-	} else if resp.StatusCode == http.StatusInternalServerError {
+	case http.StatusInternalServerError:
 		return models.ErrInternalServerError
-	} else if resp.StatusCode == http.StatusConflict {
+	case http.StatusConflict:
 		return models.ErrGachaAlreadyExists
 	}
 
-	panic("Unreachable code")
+	if resp.StatusCode == http.StatusOK {
+		return nil
+	}
+	log.Panicf("Unreachable code, status code received: %d", resp.StatusCode)
+	return models.ErrInternalServerError
 }
 
 func (r *GachaRepo) Delete(g *models.Gacha) error {
@@ -152,17 +158,21 @@ func (r *GachaRepo) Delete(g *models.Gacha) error {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode == http.StatusOK {
-		return nil
-	} else if resp.StatusCode == http.StatusNotFound {
+	switch resp.StatusCode {
+	case http.StatusNotFound:
 		return models.ErrGachaNotFound
-	} else if resp.StatusCode == http.StatusInternalServerError {
+	case http.StatusInternalServerError:
 		return models.ErrInternalServerError
-	} else if resp.StatusCode == http.StatusBadRequest {
+	case http.StatusBadRequest:
 		return models.ErrInvalidData
 	}
 
-	panic("Unreachable code")
+	if resp.StatusCode == http.StatusOK {
+		return nil
+	}
+
+	log.Panicf("Unreachable code, status code received: %d", resp.StatusCode)
+	return models.ErrInternalServerError
 }
 
 func (r *GachaRepo) GetAll() ([]models.Gacha, error) {
@@ -180,9 +190,10 @@ func (r *GachaRepo) GetAll() ([]models.Gacha, error) {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode == http.StatusNotFound {
+	switch resp.StatusCode {
+	case http.StatusNotFound:
 		return nil, models.ErrGachaNotFound
-	} else if resp.StatusCode == http.StatusInternalServerError {
+	case http.StatusInternalServerError:
 		return nil, models.ErrInternalServerError
 	}
 
@@ -196,7 +207,8 @@ func (r *GachaRepo) GetAll() ([]models.Gacha, error) {
 		return result.GachaList, nil
 	}
 
-	panic("Unreachable code")
+	log.Panicf("Unreachable code, status code received: %d", resp.StatusCode)
+	return nil, models.ErrInternalServerError
 }
 
 func (r *GachaRepo) FindByID(gid models.UUID) (*models.Gacha, error) {
@@ -227,11 +239,12 @@ func (r *GachaRepo) FindByID(gid models.UUID) (*models.Gacha, error) {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode == http.StatusNotFound {
+	switch resp.StatusCode {
+	case http.StatusNotFound:
 		return nil, models.ErrGachaNotFound
-	} else if resp.StatusCode == http.StatusInternalServerError {
+	case http.StatusInternalServerError:
 		return nil, models.ErrInternalServerError
-	} else if resp.StatusCode == http.StatusBadRequest {
+	case http.StatusBadRequest:
 		return nil, models.ErrInvalidData
 	}
 
@@ -244,7 +257,8 @@ func (r *GachaRepo) FindByID(gid models.UUID) (*models.Gacha, error) {
 
 		return &gacha, nil
 	}
-	panic("Unreachable code")
+	log.Panicf("Unreachable code, status code received: %d", resp.StatusCode)
+	return nil, models.ErrInternalServerError
 }
 
 func (r *GachaRepo) AddGachaToUser(uid models.UUID, gid models.UUID) error {
@@ -275,18 +289,20 @@ func (r *GachaRepo) AddGachaToUser(uid models.UUID, gid models.UUID) error {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode == http.StatusConflict {
+	switch resp.StatusCode {
+	case http.StatusConflict:
 		return models.ErrUserAlreadyHasGacha
-	} else if resp.StatusCode == http.StatusInternalServerError {
+	case http.StatusInternalServerError:
 		return models.ErrInternalServerError
-	} else if resp.StatusCode == http.StatusBadRequest {
+	case http.StatusBadRequest:
 		return models.ErrInvalidData
 	}
 
 	if resp.StatusCode == http.StatusOK {
 		return nil
 	}
-	panic("Unreachable code")
+	log.Panicf("Unreachable code, status code received: %d", resp.StatusCode)
+	return models.ErrInternalServerError
 }
 
 func (r *GachaRepo) RemoveGachaFromUser(uid models.UUID, gid models.UUID) error {
@@ -317,16 +333,20 @@ func (r *GachaRepo) RemoveGachaFromUser(uid models.UUID, gid models.UUID) error 
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode == http.StatusNotFound {
+	switch resp.StatusCode {
+	case http.StatusNotFound:
 		return models.ErrRetalationGachaUserNotFound
-	} else if resp.StatusCode == http.StatusInternalServerError {
+	case http.StatusInternalServerError:
 		return models.ErrInternalServerError
+	case http.StatusBadRequest:
+		return models.ErrInvalidData
 	}
 
 	if resp.StatusCode == http.StatusOK {
 		return nil
 	}
-	panic("Unreachable code")
+	log.Panicf("Unreachable code, status code received: %d", resp.StatusCode)
+	return models.ErrInternalServerError
 }
 
 func (r *GachaRepo) RemoveUserGachas(uid models.UUID) error {
@@ -356,18 +376,20 @@ func (r *GachaRepo) RemoveUserGachas(uid models.UUID) error {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode == http.StatusNotFound {
+	switch resp.StatusCode {
+	case http.StatusNotFound:
 		return models.ErrRetalationGachaUserNotFound
-	} else if resp.StatusCode == http.StatusInternalServerError {
+	case http.StatusInternalServerError:
 		return models.ErrInternalServerError
-	} else if resp.StatusCode == http.StatusBadRequest {
+	case http.StatusBadRequest:
 		return models.ErrInvalidData
 	}
 
 	if resp.StatusCode == http.StatusOK {
 		return nil
 	}
-	panic("Unreachable code")
+	log.Panicf("Unreachable code, status code received: %d", resp.StatusCode)
+	return models.ErrInternalServerError
 }
 
 func (r *GachaRepo) GetUserGachas(uid models.UUID) ([]models.Gacha, error) {
@@ -397,11 +419,12 @@ func (r *GachaRepo) GetUserGachas(uid models.UUID) ([]models.Gacha, error) {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode == http.StatusInternalServerError {
+	switch resp.StatusCode {
+	case http.StatusInternalServerError:
 		return nil, models.ErrInternalServerError
-	} else if resp.StatusCode == http.StatusBadRequest {
+	case http.StatusBadRequest:
 		return nil, models.ErrInvalidData
-	} else if resp.StatusCode == http.StatusNotFound {
+	case http.StatusNotFound:
 		return nil, models.ErrUserNotFound
 	}
 
@@ -415,5 +438,6 @@ func (r *GachaRepo) GetUserGachas(uid models.UUID) ([]models.Gacha, error) {
 		return result.GachaList, nil
 	}
 
-	panic("Unreachable code")
+	log.Panicf("Unreachable code, status code received: %d", resp.StatusCode)
+	return nil, models.ErrInternalServerError
 }

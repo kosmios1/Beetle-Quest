@@ -55,23 +55,23 @@ func readPEMFileWithoutDecoding(filename string) ([]byte, error) {
 func loadCACertAndPrvKey() (*x509.Certificate, *rsa.PrivateKey) {
 	caCertBytes, err := readPEMFile(caCertPath)
 	if err != nil {
-		log.Fatalf("Failed to read caCert.pem: %s", err)
+		log.Panicf("Failed to read caCert.pem: %s", err)
 		return nil, nil
 	}
 	caCert, err := x509.ParseCertificate(caCertBytes)
 	if err != nil {
-		log.Fatalf("Failed to parse caCert.pem: %s", err)
+		log.Panicf("Failed to parse caCert.pem: %s", err)
 		return nil, nil
 	}
 
 	caPrvKeyBytes, err := readPEMFile(caKeyPath)
 	if err != nil {
-		log.Fatalf("Failed to read caKey.pem: %s", err)
+		log.Panicf("Failed to read caKey.pem: %s", err)
 		return nil, nil
 	}
 	caPrvKey, err := x509.ParsePKCS8PrivateKey(caPrvKeyBytes)
 	if err != nil {
-		log.Fatalf("Failed to parse caKey.pem: %s", err)
+		log.Panicf("Failed to parse caKey.pem: %s", err)
 		return nil, nil
 	}
 	return caCert, caPrvKey.(*rsa.PrivateKey)
@@ -81,7 +81,7 @@ func GenOwnCertAndKey(serviceName string) {
 	caCert, caPrvKey := loadCACertAndPrvKey()
 	servicePrivKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
-		log.Fatalf("Failed to generate private key: %s", err)
+		log.Panicf("Failed to generate private key: %s", err)
 		return
 	}
 
@@ -109,7 +109,7 @@ func GenOwnCertAndKey(serviceName string) {
 
 	serviceCertBytes, err := x509.CreateCertificate(rand.Reader, serviceCertTemplate, caCert, &servicePrivKey.PublicKey, caPrvKey)
 	if err != nil {
-		log.Fatalf("Failed to create certificate: %s", err)
+		log.Panicf("Failed to create certificate: %s", err)
 		return
 	}
 
@@ -122,7 +122,7 @@ func GenOwnCertAndKey(serviceName string) {
 func getTlsConfig(isServerConfig bool) *tls.Config {
 	caCert, err := readPEMFileWithoutDecoding(caCertPath)
 	if err != nil {
-		log.Fatalf("Could not read CA certificate: %v", err)
+		log.Panicf("Could not read CA certificate: %v", err)
 	}
 
 	caCertPool := x509.NewCertPool()
@@ -133,7 +133,7 @@ func getTlsConfig(isServerConfig bool) *tls.Config {
 
 	ownCert, err := tls.LoadX509KeyPair(serverCertPath, serverKeyPath)
 	if err != nil {
-		log.Fatalf("Could not load server certificate: %v", err)
+		log.Panicf("Could not load server certificate: %v", err)
 	}
 
 	if isServerConfig {

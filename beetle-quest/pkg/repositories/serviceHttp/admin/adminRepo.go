@@ -69,9 +69,10 @@ func (r *AdminRepo) FindByID(id models.UUID) (*models.Admin, error) {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode == http.StatusInternalServerError {
+	switch resp.StatusCode {
+	case http.StatusInternalServerError:
 		return nil, models.ErrInternalServerError
-	} else if resp.StatusCode == http.StatusNotFound {
+	case http.StatusNotFound:
 		return nil, models.ErrAdminNotFound
 	}
 
@@ -85,5 +86,6 @@ func (r *AdminRepo) FindByID(id models.UUID) (*models.Admin, error) {
 		return &admin, nil
 	}
 
-	panic("unreachable code")
+	log.Panicf("Unreachable code, status code received: %d", resp.StatusCode)
+	return nil, models.ErrInternalServerError
 }

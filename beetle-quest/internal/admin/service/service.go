@@ -129,7 +129,7 @@ func (s *AdminService) GetUserAuctionList(userId string) ([]models.Auction, erro
 func (s *AdminService) AddGacha(data *models.AdminAddGachaRequest) error {
 	price, err := strconv.Atoi(data.Price)
 	if err != nil {
-		return models.ErrInvalidIntValueAsString
+		return models.ErrInternalServerError
 	}
 
 	rarity, err := models.RarityFromString(data.Rarity)

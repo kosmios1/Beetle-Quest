@@ -4,6 +4,7 @@ import (
 	"beetle-quest/internal/auth/service"
 	"beetle-quest/pkg/models"
 	"beetle-quest/pkg/utils"
+	"log"
 	"net/http"
 	"time"
 
@@ -40,7 +41,7 @@ func (c *AuthController) Register(ctx *gin.Context) {
 			return
 
 		}
-		panic("unreachable code")
+		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 
 	ctx.HTML(http.StatusCreated, "successMsg.tmpl", gin.H{"Message": "User registered successfully!"})
@@ -70,7 +71,7 @@ func (c *AuthController) Login(ctx *gin.Context) {
 			ctx.Abort()
 			return
 		}
-		panic("unreachable code")
+		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 
 	maxAge := token.Claims.(*utils.CustomClaims).ExpiresAt - time.Now().Unix()
@@ -86,7 +87,6 @@ func (c *AuthController) Logout(ctx *gin.Context) {
 	}
 
 	if ok := c.srv.RevokeToken(token); !ok {
-		// TODO: Use switch statement
 		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": models.ErrInternalServerError})
 		ctx.Abort()
 		return
@@ -155,7 +155,7 @@ func (c *AuthController) AdminLogin(ctx *gin.Context) {
 			ctx.Abort()
 			return
 		}
-		panic("unreachable code")
+		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 
 	maxAge := token.Claims.(*utils.CustomClaims).ExpiresAt - time.Now().Unix()

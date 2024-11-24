@@ -91,7 +91,8 @@ func (r *MarketRepo) GetUserTransactionHistory(userID models.UUID) ([]models.Tra
 		return result.TransactionHistory, nil
 	}
 
-	panic("unreachable code")
+	log.Panicf("Unreachable code, status code received: %d", resp.StatusCode)
+	return nil, models.ErrInternalServerError
 }
 
 func (r *MarketRepo) DeleteUserTransactionHistory(userID models.UUID) error {
@@ -133,7 +134,8 @@ func (r *MarketRepo) DeleteUserTransactionHistory(userID models.UUID) error {
 		return nil
 	}
 
-	panic("unreachable code")
+	log.Panicf("Unreachable code, status code received: %d", resp.StatusCode)
+	return models.ErrInternalServerError
 }
 
 func (r *MarketRepo) GetAll() ([]models.Auction, error) {
@@ -166,7 +168,8 @@ func (r *MarketRepo) GetAll() ([]models.Auction, error) {
 
 		return result.AuctionList, nil
 	}
-	panic("unreachable code")
+	log.Panicf("Unreachable code, status code received: %d", resp.StatusCode)
+	return nil, models.ErrInternalServerError
 }
 
 func (r *MarketRepo) GetAllTransactions() ([]models.Transaction, error) {
@@ -198,7 +201,8 @@ func (r *MarketRepo) GetAllTransactions() ([]models.Transaction, error) {
 		}
 		return result.TransactionHistory, nil
 	}
-	panic("unreachable code")
+	log.Panicf("Unreachable code, status code received: %d", resp.StatusCode)
+	return nil, models.ErrInternalServerError
 }
 
 func (r *MarketRepo) FindByID(aid models.UUID) (*models.Auction, error) {
@@ -247,7 +251,8 @@ func (r *MarketRepo) FindByID(aid models.UUID) (*models.Auction, error) {
 		return result.Auction, nil
 	}
 
-	panic("unreachable code")
+	log.Panicf("Unreachable code, status code received: %d", resp.StatusCode)
+	return nil, models.ErrInternalServerError
 }
 
 func (r *MarketRepo) GetUserAuctions(uid models.UUID) ([]models.Auction, error) {
@@ -294,7 +299,8 @@ func (r *MarketRepo) GetUserAuctions(uid models.UUID) ([]models.Auction, error) 
 		return result.AuctionList, nil
 	}
 
-	panic("unreachable code")
+	log.Panicf("Unreachable code, status code received: %d", resp.StatusCode)
+	return nil, models.ErrInternalServerError
 }
 
 // Not to be implemented, never used
