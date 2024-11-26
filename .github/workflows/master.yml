@@ -44,8 +44,9 @@ jobs:
               uses: golang/govulncheck-action@v1
               with:
                   repo-checkout: false
-                  work-dir: ${{ github.workspace }}/beetle-quest
-                  go-version-input: 1.23.2
+                  cache: false
+                  work-dir: ${{ github.workspace }}/beetle-quest/
+                  go-version-file: "go.mod"
                   go-package: ./...
 
             - name: Upload a Build Artifact

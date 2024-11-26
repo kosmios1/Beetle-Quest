@@ -1,22 +1,22 @@
 global:
-  checkNewVersion: false
-  sendAnonymousUsage: false
+    checkNewVersion: false
+    sendAnonymousUsage: false
 
 api:
-  disableDashboardAd: true
-  dashboard: true # TODO: do we want it?
-  insecure: true # FIXME: set to false
-  debug: true # FIXME: set to false
+    disableDashboardAd: true
+    dashboard: true # TODO: do we want it?
+    insecure: false # FIXME: set to false
+    debug: false # FIXME: set to false
 
-log:
-  level: "DEBUG" # FIXME: remove me
+# log:
+#     level: "DEBUG" # FIXME: remove me
 
 entryPoints:
-  websec:
-    address: :443
+    websec:
+        address: :443
 
 providers:
-  file:
-    filename: "/etc/traefik/rules.yml"
-    watch: true
-    debugLogGeneratedTemplate: true # FIXME: set to false
+    file:
+        filename: "/etc/traefik/rules.yml"
+        watch: true
+        debugLogGeneratedTemplate: true # FIXME: set to false
