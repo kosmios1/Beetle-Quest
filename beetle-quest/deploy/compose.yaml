@@ -42,6 +42,24 @@ x-services-go-build-flags: &services-go-build-flags
   LD_FLAGS: "-s -w"
   BUILD_FLAGS: "-a"
 
+secrets:
+  user-db_key:
+    file: ./user/postgres/certs/server.key
+  user-db_cert:
+    file: ./user/postgres/certs/server.crt
+  gacha-db_key:
+    file: ./gacha/postgres/certs/server.key
+  gacha-db_cert:
+    file: ./gacha/postgres/certs/server.crt
+  market-db_key:
+    file: ./market/postgres/certs/server.key
+  market-db_cert:
+    file: ./market/postgres/certs/server.crt
+  admin-db_key:
+    file: ./admin/postgres/certs/server.key
+  admin-db_cert:
+    file: ./admin/postgres/certs/server.crt
+
 services:
   reverse-proxy:
     image: traefik:v3.2
@@ -275,13 +293,15 @@ services:
       dockerfile: ./Dockerfile
     command: >
       -c ssl=on
-      -c ssl_cert_file=/var/lib/postgresql/server.crt
-      -c ssl_key_file=/var/lib/postgresql/server.key
-    volumes:
-      - ./user/postgres/certs/server.crt:/var/lib/postgresql/server.crt:ro
-      - ./user/postgres/certs/server.key:/var/lib/postgresql/server.key:ro
+      -c ssl_cert_file=/run/secrets/server.crt
+      -c ssl_key_file=/run/secrets/server.key
     networks:
       - internal
+    secrets:
+      - source: user-db_cert
+        target: server.crt
+      - source: user-db_key
+        target: server.key
     environment:
       <<: *user-db-environments
     env_file:
@@ -293,11 +313,13 @@ services:
       dockerfile: ./Dockerfile
     command: >
       -c ssl=on
-      -c ssl_cert_file=/var/lib/postgresql/server.crt
-      -c ssl_key_file=/var/lib/postgresql/server.key
-    volumes:
-      - ./gacha/postgres/certs/server.crt:/var/lib/postgresql/server.crt:ro
-      - ./gacha/postgres/certs/server.key:/var/lib/postgresql/server.key:ro
+      -c ssl_cert_file=/run/secrets/server.crt
+      -c ssl_key_file=/run/secrets/server.key
+    secrets:
+      - source: gacha-db_cert
+        target: server.crt
+      - source: gacha-db_key
+        target: server.key
     networks:
       - internal
     environment:
@@ -311,11 +333,13 @@ services:
       dockerfile: ./Dockerfile
     command: >
       -c ssl=on
-      -c ssl_cert_file=/var/lib/postgresql/server.crt
-      -c ssl_key_file=/var/lib/postgresql/server.key
-    volumes:
-      - ./market/postgres/certs/server.crt:/var/lib/postgresql/server.crt:ro
-      - ./market/postgres/certs/server.key:/var/lib/postgresql/server.key:ro
+      -c ssl_cert_file=/run/secrets/server.crt
+      -c ssl_key_file=/run/secrets/server.key
+    secrets:
+      - source: market-db_cert
+        target: server.crt
+      - source: market-db_key
+        target: server.key
     networks:
       - internal
     environment:
@@ -329,11 +353,13 @@ services:
       dockerfile: ./Dockerfile
     command: >
       -c ssl=on
-      -c ssl_cert_file=/var/lib/postgresql/server.crt
-      -c ssl_key_file=/var/lib/postgresql/server.key
-    volumes:
-      - ./admin/postgres/certs/server.crt:/var/lib/postgresql/server.crt:ro
-      - ./admin/postgres/certs/server.key:/var/lib/postgresql/server.key:ro
+      -c ssl_cert_file=/run/secrets/server.crt
+      -c ssl_key_file=/run/secrets/server.key
+    secrets:
+      - source: admin-db_cert
+        target: server.crt
+      - source: admin-db_key
+        target: server.key
     networks:
       - admin
     environment:
