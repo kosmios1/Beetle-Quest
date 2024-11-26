@@ -9,8 +9,8 @@ Prerequisites:
 
 Before you begin, ensure you have the following installed:
 
--   Docker
--   Docker Compose
+- Docker
+- Docker Compose
 
 ### Cloning the repo
 
@@ -36,6 +36,13 @@ deploy/
 └──compose.yml
 ```
 
+To generate the needed SSL/TLS certificates execute:
+
+```bash
+cd beetle-quest/deploy/cacerts
+./generate-db-certs.sh
+```
+
 ### Starting the application
 
 To start the application, run the following commands:
@@ -59,9 +66,9 @@ docker compose up -d
 > login requires `otp`, the seed can be retrieved from the qrcode inside `assets/admin_otp_qrcode.png`.
 > Admins CANNOT be created, the credentials for the development one are:
 >
-> -   AdminID: `09087f45-5209-4efa-85bd-761562a6df53`
-> -   Password: `admin`
-> -   OTP: retrieved from the qrcode
+> - AdminID: `09087f45-5209-4efa-85bd-761562a6df53`
+> - Password: `admin`
+> - OTP: retrieved from the qrcode
 
 An example request to login as an admin:
 
@@ -92,7 +99,7 @@ docker compose down
 You fill find the Postman collection file`collection.json` inside `beetle-quest/tests/postman/`, you can execute them with Postam Newman:
 
 ```sh
-docker run --rm --net beetle-quest_internal -v <path/to/this/repo>/beetle-quest/tests/postman/collection.json:/collection.json postman/newman run /collection.json --insecure --ignore-redirects --color on
+docker run --rm --net beetle-quest_internal -v <path/to/this/repo>/beetle-quest/tests/postman/collection.json:/collection.json postman/newman run /collection.json --insecure --color on
 ```
 
 ### Locust
@@ -130,5 +137,5 @@ The project is structured as follows:
 
 ## References
 
--   [Project Structure 1](https://betterprogramming.pub/how-are-you-structuring-your-go-microservices-a355d6293932)
--   [Project Structure 2](https://gochronicles.com/project-structure/)
+- [Project Structure 1](https://betterprogramming.pub/how-are-you-structuring-your-go-microservices-a355d6293932)
+- [Project Structure 2](https://gochronicles.com/project-structure/)
