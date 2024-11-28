@@ -1,0 +1,26 @@
+<h1>OAuth2 Authorization with PKCE</h1>
+<form id="authorizationForm" hx-post="/api/v1/auth/oauth/authorize" hx-encoding="multipart/form-data" hx-swap="innerHTML" hx-target="#content" hx-on::before-request="submitAuthorizationRequest(event)">
+    <h2>Step 1: Authorize</h2>
+
+    <p>Select the scopes you want to request:</p>
+    <label>
+        <input type="checkbox" id="user" name="scope" value="user" checked>
+        User service
+    </label><br>
+    <label>
+        <input type="checkbox" id="gacha" name="scope" value="gacha">
+        Gacha service
+    </label><br>
+    <label>
+        <input type="checkbox" id="market" name="scope" value="market">
+        Market service
+    </label><br>
+
+    <label>
+        <input type="checkbox" id="admin" name="scope" value="admin">
+        Admin service
+    </label><br>
+
+    <p>Click the button below to initiate the authorization process.</p>
+    <button type="submit">Authorize</button>
+</form>

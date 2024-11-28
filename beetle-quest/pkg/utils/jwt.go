@@ -9,17 +9,13 @@ import (
 
 type CustomClaims struct {
 	jwt.StandardClaims
-	Scope string `json:"scope"`
+	IsAdmin bool `json:"is_admin"`
 }
 
 func (c CustomClaims) Valid() error {
 	err := c.StandardClaims.Valid()
 	if err != nil {
 		return err
-	}
-
-	if c.Scope != "user" && c.Scope != "admin" {
-		return fmt.Errorf("invalid scope")
 	}
 
 	return nil
@@ -42,14 +38,9 @@ func VerifyJWTToken(tokenString string, secretKey []byte) (jwt.MapClaims, error)
 	return nil, fmt.Errorf("invalid token")
 }
 
-func GenerateJWTToken(userID, scope string, secretKey []byte) (*jwt.Token, string, error) {
+func GenerateJWTToken(userID string, isAdmin bool, secretKey []byte) (*jwt.Token, string, error) {
 	now := time.Now()
-	var expiresAt time.Time = time.Now()
-	if scope == "user" {
-		expiresAt = now.Add(time.Hour * 24)
-	} else if scope == "admin" {
-		expiresAt = now.Add(time.Hour)
-	}
+	var expiresAt time.Time = time.Now().Add(time.Hour * 1)
 
 	claims := &CustomClaims{
 		StandardClaims: jwt.StandardClaims{
@@ -60,7 +51,7 @@ func GenerateJWTToken(userID, scope string, secretKey []byte) (*jwt.Token, strin
 			Issuer:    "beetle-quest",
 			ExpiresAt: expiresAt.Unix(),
 		},
-		Scope: scope,
+		IsAdmin: isAdmin,
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

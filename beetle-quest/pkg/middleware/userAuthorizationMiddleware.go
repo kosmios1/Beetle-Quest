@@ -14,7 +14,7 @@ var (
 
 func CheckJWTAuthorizationToken() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		cookie, err := ctx.Request.Cookie("access_token")
+		cookie, err := ctx.Request.Cookie("identity_token")
 		if err != nil {
 			ctx.AbortWithStatus(http.StatusUnauthorized)
 			return
@@ -27,11 +27,6 @@ func CheckJWTAuthorizationToken() gin.HandlerFunc {
 		}
 
 		if claims.Valid() != nil {
-			ctx.AbortWithStatus(http.StatusUnauthorized)
-			return
-		}
-
-		if claims["scope"] != "user" {
 			ctx.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}

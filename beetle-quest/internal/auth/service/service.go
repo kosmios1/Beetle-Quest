@@ -61,7 +61,7 @@ func (s *AuthService) Login(username, password string) (token *jwt.Token, tokenS
 		return nil, "", models.ErrInvalidPassword
 	}
 
-	token, tokenString, err = utils.GenerateJWTToken(user.UserID.String(), "user", jwtSecretKey)
+	token, tokenString, err = utils.GenerateJWTToken(user.UserID.String(), false, jwtSecretKey)
 	if err != nil {
 		return nil, "", models.ErrInternalServerError
 	}
@@ -120,7 +120,7 @@ func (s *AuthService) AdminLogin(id, password, otp string) (token *jwt.Token, to
 		return nil, "", models.ErrInvalidAdminIDOrPassOrOTOP
 	}
 
-	token, tokenString, err = utils.GenerateJWTToken(admin.AdminId.String(), "admin", jwtSecretKey)
+	token, tokenString, err = utils.GenerateJWTToken(admin.AdminId.String(), true, jwtSecretKey)
 	if err != nil {
 		return nil, "", models.ErrInternalServerError
 	}

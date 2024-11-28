@@ -1,0 +1,9 @@
+<form id="tokenForm" hx-post="/api/v1/auth/oauth/token" hx-encoding="multipart/form-data" hx-swap="innerHTML" hx-target="#content" hx-on::before-request="submitTokenRequest(event)">
+    <h2>Step 2: Exchange Code for Token</h2>
+    <p>Click the button below to exchange the authorization code for an access token.</p>
+    <b>Code: </b>
+    <em id="code" name="code">{{ .Code }}</em><br>
+    <b>State: </b>
+    <em id="state" name="state">{{ .State }}</em>
+    <button type="submit">Get Token</button>
+</form>

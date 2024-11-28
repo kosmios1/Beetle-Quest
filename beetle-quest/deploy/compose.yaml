@@ -1,377 +1,377 @@
 name: beetle-quest
 
 x-user-db-environments: &user-db-environments
-  POSTGRES_HOST: user-db
-  POSTGRES_PORT: 5432
-  POSTGRES_SSLMODE: require
-  POSTGRES_TIMEZONE: Europe/Rome
-  POSTGRES_USER: beetle
-  POSTGRES_DB: beetle-quest-main-db
+    POSTGRES_HOST: user-db
+    POSTGRES_PORT: 5432
+    POSTGRES_SSLMODE: require
+    POSTGRES_TIMEZONE: Europe/Rome
+    POSTGRES_USER: beetle
+    POSTGRES_DB: beetle-quest-main-db
 
 x-gacha-db-environments: &gacha-db-environments
-  POSTGRES_HOST: gacha-db
-  POSTGRES_PORT: 5432
-  POSTGRES_SSLMODE: require
-  POSTGRES_TIMEZONE: Europe/Rome
-  POSTGRES_USER: beetle
-  POSTGRES_DB: beetle-quest-main-db
+    POSTGRES_HOST: gacha-db
+    POSTGRES_PORT: 5432
+    POSTGRES_SSLMODE: require
+    POSTGRES_TIMEZONE: Europe/Rome
+    POSTGRES_USER: beetle
+    POSTGRES_DB: beetle-quest-main-db
 
 x-market-db-environments: &market-db-environments
-  POSTGRES_HOST: market-db
-  POSTGRES_PORT: 5432
-  POSTGRES_SSLMODE: require
-  POSTGRES_TIMEZONE: Europe/Rome
-  POSTGRES_USER: beetle
-  POSTGRES_DB: beetle-quest-main-db
+    POSTGRES_HOST: market-db
+    POSTGRES_PORT: 5432
+    POSTGRES_SSLMODE: require
+    POSTGRES_TIMEZONE: Europe/Rome
+    POSTGRES_USER: beetle
+    POSTGRES_DB: beetle-quest-main-db
 
 x-admin-db-environments: &admin-db-environments
-  POSTGRES_HOST: admin-db
-  POSTGRES_PORT: 5432
-  POSTGRES_SSLMODE: require
-  POSTGRES_TIMEZONE: Europe/Rome
-  POSTGRES_USER: beetle
-  POSTGRES_DB: beetle-quest-main-db
+    POSTGRES_HOST: admin-db
+    POSTGRES_PORT: 5432
+    POSTGRES_SSLMODE: require
+    POSTGRES_TIMEZONE: Europe/Rome
+    POSTGRES_USER: beetle
+    POSTGRES_DB: beetle-quest-main-db
 
 x-common-services-environments: &common-services-environments
-  GOMAXPROCS: 1
-  LOG_LEVEL: debug
-  GIN_MODE: release
+    GOMAXPROCS: 1
+    LOG_LEVEL: debug
+    GIN_MODE: release
 
 x-services-go-build-flags: &services-go-build-flags
-  CGO_ENABLED: 0
-  LD_FLAGS: "-s -w"
-  BUILD_FLAGS: "-a"
+    CGO_ENABLED: 0
+    LD_FLAGS: "-s -w"
+    BUILD_FLAGS: "-a"
 
 secrets:
-  user-db_key:
-    file: ./user/postgres/certs/server.key
-  user-db_cert:
-    file: ./user/postgres/certs/server.crt
-  gacha-db_key:
-    file: ./gacha/postgres/certs/server.key
-  gacha-db_cert:
-    file: ./gacha/postgres/certs/server.crt
-  market-db_key:
-    file: ./market/postgres/certs/server.key
-  market-db_cert:
-    file: ./market/postgres/certs/server.crt
-  admin-db_key:
-    file: ./admin/postgres/certs/server.key
-  admin-db_cert:
-    file: ./admin/postgres/certs/server.crt
+    user-db_key:
+        file: ./user/postgres/certs/server.key
+    user-db_cert:
+        file: ./user/postgres/certs/server.crt
+    gacha-db_key:
+        file: ./gacha/postgres/certs/server.key
+    gacha-db_cert:
+        file: ./gacha/postgres/certs/server.crt
+    market-db_key:
+        file: ./market/postgres/certs/server.key
+    market-db_cert:
+        file: ./market/postgres/certs/server.crt
+    admin-db_key:
+        file: ./admin/postgres/certs/server.key
+    admin-db_cert:
+        file: ./admin/postgres/certs/server.crt
 
 services:
-  reverse-proxy:
-    image: traefik:v3.2
-    ports:
-      # The Web UI
-      - "127.0.0.1:8080:8080"
-      # Listening Port
-      - "127.0.0.1:443:443" # TODO: expose on 0.0.0.0:443:443
-    networks:
-      - external
-      - internal
-    volumes:
-      - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
-      - ./traefik/rules.yml:/etc/traefik/rules.yml:ro
+    reverse-proxy:
+        image: traefik:v3.2
+        ports:
+            # The Web UI
+            - "127.0.0.1:8080:8080"
+            # Listening Port
+            - "127.0.0.1:443:443" # TODO: expose on 0.0.0.0:443:443
+        networks:
+            - external
+            - internal
+        volumes:
+            - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+            - ./traefik/rules.yml:/etc/traefik/rules.yml:ro
 
-      - ./cacerts/cert.pem:/certs/cacert.pem:ro
+            - ./cacerts/cert.pem:/certs/cacert.pem:ro
 
-      - ./traefik/certs/client_internal_cert.pem:/certs/client_internal_cert.pem:ro
-      - ./traefik/certs/client_internal_key.pem:/certs/client_internal_key.pem:ro
+            - ./traefik/certs/client_internal_cert.pem:/certs/client_internal_cert.pem:ro
+            - ./traefik/certs/client_internal_key.pem:/certs/client_internal_key.pem:ro
 
-      - ./traefik/certs/cert.pem:/certs/cert.pem:ro
-      - ./traefik/certs/key.pem:/certs/key.pem:ro
+            - ./traefik/certs/cert.pem:/certs/cert.pem:ro
+            - ./traefik/certs/key.pem:/certs/key.pem:ro
 
-  # MICROSERVICES SECTION =============================================================================================================================================================================
-  admin-service:
-    build:
-      context: ../
-      dockerfile: deploy/admin/Dockerfile
-      args:
-        <<: *services-go-build-flags
-    networks:
-      - internal # TODO: When ready, change admin network to admin
-      - admin
-    volumes:
-      - ./cacerts/cert.pem:/certs/caCert.pem:ro
-      - ./cacerts/key.pem:/certs/caKey.pem:ro
-    deploy:
-      resources:
-        limits:
-          cpus: "1"
-          memory: 50M
-    environment:
-      <<: [*admin-db-environments, *common-services-environments]
+    # MICROSERVICES SECTION =============================================================================================================================================================================
+    admin-service:
+        build:
+            context: ../
+            dockerfile: deploy/admin/Dockerfile
+            args:
+                <<: *services-go-build-flags
+        networks:
+            - internal # TODO: When ready, change admin network to admin
+            - admin
+        volumes:
+            - ./cacerts/cert.pem:/certs/caCert.pem:ro
+            - ./cacerts/key.pem:/certs/caKey.pem:ro
+        deploy:
+            resources:
+                limits:
+                    cpus: "1"
+                    memory: 50M
+        environment:
+            <<: [*admin-db-environments, *common-services-environments]
 
-      GET_ALL_USERS_ENDPOINT: https://user-service/api/v1/internal/user/get_all
-      UPDATE_USER_ENDPOINT: https://user-service/api/v1/internal/user/update
-      FIND_USER_BY_ID_ENDPOINT: https://user-service/api/v1/internal/user/find_by_id
+            GET_ALL_USERS_ENDPOINT: https://user-service/api/v1/internal/user/get_all
+            UPDATE_USER_ENDPOINT: https://user-service/api/v1/internal/user/update
+            FIND_USER_BY_ID_ENDPOINT: https://user-service/api/v1/internal/user/find_by_id
 
-      CREATE_GACHA_ENDPOINT: https://gacha-service/api/v1/internal/gacha/create
-      UPDATE_GACHA_ENDPOINT: https://gacha-service/api/v1/internal/gacha/update
-      DELETE_GACHA_ENDPOINT: https://gacha-service/api/v1/internal/gacha/delete
-      GET_ALL_GACHA_ENDPOINT: https://gacha-service/api/v1/internal/gacha/get_all
-      FIND_GACHA_BY_ID_ENDPOINT: https://gacha-service/api/v1/internal/gacha/find_by_id
-      GET_USER_GACHAS_ENDPOINT: https://gacha-service/api/v1/internal/gacha/get_user_gachas
+            CREATE_GACHA_ENDPOINT: https://gacha-service/api/v1/internal/gacha/create
+            UPDATE_GACHA_ENDPOINT: https://gacha-service/api/v1/internal/gacha/update
+            DELETE_GACHA_ENDPOINT: https://gacha-service/api/v1/internal/gacha/delete
+            GET_ALL_GACHA_ENDPOINT: https://gacha-service/api/v1/internal/gacha/get_all
+            FIND_GACHA_BY_ID_ENDPOINT: https://gacha-service/api/v1/internal/gacha/find_by_id
+            GET_USER_GACHAS_ENDPOINT: https://gacha-service/api/v1/internal/gacha/get_user_gachas
 
-      FIND_AUCTION_BY_ID_ENDPOINT: https://market-service/api/v1/internal/market/auction/find_by_id
-      GET_ALL_AUCTIONS_ENDPOINT: https://market-service/api/v1/internal/market/auction/get_all
-      GET_ALL_TRANSACTIONS_ENDPOINT: https://market-service/api/v1/internal/market/get_transaction_history
-      GET_USER_AUCTIONS_ENDPOINT: https://market-service/api/v1/internal/market/auction/get_user_auctions
-      GET_USER_TRANSACTION_HISTORY_ENDPOINT: https://market-service/api/v1/internal/market/get_user_transaction_history
-    env_file:
-      - ./secrets/postgress.env
-      - ./secrets/jwt.env
+            FIND_AUCTION_BY_ID_ENDPOINT: https://market-service/api/v1/internal/market/auction/find_by_id
+            GET_ALL_AUCTIONS_ENDPOINT: https://market-service/api/v1/internal/market/auction/get_all
+            GET_ALL_TRANSACTIONS_ENDPOINT: https://market-service/api/v1/internal/market/get_transaction_history
+            GET_USER_AUCTIONS_ENDPOINT: https://market-service/api/v1/internal/market/auction/get_user_auctions
+            GET_USER_TRANSACTION_HISTORY_ENDPOINT: https://market-service/api/v1/internal/market/get_user_transaction_history
+        env_file:
+            - ./secrets/postgress.env
+            - ./secrets/jwt.env
 
-  auth-service:
-    build:
-      context: ../
-      dockerfile: deploy/auth/Dockerfile
-      args:
-        <<: *services-go-build-flags
-    networks:
-      - admin
-      - internal
-    volumes:
-      - ./cacerts/cert.pem:/certs/caCert.pem:ro
-      - ./cacerts/key.pem:/certs/caKey.pem:ro
-    deploy:
-      # mode: replicated
-      # replicas: 2
-      resources:
-        limits:
-          cpus: "1"
-          memory: 50M
-    environment:
-      <<: [*common-services-environments]
+    auth-service:
+        build:
+            context: ../
+            dockerfile: deploy/auth/Dockerfile
+            args:
+                <<: *services-go-build-flags
+        networks:
+            - admin
+            - internal
+        volumes:
+            - ./cacerts/cert.pem:/certs/caCert.pem:ro
+            - ./cacerts/key.pem:/certs/caKey.pem:ro
+        deploy:
+            # mode: replicated
+            # replicas: 2
+            resources:
+                limits:
+                    cpus: "1"
+                    memory: 50M
+        environment:
+            <<: [*common-services-environments]
 
-      REDIS_HOST: sessions-redis
-      REDIS_PORT: 6379
-      REDIS_USERNAME: beetle
-      REDIS_PASSWORD: secret
-      REDIS_DB: 0
+            REDIS_HOST: sessions-redis
+            REDIS_PORT: 6379
+            REDIS_USERNAME: beetle
+            REDIS_PASSWORD: secret
+            REDIS_DB: 0
 
-      CREATE_USER_ENDPOINT: https://user-service/api/v1/internal/user/create
-      FIND_USER_BY_USERNAME_ENDPOINT: https://user-service/api/v1/internal/user/find_by_username
-      FIND_ADMIN_BY_ID_ENDPOINT: https://admin-service/api/v1/internal/admin/find_by_id
-    env_file:
-      - ./secrets/jwt.env
+            CREATE_USER_ENDPOINT: https://user-service/api/v1/internal/user/create
+            FIND_USER_BY_USERNAME_ENDPOINT: https://user-service/api/v1/internal/user/find_by_username
+            FIND_ADMIN_BY_ID_ENDPOINT: https://admin-service/api/v1/internal/admin/find_by_id
+        env_file:
+            - ./secrets/jwt.env
 
-  user-service:
-    build:
-      context: ../
-      dockerfile: deploy/user/Dockerfile
-      args:
-        <<: *services-go-build-flags
-    networks:
-      - internal
-    volumes:
-      - ./cacerts/cert.pem:/certs/caCert.pem:ro
-      - ./cacerts/key.pem:/certs/caKey.pem:ro
-    deploy:
-      # mode: replicated
-      # replicas: 2
-      resources:
-        limits:
-          cpus: "1"
-          memory: 50M
-    environment:
-      <<: [*common-services-environments, *user-db-environments]
+    user-service:
+        build:
+            context: ../
+            dockerfile: deploy/user/Dockerfile
+            args:
+                <<: *services-go-build-flags
+        networks:
+            - internal
+        volumes:
+            - ./cacerts/cert.pem:/certs/caCert.pem:ro
+            - ./cacerts/key.pem:/certs/caKey.pem:ro
+        deploy:
+            # mode: replicated
+            # replicas: 2
+            resources:
+                limits:
+                    cpus: "1"
+                    memory: 50M
+        environment:
+            <<: [*common-services-environments, *user-db-environments]
 
-      REMOVE_USER_GACHAS_ENDPOINT: https://gacha-service/api/v1/internal/gacha/remove_user_gachas
-      GET_USER_GACHAS_ENDPOINT: https://gacha-service/api/v1/internal/gacha/get_user_gachas
-      GET_USER_TRANSACTION_HISTORY_ENDPOINT: https://market-service/api/v1/internal/market/get_user_transaction_history
-      DELETE_USER_TRANSACTION_HISTORY_ENDPOINT: https://market-service/api/v1/internal/market/delete_user_transaction_history
-    env_file:
-      - ./secrets/postgress.env
-      - ./secrets/jwt.env
+            REMOVE_USER_GACHAS_ENDPOINT: https://gacha-service/api/v1/internal/gacha/remove_user_gachas
+            GET_USER_GACHAS_ENDPOINT: https://gacha-service/api/v1/internal/gacha/get_user_gachas
+            GET_USER_TRANSACTION_HISTORY_ENDPOINT: https://market-service/api/v1/internal/market/get_user_transaction_history
+            DELETE_USER_TRANSACTION_HISTORY_ENDPOINT: https://market-service/api/v1/internal/market/delete_user_transaction_history
+        env_file:
+            - ./secrets/postgress.env
+            - ./secrets/jwt.env
 
-  gacha-service:
-    build:
-      context: ../
-      dockerfile: deploy/gacha/Dockerfile
-      args:
-        <<: *services-go-build-flags
-    networks:
-      - internal
-    volumes:
-      - ./cacerts/cert.pem:/certs/caCert.pem:ro
-      - ./cacerts/key.pem:/certs/caKey.pem:ro
-    deploy:
-      # mode: replicated
-      # replicas: 2
-      resources:
-        limits:
-          cpus: "1"
-          memory: 50M
-    environment:
-      <<: [*common-services-environments, *gacha-db-environments]
-    env_file:
-      - ./secrets/postgress.env
-      - ./secrets/jwt.env
+    gacha-service:
+        build:
+            context: ../
+            dockerfile: deploy/gacha/Dockerfile
+            args:
+                <<: *services-go-build-flags
+        networks:
+            - internal
+        volumes:
+            - ./cacerts/cert.pem:/certs/caCert.pem:ro
+            - ./cacerts/key.pem:/certs/caKey.pem:ro
+        deploy:
+            # mode: replicated
+            # replicas: 2
+            resources:
+                limits:
+                    cpus: "1"
+                    memory: 50M
+        environment:
+            <<: [*common-services-environments, *gacha-db-environments]
+        env_file:
+            - ./secrets/postgress.env
+            - ./secrets/jwt.env
 
-  market-service:
-    build:
-      context: ../
-      dockerfile: deploy/market/Dockerfile
-      args:
-        <<: *services-go-build-flags
-    networks:
-      - internal
-    volumes:
-      - ./cacerts/cert.pem:/certs/caCert.pem:ro
-      - ./cacerts/key.pem:/certs/caKey.pem:ro
-    deploy:
-      # mode: replicated
-      # replicas: 2
-      resources:
-        limits:
-          cpus: "1"
-          memory: 50M
-    environment:
-      <<: [*common-services-environments, *market-db-environments]
+    market-service:
+        build:
+            context: ../
+            dockerfile: deploy/market/Dockerfile
+            args:
+                <<: *services-go-build-flags
+        networks:
+            - internal
+        volumes:
+            - ./cacerts/cert.pem:/certs/caCert.pem:ro
+            - ./cacerts/key.pem:/certs/caKey.pem:ro
+        deploy:
+            # mode: replicated
+            # replicas: 2
+            resources:
+                limits:
+                    cpus: "1"
+                    memory: 50M
+        environment:
+            <<: [*common-services-environments, *market-db-environments]
 
-      REDIS_HOST: market-timed-events-redis
-      REDIS_PORT: 6379
-      REDIS_USERNAME: beetle
-      REDIS_PASSWORD: secret
-      REDIS_DB: 0
+            REDIS_HOST: market-timed-events-redis
+            REDIS_PORT: 6379
+            REDIS_USERNAME: beetle
+            REDIS_PASSWORD: secret
+            REDIS_DB: 0
 
-      UPDATE_USER_ENDPOINT: https://user-service/api/v1/internal/user/update
-      FIND_USER_BY_ID_ENDPOINT: https://user-service/api/v1/internal/user/find_by_id
-      GET_ALL_GACHA_ENDPOINT: https://gacha-service/api/v1/internal/gacha/get_all
-      FIND_GACHA_BY_ID_ENDPOINT: https://gacha-service/api/v1/internal/gacha/find_by_id
-      ADD_GACHA_TO_USER_ENDPOINT: https://gacha-service/api/v1/internal/gacha/add_gacha_to_user
-      REMOVE_GACHA_FROM_USER_ENDPOINT: https://gacha-service/api/v1/internal/gacha/remove_gacha_from_user
-      GET_USER_GACHAS_ENDPOINT: https://gacha-service/api/v1/internal/gacha/get_user_gachas
-    env_file:
-      - ./secrets/postgress.env
-      - ./secrets/jwt.env
+            UPDATE_USER_ENDPOINT: https://user-service/api/v1/internal/user/update
+            FIND_USER_BY_ID_ENDPOINT: https://user-service/api/v1/internal/user/find_by_id
+            GET_ALL_GACHA_ENDPOINT: https://gacha-service/api/v1/internal/gacha/get_all
+            FIND_GACHA_BY_ID_ENDPOINT: https://gacha-service/api/v1/internal/gacha/find_by_id
+            ADD_GACHA_TO_USER_ENDPOINT: https://gacha-service/api/v1/internal/gacha/add_gacha_to_user
+            REMOVE_GACHA_FROM_USER_ENDPOINT: https://gacha-service/api/v1/internal/gacha/remove_gacha_from_user
+            GET_USER_GACHAS_ENDPOINT: https://gacha-service/api/v1/internal/gacha/get_user_gachas
+        env_file:
+            - ./secrets/postgress.env
+            - ./secrets/jwt.env
 
-  static-service:
-    build:
-      context: ../
-      dockerfile: deploy/static/Dockerfile
-      args:
-        <<: *services-go-build-flags
-    networks:
-      - internal
-    volumes:
-      - ./cacerts/cert.pem:/certs/caCert.pem:ro
-      - ./cacerts/key.pem:/certs/caKey.pem:ro
-    deploy:
-      # mode: replicated
-      # replicas: 2
-      resources:
-        limits:
-          cpus: "1"
-          memory: 50M
-    environment:
-      <<: [*common-services-environments]
+    static-service:
+        build:
+            context: ../
+            dockerfile: deploy/static/Dockerfile
+            args:
+                <<: *services-go-build-flags
+        networks:
+            - internal
+        volumes:
+            - ./cacerts/cert.pem:/certs/caCert.pem:ro
+            - ./cacerts/key.pem:/certs/caKey.pem:ro
+        deploy:
+            # mode: replicated
+            # replicas: 2
+            resources:
+                limits:
+                    cpus: "1"
+                    memory: 50M
+        environment:
+            <<: [*common-services-environments]
 
-  # DB SERVICES SECTION ===============================================================================================================================================================================
-  market-timed-events-redis:
-    image: redis:8.0-M02-alpine3.20
-    command: "redis-server /usr/local/etc/redis/redis.conf"
-    volumes:
-      - ./market/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
-    networks:
-      - internal
+    # DB SERVICES SECTION ===============================================================================================================================================================================
+    market-timed-events-redis:
+        image: redis:8.0-M02-alpine3.20
+        command: "redis-server /usr/local/etc/redis/redis.conf"
+        volumes:
+            - ./market/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+        networks:
+            - internal
 
-  sessions-redis:
-    image: redis:8.0-M02-alpine3.20
-    command: "redis-server /usr/local/etc/redis/redis.conf"
-    volumes:
-      - ./auth/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
-    networks:
-      - internal
+    sessions-redis:
+        image: redis:8.0-M02-alpine3.20
+        command: "redis-server /usr/local/etc/redis/redis.conf"
+        volumes:
+            - ./auth/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+        networks:
+            - internal
 
-  user-db:
-    build:
-      context: ./user/postgres
-      dockerfile: ./Dockerfile
-    command: >
-      -c ssl=on
-      -c ssl_cert_file=/run/secrets/server.crt
-      -c ssl_key_file=/run/secrets/server.key
-    networks:
-      - internal
-    secrets:
-      - source: user-db_cert
-        target: server.crt
-      - source: user-db_key
-        target: server.key
-    environment:
-      <<: *user-db-environments
-    env_file:
-      - ./secrets/postgress.env
+    user-db:
+        build:
+            context: ./user/postgres
+            dockerfile: ./Dockerfile
+        command: >
+            -c ssl=on
+            -c ssl_cert_file=/run/secrets/server.crt
+            -c ssl_key_file=/run/secrets/server.key
+        networks:
+            - internal
+        secrets:
+            - source: user-db_cert
+              target: server.crt
+            - source: user-db_key
+              target: server.key
+        environment:
+            <<: *user-db-environments
+        env_file:
+            - ./secrets/postgress.env
 
-  gacha-db:
-    build:
-      context: ./gacha/postgres
-      dockerfile: ./Dockerfile
-    command: >
-      -c ssl=on
-      -c ssl_cert_file=/run/secrets/server.crt
-      -c ssl_key_file=/run/secrets/server.key
-    secrets:
-      - source: gacha-db_cert
-        target: server.crt
-      - source: gacha-db_key
-        target: server.key
-    networks:
-      - internal
-    environment:
-      <<: *gacha-db-environments
-    env_file:
-      - ./secrets/postgress.env
+    gacha-db:
+        build:
+            context: ./gacha/postgres
+            dockerfile: ./Dockerfile
+        command: >
+            -c ssl=on
+            -c ssl_cert_file=/run/secrets/server.crt
+            -c ssl_key_file=/run/secrets/server.key
+        secrets:
+            - source: gacha-db_cert
+              target: server.crt
+            - source: gacha-db_key
+              target: server.key
+        networks:
+            - internal
+        environment:
+            <<: *gacha-db-environments
+        env_file:
+            - ./secrets/postgress.env
 
-  market-db:
-    build:
-      context: ./market/postgres
-      dockerfile: ./Dockerfile
-    command: >
-      -c ssl=on
-      -c ssl_cert_file=/run/secrets/server.crt
-      -c ssl_key_file=/run/secrets/server.key
-    secrets:
-      - source: market-db_cert
-        target: server.crt
-      - source: market-db_key
-        target: server.key
-    networks:
-      - internal
-    environment:
-      <<: *market-db-environments
-    env_file:
-      - ./secrets/postgress.env
+    market-db:
+        build:
+            context: ./market/postgres
+            dockerfile: ./Dockerfile
+        command: >
+            -c ssl=on
+            -c ssl_cert_file=/run/secrets/server.crt
+            -c ssl_key_file=/run/secrets/server.key
+        secrets:
+            - source: market-db_cert
+              target: server.crt
+            - source: market-db_key
+              target: server.key
+        networks:
+            - internal
+        environment:
+            <<: *market-db-environments
+        env_file:
+            - ./secrets/postgress.env
 
-  admin-db:
-    build:
-      context: ./admin/postgres
-      dockerfile: ./Dockerfile
-    command: >
-      -c ssl=on
-      -c ssl_cert_file=/run/secrets/server.crt
-      -c ssl_key_file=/run/secrets/server.key
-    secrets:
-      - source: admin-db_cert
-        target: server.crt
-      - source: admin-db_key
-        target: server.key
-    networks:
-      - admin
-    environment:
-      <<: *admin-db-environments
-    env_file:
-      - ./secrets/postgress.env
+    admin-db:
+        build:
+            context: ./admin/postgres
+            dockerfile: ./Dockerfile
+        command: >
+            -c ssl=on
+            -c ssl_cert_file=/run/secrets/server.crt
+            -c ssl_key_file=/run/secrets/server.key
+        secrets:
+            - source: admin-db_cert
+              target: server.crt
+            - source: admin-db_key
+              target: server.key
+        networks:
+            - admin
+        environment:
+            <<: *admin-db-environments
+        env_file:
+            - ./secrets/postgress.env
 
 networks:
-  # NOTE: Used to attach locust container and test the endpoints
-  external:
-    driver: bridge
-  internal:
-    driver: bridge
-  admin:
-    driver: bridge
+    # NOTE: Used to attach locust container and test the endpoints
+    external:
+        driver: bridge
+    internal:
+        driver: bridge
+    admin:
+        driver: bridge
