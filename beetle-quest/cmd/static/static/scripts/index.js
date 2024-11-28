@@ -50,7 +50,7 @@ async function submitAuthorizationRequest(event) {
     const reqBody = new FormData();
     reqBody.append("response_type", "code");
     reqBody.append("client_id", CLIENT_ID);
-    reqBody.append("redirect_uri", "https://localhost/api/v1/auth/tokenPage");
+    reqBody.append("redirect_uri", "/api/v1/auth/tokenPage");
     reqBody.append("scope", selectedScopes);
     reqBody.append("state", state);
     reqBody.append("code_challenge", codeChallenge);
@@ -77,21 +77,46 @@ async function submitTokenRequest(event) {
     const reqBody = new FormData();
     reqBody.append("grant_type", "authorization_code");
     reqBody.append("code", code);
-    reqBody.append("redirect_uri", "https://localhost/api/v1/auth/tokenPage");
+    reqBody.append("redirect_uri", "/api/v1/auth/tokenPage");
     reqBody.append("client_id", CLIENT_ID);
     reqBody.append("code_verifier", codeVerifier);
 
     const xhr = event.detail.xhr;
     xhr.send(reqBody);
+
+    localStorage.removeItem("state");
+    localStorage.removeItem("codeVerifier");
+}
+
+async function processTokenRequestResponse(event) {
+    if (event.detail.xhr.status === 200) {
+        const json_data = JSON.parse(event.detail.xhr.response);
+        localStorage.setItem("ACCESS_TOKEN", json_data.access_token);
+
+        window.location.href = "/static/";
+    }
 }
 
 window.submitAuthorizationRequest = submitAuthorizationRequest;
 window.submitTokenRequest = submitTokenRequest;
+window.processTokenRequestResponse = processTokenRequestResponse;
 
-document.body.addEventListener("htmx:configRequest", function (event) {
-    console.log("MODIFIED REQUEST");
+function addAuthorzationHeader(event) {
+    console.log(event);
     let tok = localStorage.getItem("ACCESS_TOKEN");
-    if (tok !== null) {
-        event.detail.headers["Authorization"] = `Bearer ${tok}}`;
+    if (tok) {
+        event.detail.headers = {
+            Authorization: `Bearer ${tok}`,
+        };
     }
-});
+}
+
+// document.addEventListener("htmx:config", (event) => {
+//     const originalHeaders = htmx.config.headers || {};
+//     htmx.config.headers = {
+//         ...originalHeaders,
+//         Authorization: `Bearer ${localStorage.getItem("ACCESS_TOKEN") || ""}`,
+//     };
+// });
+
+document.addEventListener("htmx:configRequest", addAuthorzationHeader);

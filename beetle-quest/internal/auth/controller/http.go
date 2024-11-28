@@ -43,9 +43,7 @@ func NewAuthController(srv *service.AuthService) *AuthController {
 
 	clientStore := o2store.NewClientStore()
 	clientStore.Set("beetle-quest", &o2models.Client{
-		ID:     "beetle-quest",
-		Domain: "https://localhost",
-		Public: true,
+		ID: "beetle-quest",
 	})
 	manager.MapClientStorage(clientStore)
 
@@ -166,6 +164,20 @@ func (c *AuthController) Logout(ctx *gin.Context) {
 	}
 
 	if ok := c.srv.RevokeToken(token); !ok {
+		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": models.ErrInternalServerError})
+		ctx.Abort()
+		return
+	}
+
+	authHeader := ctx.GetHeader("Authorization")
+	bearerToken := strings.Split(authHeader, " ")
+	if len(bearerToken) != 2 {
+		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": models.ErrInternalServerError})
+		ctx.Abort()
+		return
+	}
+
+	if err := c.o2mng.RemoveAccessToken(ctx, bearerToken[1]); err != nil {
 		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": models.ErrInternalServerError})
 		ctx.Abort()
 		return
