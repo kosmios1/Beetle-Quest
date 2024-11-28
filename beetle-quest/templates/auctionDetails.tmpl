@@ -33,13 +33,14 @@
         <button type="submit">Place Bid</button>
     </form>
     <form
-        hx-delete="/api/v1/market/auction/{{ .Auction.AuctionID }}"
+        hx-post="/api/v1/market/auction/{{ .Auction.AuctionID }}"
         hx-target="#notification-popup"
         hx-target-4xx="#notification-popup"
         hx-target-5*="#notification-popup"
         hx-swap="innerHTML"
         hx-confirm="Are you sure you want to delete your auction? This action cannot be undone."
         class="account-form"
+        hx-ext="json-enc"
     >
         <input type="password" id="password" name="password" placeholder="Enter password">
         <button type="submit" class="delete-button">Delete Auction</button>

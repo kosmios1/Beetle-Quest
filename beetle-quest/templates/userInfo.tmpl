@@ -52,13 +52,14 @@
         </form>
 
         <form
-            hx-delete="/api/v1/user/account/{{ .UserID }}"
+            hx-post="/api/v1/user/account/{{ .UserID }}"
             hx-target="body"
             hx-target-4xx="#notification-popup"
             hx-target-5*="#notification-popup"
             hx-swap="innerHTML"
             hx-confirm="Are you sure you want to delete your account? This action cannot be undone."
             class="account-form"
+            hx-ext="json-enc"
         >
             <input type="password" id="password" name="password" placeholder="Enter password">
             <button type="submit" class="delete-button">Delete Account</button>

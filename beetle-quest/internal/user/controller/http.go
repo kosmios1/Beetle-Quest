@@ -108,14 +108,16 @@ func (c *UserController) DeleteUserAccount(ctx *gin.Context) {
 		return
 	}
 
-	password, ok := ctx.GetQuery("password")
-	if !ok {
+	var data struct {
+		Password string `json:"password"`
+	}
+	if err := ctx.ShouldBindBodyWithJSON(&data); err != nil {
 		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": "No password inserted!"})
 		ctx.Abort()
 		return
 	}
 
-	err := c.srv.DeleteUserAccount(userID, password)
+	err := c.srv.DeleteUserAccount(userID, data.Password)
 	if err != nil {
 		switch err {
 		case models.ErrInternalServerError:

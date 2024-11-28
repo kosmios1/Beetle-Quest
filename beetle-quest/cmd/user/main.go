@@ -49,7 +49,7 @@ func main() {
 		{
 			accountGroup.GET("/:user_id", cnt.GetUserAccountDetails)
 			accountGroup.PATCH("/:user_id", cnt.UpdateUserAccountDetails)
-			accountGroup.DELETE("/:user_id", cnt.DeleteUserAccount)
+			accountGroup.POST("/:user_id", cnt.DeleteUserAccount)
 		}
 	}
 

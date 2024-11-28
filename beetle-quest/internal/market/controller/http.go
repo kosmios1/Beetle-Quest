@@ -230,8 +230,10 @@ func (c *MarketController) AuctionDetail(ctx *gin.Context) {
 }
 
 func (c *MarketController) AuctionDelete(ctx *gin.Context) {
-	password, ok := ctx.GetQuery("password")
-	if !ok {
+	var data struct {
+		Password string `json:"password"`
+	}
+	if err := ctx.ShouldBindBodyWithJSON(&data); err != nil {
 		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": models.ErrInvalidPassword})
 		ctx.Abort()
 		return
@@ -250,7 +252,7 @@ func (c *MarketController) AuctionDelete(ctx *gin.Context) {
 		ctx.Abort()
 	}
 
-	if err := c.srv.DeleteAuction(uid.(string), aid, password); err != nil {
+	if err := c.srv.DeleteAuction(uid.(string), aid, data.Password); err != nil {
 		switch err {
 		case models.ErrInternalServerError:
 			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err.Error()})
