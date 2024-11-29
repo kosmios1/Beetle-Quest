@@ -41,6 +41,7 @@ x-services-go-build-flags: &services-go-build-flags
     CGO_ENABLED: 0
     LD_FLAGS: "-s -w"
     BUILD_FLAGS: "-a"
+    BUILD_TAGS: ""
 
 secrets:
     user-db_key:

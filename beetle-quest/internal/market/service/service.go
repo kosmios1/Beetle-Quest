@@ -1,7 +1,6 @@
 package service
 
 import (
-	"beetle-quest/internal/market/repository"
 	"beetle-quest/pkg/models"
 	"beetle-quest/pkg/repositories"
 	"beetle-quest/pkg/utils"
@@ -11,14 +10,13 @@ import (
 )
 
 type MarketService struct {
-	evrepo *repository.EventRepo
+	evrepo repositories.EventRepo
 	urepo  repositories.UserRepo
 	grepo  repositories.GachaRepo
 	mrepo  repositories.MarketRepo
 }
 
-func NewMarketService(urepo repositories.UserRepo, grepo repositories.GachaRepo, mrepo repositories.MarketRepo) *MarketService {
-	evrepo := repository.NewEventRepo()
+func NewMarketService(urepo repositories.UserRepo, grepo repositories.GachaRepo, mrepo repositories.MarketRepo, evrepo repositories.EventRepo) *MarketService {
 	srv := &MarketService{
 		evrepo: evrepo,
 		urepo:  urepo,

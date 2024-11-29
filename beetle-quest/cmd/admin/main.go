@@ -7,14 +7,8 @@ import (
 	"github.com/gin-contrib/secure"
 	"github.com/gin-gonic/gin"
 
-	"beetle-quest/internal/admin/controller"
+	entrypoint "beetle-quest/internal/admin/entrypoints"
 	"beetle-quest/internal/admin/middleware"
-	"beetle-quest/internal/admin/repository"
-	"beetle-quest/internal/admin/service"
-
-	grepo "beetle-quest/pkg/repositories/serviceHttp/gacha"
-	mrepo "beetle-quest/pkg/repositories/serviceHttp/market"
-	urepo "beetle-quest/pkg/repositories/serviceHttp/user"
 )
 
 func main() {
@@ -38,14 +32,7 @@ func main() {
 
 	r.LoadHTMLGlob("templates/*")
 
-	cnt := controller.NewAdminController(
-		service.NewAdminService(
-			repository.NewAdminRepo(),
-			mrepo.NewMarketRepo(),
-			urepo.NewUserRepo(),
-			grepo.NewGachaRepo(),
-		),
-	)
+	cnt := entrypoint.NewAdminController()
 
 	basePath := r.Group("/api/v1/admin")
 	basePath.Use(middleware.CheckAdminJWTAuthorizationToken())

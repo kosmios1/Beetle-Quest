@@ -1,12 +1,11 @@
 package main
 
 import (
-	"beetle-quest/internal/gacha/controller"
-	"beetle-quest/internal/gacha/repository"
-	"beetle-quest/internal/gacha/service"
 	"beetle-quest/pkg/middleware"
 	"beetle-quest/pkg/utils"
 	"log"
+
+	entrypoint "beetle-quest/internal/gacha/entrypoints"
 
 	"github.com/gin-contrib/secure"
 	"github.com/gin-gonic/gin"
@@ -33,9 +32,7 @@ func main() {
 
 	r.LoadHTMLGlob("templates/*")
 
-	cnt := controller.NewGachaController(
-		service.NewGachaService(repository.NewGachaRepo()),
-	)
+	cnt := entrypoint.NewGachaController()
 
 	basePath := r.Group("/api/v1/gacha")
 	basePath.Use(middleware.CheckJWTAuthorizationToken())

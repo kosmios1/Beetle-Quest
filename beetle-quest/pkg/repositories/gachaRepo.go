@@ -10,9 +10,9 @@ type GachaRepo interface {
 	GetAll() ([]models.Gacha, error)
 	FindByID(models.UUID) (*models.Gacha, error)
 
-	AddGachaToUser(models.UUID, models.UUID) error
-	RemoveGachaFromUser(models.UUID, models.UUID) error
+	AddGachaToUser(uid models.UUID, gid models.UUID) error
+	RemoveGachaFromUser(uid models.UUID, gid models.UUID) error
 
-	RemoveUserGachas(models.UUID) error
-	GetUserGachas(models.UUID) ([]models.Gacha, error)
+	RemoveUserGachas(uid models.UUID) error
+	GetUserGachas(uid models.UUID) ([]models.Gacha, error)
 }

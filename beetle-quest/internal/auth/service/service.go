@@ -1,7 +1,6 @@
 package service
 
 import (
-	"beetle-quest/internal/auth/repository"
 	"beetle-quest/pkg/models"
 	"beetle-quest/pkg/repositories"
 	"beetle-quest/pkg/utils"
@@ -19,14 +18,14 @@ type AuthService struct {
 	arepo    repositories.AdminRepo
 	userRepo repositories.UserRepo
 
-	sesRepo repository.SessionRepo
+	sesRepo repositories.SessionRepo
 }
 
-func NewAuthService(userRepo repositories.UserRepo, arepo repositories.AdminRepo) *AuthService {
+func NewAuthService(userRepo repositories.UserRepo, arepo repositories.AdminRepo, sessionRepo repositories.SessionRepo) *AuthService {
 	return &AuthService{
 		arepo:    arepo,
 		userRepo: userRepo,
-		sesRepo:  *repository.NewSessionRepo(),
+		sesRepo:  sessionRepo,
 	}
 }
 

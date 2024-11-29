@@ -1,13 +1,10 @@
 package main
 
 import (
-	"beetle-quest/internal/auth/controller"
-	"beetle-quest/internal/auth/service"
 	"beetle-quest/pkg/utils"
 	"log"
 
-	arepo "beetle-quest/pkg/repositories/serviceHttp/admin"
-	urepo "beetle-quest/pkg/repositories/serviceHttp/user"
+	entrypoint "beetle-quest/internal/auth/entrypoints"
 
 	"github.com/gin-contrib/secure"
 	"github.com/gin-gonic/gin"
@@ -33,10 +30,7 @@ func main() {
 	}))
 	r.LoadHTMLGlob("templates/*")
 
-	cnt := controller.NewAuthController(
-		service.NewAuthService(urepo.NewUserRepo(), arepo.NewAdminRepo()),
-	)
-
+	cnt := entrypoint.NewAuthController()
 	basePath := r.Group("/api/v1/auth")
 	{
 		basePath.GET("/authPage", cnt.AuthenticationPage)

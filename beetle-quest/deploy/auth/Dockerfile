@@ -19,8 +19,9 @@ ARG CGO_ENABLED=0
 ARG GOOS=linux
 ARG LD_FLAGS='-s -w'
 ARG BUILD_FLAGS='-a'
+ARG BUILD_TAGS='beetleQuestTest'
 
-RUN CGO_ENABLED=${CGO_ENABLED} GOOS=${GOOS} go build -o /go/bin/app ${BUILD_FLAGS} -ldflags="${LD_FLAGS}" ./cmd/auth/main.go
+RUN CGO_ENABLED=${CGO_ENABLED} GOOS=${GOOS} go build -tags=${BUILD_TAGS} -o /go/bin/app ${BUILD_FLAGS} -ldflags="${LD_FLAGS}" ./cmd/auth/main.go
 
 FROM gcr.io/distroless/base-debian12
 COPY --from=build /go/bin/app /

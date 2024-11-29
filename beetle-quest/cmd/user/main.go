@@ -1,16 +1,12 @@
 package main
 
 import (
-	"beetle-quest/internal/user/controller"
-	"beetle-quest/internal/user/repository"
-	"beetle-quest/internal/user/service"
 	"beetle-quest/pkg/middleware"
 	"beetle-quest/pkg/utils"
 	"log"
 
+	entrypoint "beetle-quest/internal/user/entrypoints"
 	internalMiddleware "beetle-quest/internal/user/middleware"
-	gHttpGrepo "beetle-quest/pkg/repositories/serviceHttp/gacha"
-	mHttpGrepo "beetle-quest/pkg/repositories/serviceHttp/market"
 
 	"github.com/gin-contrib/secure"
 	"github.com/gin-gonic/gin"
@@ -37,9 +33,7 @@ func main() {
 
 	r.LoadHTMLGlob("templates/*")
 
-	cnt := controller.NewUserController(
-		service.NewUserService(repository.NewUserRepo(), gHttpGrepo.NewGachaRepo(), mHttpGrepo.NewMarketRepo()),
-	)
+	cnt := entrypoint.NewUserController()
 
 	basePath := r.Group("/api/v1/user")
 	basePath.Use(middleware.CheckJWTAuthorizationToken())

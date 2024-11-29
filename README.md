@@ -112,6 +112,29 @@ docker build -t beetle-quest-locust:latest .
 docker run --rm --network=beetle-quest_external -p 127.0.0.1:8089:8089 beetle-quest-locust:latest
 ```
 
+### How to run unit tests on a single service
+
+> [!IMPORTANT]
+> The services use mTLS so to test them you need to provide the correct certificates, the `cacerts` folder contains the needed certificates.
+> For the time being this is not deactivated in the tests build.
+
+The first thing to do is to build a test image of a service (from the deploy folder), for example the `auth` service:
+
+```sh
+cd beetle-quest/deploy/
+docker build -t beetle-quest-auth:test -f ./auth/Dockerfile ..
+```
+
+Now we can run the image using the correct parameters:
+
+```sh
+docker run --rm -it -p 8080:443 \
+-e JWT_SECRET_KEY="e6df59f91871f2229a0296c6b5ffaf44cef6af30cd05057857b9f0a74b0d28c1" \
+-v ./cacerts/cert.pem:/certs/caCert.pem:ro -v ./cacerts/key.pem:/certs/caKey.pem:ro beetle-quest-auth:test
+```
+
+To build and run this images a script can be found in `deploy/tests` folder.
+
 ## Project structure
 
 The project is structured as follows:

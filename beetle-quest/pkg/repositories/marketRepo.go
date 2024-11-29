@@ -10,15 +10,15 @@ type MarketRepo interface {
 	Delete(*models.Auction) error
 
 	GetAll() ([]models.Auction, error)
-	GetUserAuctions(models.UUID) ([]models.Auction, error)
-	FindByID(models.UUID) (*models.Auction, error)
+	GetUserAuctions(uid models.UUID) ([]models.Auction, error)
+	FindByID(aid models.UUID) (*models.Auction, error)
 
-	GetBidListOfAuction(models.UUID) ([]models.Bid, error)
+	GetBidListOfAuction(aid models.UUID) ([]models.Bid, error)
 	BidToAuction(*models.Bid) error
 
 	GetAllTransactions() ([]models.Transaction, error)
-	DeleteUserTransactionHistory(models.UUID) error
-	GetUserTransactionHistory(models.UUID) ([]models.Transaction, error)
+	DeleteUserTransactionHistory(uid models.UUID) error
+	GetUserTransactionHistory(uid models.UUID) ([]models.Transaction, error)
 
 	AddTransaction(*models.Transaction) error
 }
