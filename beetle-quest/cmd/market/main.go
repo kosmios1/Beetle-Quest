@@ -2,6 +2,7 @@ package main
 
 import (
 	"beetle-quest/pkg/middleware"
+	"beetle-quest/pkg/models"
 	"beetle-quest/pkg/utils"
 	"log"
 
@@ -35,7 +36,7 @@ func main() {
 	cnt := entrypoint.NewMarketController()
 
 	basePath := r.Group("/api/v1/market")
-	basePath.Use(middleware.CheckJWTAuthorizationToken())
+	basePath.Use(middleware.CheckJWTAuthorizationToken(models.MarketScope))
 	{
 		basePath.POST("/bugscoin/buy", cnt.BuyBugscoin)
 		basePath.GET("/gacha/roll", cnt.RollGacha)

@@ -2,6 +2,7 @@ package main
 
 import (
 	"beetle-quest/pkg/middleware"
+	"beetle-quest/pkg/models"
 	"beetle-quest/pkg/utils"
 	"log"
 
@@ -35,7 +36,7 @@ func main() {
 	cnt := entrypoint.NewGachaController()
 
 	basePath := r.Group("/api/v1/gacha")
-	basePath.Use(middleware.CheckJWTAuthorizationToken())
+	basePath.Use(middleware.CheckJWTAuthorizationToken(models.GachaScope))
 	{
 		basePath.GET("/list", cnt.List)
 		basePath.GET("/:gacha_id", cnt.GetGachaDetails)

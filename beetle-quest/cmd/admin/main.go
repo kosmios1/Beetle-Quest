@@ -1,6 +1,7 @@
 package main
 
 import (
+	"beetle-quest/pkg/models"
 	"beetle-quest/pkg/utils"
 	"log"
 
@@ -35,7 +36,7 @@ func main() {
 	cnt := entrypoint.NewAdminController()
 
 	basePath := r.Group("/api/v1/admin")
-	basePath.Use(middleware.CheckAdminJWTAuthorizationToken())
+	basePath.Use(middleware.CheckAdminJWTAuthorizationToken(models.AdminScope))
 	{
 		userPath := basePath.Group("/user")
 		{

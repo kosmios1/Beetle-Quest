@@ -15,11 +15,12 @@ import (
 
 	"github.com/go-oauth2/oauth2/v4"
 	o2errors "github.com/go-oauth2/oauth2/v4/errors"
-	o2generates "github.com/go-oauth2/oauth2/v4/generates"
 	o2manage "github.com/go-oauth2/oauth2/v4/manage"
 	o2models "github.com/go-oauth2/oauth2/v4/models"
 	o2server "github.com/go-oauth2/oauth2/v4/server"
 	o2store "github.com/go-oauth2/oauth2/v4/store"
+
+	accessToken "beetle-quest/internal/auth/service/jwtAccessToken"
 )
 
 var (
@@ -37,14 +38,13 @@ func NewAuthController(srv *service.AuthService) *AuthController {
 	manager := o2manage.NewDefaultManager()
 	manager.SetAuthorizeCodeTokenCfg(o2manage.DefaultAuthorizeCodeTokenCfg)
 
-	// TODO: Change storage with redis
-	manager.MustTokenStorage(o2store.NewMemoryTokenStore())
-	manager.MapAccessGenerate(o2generates.NewJWTAccessGenerate("", jwtSecretKey, jwt.SigningMethodHS512))
+	manager.MustTokenStorage(o2store.NewMemoryTokenStore()) // TODO: Implementation for testing (Memory Storage) and for production (Redis Storage)
+	manager.MapAccessGenerate(accessToken.NewJWTAccessGenerate("", jwtSecretKey, jwt.SigningMethodHS512))
 
 	clientStore := o2store.NewClientStore()
-	clientStore.Set("beetle-quest", &o2models.Client{
-		ID: "beetle-quest",
-	})
+	if err := clientStore.Set("beetle-quest", &o2models.Client{ID: "beetle-quest"}); err != nil {
+		log.Fatal("[FATAL] Could not setup oauth2 client storage!")
+	}
 	manager.MapClientStorage(clientStore)
 
 	o2srv := o2server.NewServer(&o2server.Config{

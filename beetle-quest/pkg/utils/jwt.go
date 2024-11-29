@@ -54,7 +54,7 @@ func GenerateJWTToken(userID string, isAdmin bool, secretKey []byte) (*jwt.Token
 		IsAdmin: isAdmin,
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS512, claims)
 
 	tokenString, err := token.SignedString(secretKey)
 	if err != nil {

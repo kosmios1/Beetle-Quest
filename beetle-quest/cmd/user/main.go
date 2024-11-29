@@ -2,6 +2,7 @@ package main
 
 import (
 	"beetle-quest/pkg/middleware"
+	"beetle-quest/pkg/models"
 	"beetle-quest/pkg/utils"
 	"log"
 
@@ -36,7 +37,7 @@ func main() {
 	cnt := entrypoint.NewUserController()
 
 	basePath := r.Group("/api/v1/user")
-	basePath.Use(middleware.CheckJWTAuthorizationToken())
+	basePath.Use(middleware.CheckJWTAuthorizationToken(models.UserScope))
 	{
 		accountGroup := basePath.Group("/account")
 		accountGroup.Use(internalMiddleware.CheckUserID())
