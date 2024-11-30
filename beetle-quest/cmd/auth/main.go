@@ -35,6 +35,12 @@ func main() {
 		log.Fatal("Failed to start server: ", err)
 	}
 
+	oauthPath := r.Group("/oauth")
+	{
+		oauthPath.POST("/authorize", cnt.OauthAuthorize)
+		oauthPath.POST("/token", cnt.OauthToken)
+	}
+
 	basePath := r.Group("/api/v1/auth")
 	{
 		basePath.GET("/authPage", cnt.AuthenticationPage)
@@ -47,12 +53,6 @@ func main() {
 
 		basePath.GET("/check_session", cnt.CheckSession)
 		basePath.Any("/traefik/verify", cnt.Verify)
-
-		oauthPath := basePath.Group("/oauth")
-		{
-			oauthPath.POST("/authorize", cnt.OauthAuthorize)
-			oauthPath.POST("/token", cnt.OauthToken)
-		}
 	}
 
 	adminSpecific := r.Group("/api/v1/auth/admin")

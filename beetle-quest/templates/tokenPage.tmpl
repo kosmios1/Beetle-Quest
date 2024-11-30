@@ -1,4 +1,4 @@
-<form id="tokenForm" hx-post="/api/v1/auth/oauth/token" hx-encoding="multipart/form-data" hx-on::before-request="submitTokenRequest(event)" hx-on::before-swap="processTokenRequestResponse(event)" hx-swap="none">
+<form id="tokenForm" hx-post="/oauth/token" hx-encoding="multipart/form-data" hx-on::before-request="submitTokenRequest(event)" hx-on::before-swap="processTokenRequestResponse(event)" hx-swap="none">
     <h2>Step 2: Exchange Code for Token</h2>
     <p>Click the button below to exchange the authorization code for an access token.</p>
     <b>Code: </b>

@@ -7,13 +7,13 @@ servers:
     - url: https://localhost/api/v1
 
 tags:
+    - name: OAuth
     - name: Auth
     - name: Static
     - name: Users
     - name: Gachas
     - name: Market
     - name: Admin
-    # - name: Report
 
 paths:
     ### AUTH ###
@@ -67,9 +67,11 @@ paths:
             tags: [Auth]
             security:
                 - cookieAuth: []
-            #     - oauth2:
-            #           - user
-            #           - admin
+                - oauth2:
+                      - user
+                      - gacha
+                      - market
+                      - admin
             responses:
                 302:
                     description: Logout successfull.
@@ -81,10 +83,11 @@ paths:
             summary: Check session
             tags: [Auth]
             security:
-                - cookieAuth: []
-            #     - oauth2:
-            #           - user
-            #           - admin
+                - oauth2:
+                      - user
+                      - gacha
+                      - market
+                      - admin
             responses:
                 200:
                     description: Session is valid.
@@ -98,10 +101,11 @@ paths:
             summary: Traefik verify
             tags: [Auth]
             security:
-                - cookieAuth: []
-            #     - oauth2:
-            #           - user
-            #           - admin
+                - oauth2:
+                      - user
+                      - gacha
+                      - market
+                      - admin
             responses:
                 200:
                     description: Authorized.
@@ -128,6 +132,37 @@ paths:
                     description: Invalid request data.
                 500:
                     description: Internal server error.
+
+    ### OAUTH ###
+    /oauth/authorize:
+        post:
+            tags: [OAuth]
+            servers:
+                - url: https://localhost/
+            requestBody:
+                required: true
+                content:
+                    multipart/form-data:
+                        schema:
+                            $ref: "#/components/schemas/AuthorizeReq"
+            responses:
+                200:
+                    description: ok
+
+    /oauth/token:
+        post:
+            tags: [OAuth]
+            servers:
+                - url: https://localhost/
+            requestBody:
+                required: true
+                content:
+                    multipart/form-data:
+                        schema:
+                            $ref: "#/components/schemas/TokenReq"
+            responses:
+                200:
+                    description: ok
 
     ### STATIC ###
     /static/{path}:
@@ -157,9 +192,8 @@ paths:
             summary: Get user account
             tags: [Users]
             security:
-                - cookieAuth: []
-            #     - oauth2:
-            #           - user
+                - oauth2:
+                      - user
             parameters:
                 - name: user_id
                   in: path
@@ -178,9 +212,8 @@ paths:
             summary: Modify user account
             tags: [Users]
             security:
-                - cookieAuth: []
-            #     - oauth2:
-            #           - user
+                - oauth2:
+                      - user
             parameters:
                 - name: user_id
                   in: path
@@ -208,9 +241,8 @@ paths:
             summary: Delete user account
             tags: [Users]
             security:
-                - cookieAuth: []
-            #     - oauth2:
-            #           - user
+                - oauth2:
+                      - user
             parameters:
                 - name: user_id
                   in: path
@@ -239,15 +271,13 @@ paths:
                     description: Internal server error.
 
     ### GACHAS ###
-
     /gacha/list:
         get:
             summary: Get system gacha list
             tags: [Gachas]
             security:
-                - cookieAuth: []
-            #     - oauth2:
-            #           - user
+                - oauth2:
+                      - gacha
             responses:
                 200:
                     description: System's gacha list.
@@ -261,9 +291,8 @@ paths:
             summary: Get gacha details
             tags: [Gachas]
             security:
-                - cookieAuth: []
-            #     - oauth2:
-            #           - user
+                - oauth2:
+                      - gacha
             parameters:
                 - name: gacha_id
                   in: path
@@ -284,9 +313,8 @@ paths:
             summary: Get user gacha list
             tags: [Gachas]
             security:
-                - cookieAuth: []
-            #     - oauth2:
-            #           - user
+                - oauth2:
+                      - gacha
             parameters:
                 - name: user_id
                   in: path
@@ -309,9 +337,8 @@ paths:
             summary: Get user gacha details
             tags: [Gachas]
             security:
-                - cookieAuth: []
-            #     - oauth2:
-            #           - user
+                - oauth2:
+                      - gacha
             parameters:
                 - name: gacha_id
                   in: path
@@ -341,9 +368,8 @@ paths:
             summary: Buy bugscoin
             tags: [Market]
             security:
-                - cookieAuth: []
-            #     - oauth2:
-            #           - user
+                - oauth2:
+                      - market
             requestBody:
                 description: Buy bugscoin details
                 required: true
@@ -366,9 +392,8 @@ paths:
             summary: Roll gacha
             tags: [Market]
             security:
-                - cookieAuth: []
-            #     - oauth2:
-            #           - user
+                - oauth2:
+                      - market
             responses:
                 200:
                     description: Gacha rolled successfully.
@@ -384,9 +409,8 @@ paths:
             summary: Buy gacha
             tags: [Market]
             security:
-                - cookieAuth: []
-            #     - oauth2:
-            #           - user
+                - oauth2:
+                      - market
             parameters:
                 - name: gacha_id
                   in: path
@@ -409,9 +433,8 @@ paths:
             summary: Create auction
             tags: [Market]
             security:
-                - cookieAuth: []
-            #     - oauth2:
-            #           - user
+                - oauth2:
+                      - market
             requestBody:
                 description: Create auction details
                 required: true
@@ -436,9 +459,8 @@ paths:
             summary: Get auction list
             tags: [Market]
             security:
-                - cookieAuth: []
-            #     - oauth2:
-            #           - user
+                - oauth2:
+                      - market
             responses:
                 200:
                     description: Auction list obtained successfully.
@@ -452,9 +474,8 @@ paths:
             summary: Get auction details
             tags: [Market]
             security:
-                - cookieAuth: []
-            #     - oauth2:
-            #           - user
+                - oauth2:
+                      - market
             parameters:
                 - name: auction_id
                   in: path
@@ -475,9 +496,8 @@ paths:
             summary: Delete auction
             tags: [Market]
             security:
-                - cookieAuth: []
-            #     - oauth2:
-            #           - user
+                - oauth2:
+                      - market
             parameters:
                 - name: auction_id
                   in: path
@@ -511,9 +531,8 @@ paths:
             summary: Bid auction
             tags: [Market]
             security:
-                - cookieAuth: []
-            #     - oauth2:
-            #           - user
+                - oauth2:
+                      - market
             parameters:
                 - name: auction_id
                   in: path
@@ -544,9 +563,8 @@ paths:
             summary: Get all users
             tags: [Admin]
             security:
-                - cookieAuth: []
-            #     - oauth2:
-            #           - admin
+                - oauth2:
+                      - admin
             responses:
                 200:
                     description: All users obtained successfully.
@@ -558,9 +576,8 @@ paths:
             summary: Get user details
             tags: [Admin]
             security:
-                - cookieAuth: []
-            #     - oauth2:
-            #           - admin
+                - oauth2:
+                      - admin
             parameters:
                 - name: user_id
                   in: path
@@ -581,9 +598,8 @@ paths:
             summary: Update user details
             tags: [Admin]
             security:
-                - cookieAuth: []
-            #     - oauth2:
-            #     - admin
+                - oauth2:
+                      - admin
             parameters:
                 - name: user_id
                   in: path
@@ -615,9 +631,8 @@ paths:
             summary: Get user transaction history
             tags: [Admin]
             security:
-                - cookieAuth: []
-            #     - oauth2:
-            #           - admin
+                - oauth2:
+                      - admin
             parameters:
                 - name: user_id
                   in: path
@@ -640,9 +655,8 @@ paths:
             summary: Get user auction list
             tags: [Admin]
             security:
-                - cookieAuth: []
-            #     - oauth2:
-            #           - admin
+                - oauth2:
+                      - admin
             parameters:
                 - name: user_id
                   in: path
@@ -665,9 +679,8 @@ paths:
             summary: Add gacha
             tags: [Admin]
             security:
-                - cookieAuth: []
-            #     - oauth2:
-            #           - admin
+                - oauth2:
+                      - admin
             requestBody:
                 description: Add gacha
                 required: true
@@ -688,9 +701,8 @@ paths:
             summary: Get all gachas
             tags: [Admin]
             security:
-                - cookieAuth: []
-            #     - oauth2:
-            #           - admin
+                - oauth2:
+                      - admin
             responses:
                 200:
                     description: All gachas obtained successfully.
@@ -706,9 +718,8 @@ paths:
             summary: Get gacha details
             tags: [Admin]
             security:
-                - cookieAuth: []
-            #     - oauth2:
-            #           - admin
+                - oauth2:
+                      - admin
             parameters:
                 - name: gacha_id
                   in: path
@@ -729,9 +740,8 @@ paths:
             summary: Update gacha details
             tags: [Admin]
             security:
-                - cookieAuth: []
-            #     - oauth2:
-            #           - admin
+                - oauth2:
+                      - admin
             parameters:
                 - name: gacha_id
                   in: path
@@ -761,9 +771,8 @@ paths:
             summary: Delete gacha
             tags: [Admin]
             security:
-                - cookieAuth: []
-            #     - oauth2:
-            #           - admin
+                - oauth2:
+                      - admin
             parameters:
                 - name: gacha_id
                   in: path
@@ -786,9 +795,8 @@ paths:
             summary: Get market's transaction history
             tags: [Admin]
             security:
-                - cookieAuth: []
-            #     - oauth2:
-            #           - admin
+                - oauth2:
+                      - admin
             responses:
                 200:
                     description: Market history obtained successfully.
@@ -802,9 +810,8 @@ paths:
             summary: Get all auctions
             tags: [Admin]
             security:
-                - cookieAuth: []
-            #     - oauth2:
-            #           - admin
+                - oauth2:
+                      - admin
             responses:
                 200:
                     description: All auctions obtained successfully.
@@ -818,9 +825,8 @@ paths:
             summary: Get auction details
             tags: [Admin]
             security:
-                - cookieAuth: []
-            #     - oauth2:
-            #           - admin
+                - oauth2:
+                      - admin
             parameters:
                 - name: auction_id
                   in: path
@@ -867,18 +873,57 @@ components:
         cookieAuth:
             type: apiKey
             in: cookie
-            name: access_token
-        # oauth2:
-        #     type: oauth2
-        #     flows:
-        #         authorizationCode:
-        #             authorizationUrl: https://localhost/oauth2/authorize
-        #             tokenUrl: https://localhost/oauth2/token
-        #             scopes:
-        #                 user: User scope
-        #                 admin: Admin scope
+            name: identity_token
+        oauth2:
+            type: oauth2
+            flows:
+                authorizationCode:
+                    authorizationUrl: https://localhost/api/v1/auth/oauth/authorize
+                    tokenUrl: https://localhost/api/v1/auth/oauth/token
+                    scopes:
+                        user: User scope
+                        gacha: Gacha scope
+                        market: Market scope
+                        admin: Admin scope
 
     schemas:
+        AuthorizeReq:
+            type: object
+            properties:
+                response_type:
+                    type: string
+                    default: code
+                client_id:
+                    type: string
+                    default: beetle-quest
+                redirect_uri:
+                    type: string
+                    default: "https://localhost/api/v1/auth/tokenPage"
+                state:
+                    type: string
+                code_challenge:
+                    type: string
+                code_challenge_method:
+                    type: string
+                    default: S256
+
+        TokenReq:
+            type: object
+            properties:
+                grant_type:
+                    type: string
+                    default: authorization_code
+                code:
+                    type: string
+                redirect_uri:
+                    type: string
+                    default: "https://localhost/api/v1/auth/tokenPage"
+                client_id:
+                    type: string
+                    default: beetle-quest
+                code_verifier:
+                    type: string
+
         Register:
             type: object
             properties:
@@ -918,22 +963,6 @@ components:
                     type: string
                 old_password:
                     type: string
-
-        # Token:
-        #     type: object
-        #     properties:
-        #         grant_type:
-        #             type: string
-        #         client_id:
-        #             type: string
-        #         client_secret:
-        #             type: string
-        #         redirect_uri:
-        #             type: string
-        #         code:
-        #             type: string
-        #         scope:
-        #             type: string
 
         BuyBugscoin:
             type: object

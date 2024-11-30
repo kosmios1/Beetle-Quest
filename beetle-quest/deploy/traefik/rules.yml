@@ -68,7 +68,7 @@ http:
                 - "service-health-check"
 
         auth-service:
-            rule: "PathPrefix(`/api/v1/auth`) && (Host(`localhost`) || Host(`reverse-proxy`))"
+            rule: "(PathPrefix(`/api/v1/auth`) || PathPrefix(`/oauth`)) && (Host(`localhost`) || Host(`reverse-proxy`))"
             entryPoints:
                 - websec
             service: auth-service
