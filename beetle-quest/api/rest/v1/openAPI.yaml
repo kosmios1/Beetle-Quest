@@ -137,6 +137,8 @@ paths:
     /oauth/authorize:
         post:
             tags: [OAuth]
+            security:
+                - cookieAuth: []
             servers:
                 - url: https://localhost/
             requestBody:
@@ -847,9 +849,8 @@ paths:
             summary: Update auction details
             tags: [Admin]
             security:
-                - cookieAuth: []
-            #     - oauth2:
-            #           - admin
+                - oauth2:
+                      - admin
             parameters:
                 - name: auction_id
                   in: path
