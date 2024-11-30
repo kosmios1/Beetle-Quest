@@ -30,7 +30,11 @@ func main() {
 	}))
 	r.LoadHTMLGlob("templates/*")
 
-	cnt := entrypoint.NewAuthController()
+	cnt, err := entrypoint.NewAuthController()
+	if err != nil {
+		log.Fatal("Failed to start server: ", err)
+	}
+
 	basePath := r.Group("/api/v1/auth")
 	{
 		basePath.GET("/authPage", cnt.AuthenticationPage)

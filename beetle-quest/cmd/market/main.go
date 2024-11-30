@@ -33,7 +33,10 @@ func main() {
 
 	r.LoadHTMLGlob("templates/*")
 
-	cnt := entrypoint.NewMarketController()
+	cnt, err := entrypoint.NewMarketController()
+	if err != nil {
+		log.Fatal("Failed to start server: ", err)
+	}
 
 	basePath := r.Group("/api/v1/market")
 	basePath.Use(middleware.CheckJWTAuthorizationToken(models.MarketScope))

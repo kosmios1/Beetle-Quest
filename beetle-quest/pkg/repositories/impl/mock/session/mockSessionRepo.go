@@ -10,11 +10,11 @@ type SessionRepo struct {
 	tokens map[string]string
 }
 
-func NewSessionRepo() *SessionRepo {
+func NewSessionRepo() (*SessionRepo, error) {
 	return &SessionRepo{
 		mux:    sync.RWMutex{},
 		tokens: make(map[string]string),
-	}
+	}, nil
 }
 
 func (r *SessionRepo) CreateSession(token string) error {

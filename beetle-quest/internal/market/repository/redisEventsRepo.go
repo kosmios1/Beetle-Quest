@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"crypto/tls"
 	"github.com/go-redis/redis/v8"
 )
 
@@ -22,19 +23,31 @@ var (
 	redisUsername string = utils.FindEnv("REDIS_USERNAME")
 	redisPassword string = utils.FindEnv("REDIS_PASSWORD")
 	redisDB       int    = 0
+  certFile             = "/serverCert.pem"
+  keyFile              = "/serverKey.pem"
 )
 
-func NewEventRepo() *EventRepo {
+func NewEventRepo() (*EventRepo, error) {
+  cert, err := tls.LoadX509KeyPair(certFile, keyFile)
+  if err != nil {
+      return nil, models.ErrCouldNotLoadClientCetrificate
+  }
 	evr := &EventRepo{
 		ctx: context.Background(),
 		rdb: redis.NewClient(&redis.Options{
+		  TLSConfig: &tls.Config{
+		  	MinVersion: tls.VersionTLS12,
+				ServerName: redisHost,
+				InsecureSkipVerify: true,
+		  	Certificates: []tls.Certificate{cert},
+		  },
 			Addr:     redisHost + ":" + redisPort,
 			Username: redisUsername,
 			Password: redisPassword,
 			DB:       redisDB,
 		}),
 	}
-	return evr
+	return evr, nil
 }
 
 func (r *EventRepo) AddEndAuctionEvent(auction *models.Auction) error {

@@ -38,3 +38,4 @@
 !beetle-quest/**
 !beetle-quest/**/*.*
 beetle-quest/deploy/*/postgres/certs
+beetle-quest/deploy/*/redis/certs

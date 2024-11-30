@@ -50,6 +50,7 @@ const (
 	ErrCouldNotAddEvent                constError = "could not add event"
 	ErrCouldNotAddGachaToUser          constError = "could not add gacha to user"
 	ErrCouldNotRemoveGachaFromUser     constError = "could not remove gacha from user"
+	ErrCouldNotLoadClientCetrificate   constError = "could not load clinet tls certificate"
 	ErrTransactionNotFound             constError = "transaction not found"
 	ErrMaxMoneyExceeded                constError = "max money exceeded"
 	ErrInvalidAdminIDOrPassOrOTOP      constError = "invalid admin id or password or one time password"

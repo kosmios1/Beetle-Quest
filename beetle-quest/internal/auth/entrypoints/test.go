@@ -11,12 +11,13 @@ import (
 	urepo "beetle-quest/pkg/repositories/impl/mock/user"
 )
 
-func NewAuthController() *controller.AuthController {
+func NewAuthController() (*controller.AuthController, error) {
+  sesRepo, _ := srepo.NewSessionRepo()
 	return controller.NewAuthController(
 		service.NewAuthService(
 			urepo.NewUserRepo(),
 			arepo.NewAdminRepo(),
-			srepo.NewSessionRepo(),
+			sesRepo,
 		),
-	)
+	), nil
 }

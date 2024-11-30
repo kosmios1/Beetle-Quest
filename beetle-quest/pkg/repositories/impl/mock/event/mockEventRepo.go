@@ -9,10 +9,10 @@ type EventRepo struct {
 	closeEventChan chan models.UUID
 }
 
-func NewEventRepo() *EventRepo {
+func NewEventRepo() (*EventRepo, error) {
 	return &EventRepo{
 		closeEventChan: make(chan models.UUID),
-	}
+	}, nil
 }
 
 func (r *EventRepo) AddEndAuctionEvent(auction *models.Auction) error {

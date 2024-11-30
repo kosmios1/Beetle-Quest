@@ -1,12 +1,14 @@
 package repository
 
 import (
+  "beetle-quest/pkg/models"
 	"beetle-quest/pkg/utils"
 	"context"
 	"errors"
 	"strconv"
 	"time"
 
+	"crypto/tls"
 	"github.com/go-redis/redis/v8"
 )
 
@@ -16,20 +18,32 @@ var (
 	redisPassword string = utils.FindEnv("REDIS_PASSWORD")
 	redisUsername string = utils.FindEnv("REDIS_USERNAME")
 	redisDB       int    = utils.PanicIfError[int](strconv.Atoi(utils.FindEnv("REDIS_DB_SESSION")))
+  certFile             = "/serverCert.pem"
+  keyFile              = "/serverKey.pem"
 )
 
 type SessionRepo struct {
 	client *redis.Client
 }
 
-func NewSessionRepo() *SessionRepo {
+func NewSessionRepo() (*SessionRepo, error) {
+  cert, err := tls.LoadX509KeyPair(certFile, keyFile)
+  if err != nil {
+      return nil, models.ErrCouldNotLoadClientCetrificate
+  }
 	client := redis.NewClient(&redis.Options{
+	  TLSConfig: &tls.Config{
+     	MinVersion: tls.VersionTLS12,
+	    ServerName: redisHost,
+	    InsecureSkipVerify: true,
+     	Certificates: []tls.Certificate{cert},
+	  },
 		Addr:     redisHost + ":" + redisPort,
 		Username: redisUsername,
 		Password: redisPassword,
 		DB:       redisDB,
 	})
-	return &SessionRepo{client: client}
+	return &SessionRepo{client: client}, nil
 }
 
 func (s *SessionRepo) CreateSession(token string) error {

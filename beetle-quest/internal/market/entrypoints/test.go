@@ -12,7 +12,7 @@ import (
 	urepo "beetle-quest/pkg/repositories/impl/mock/user"
 )
 
-func NewMarketController() *controller.MarketController {
+func NewMarketController() (*controller.MarketController, error) {
 	return controller.NewMarketController(
 		service.NewMarketService(
 			urepo.NewUserRepo(),
@@ -20,5 +20,5 @@ func NewMarketController() *controller.MarketController {
 			mrepo.NewMarketRepo(),
 			evrepo.NewEventRepo(),
 		),
-	)
+	), nil
 }
