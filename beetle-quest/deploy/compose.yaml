@@ -151,7 +151,11 @@ services:
             REDIS_PORT: 6379
             REDIS_USERNAME: beetle
             REDIS_PASSWORD: secret
-            REDIS_DB: 0
+            REDIS_DB_SESSION: 0
+
+            REDIS_USERNAME_OAUTH2: oauth2
+            REDIS_PASSWORD_OAUTH2: secret
+            REDIS_DB_OAUTH2: 1
 
             CREATE_USER_ENDPOINT: https://user-service/api/v1/internal/user/create
             FIND_USER_BY_USERNAME_ENDPOINT: https://user-service/api/v1/internal/user/find_by_username

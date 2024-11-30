@@ -15,7 +15,7 @@ var (
 	redisPort     string = utils.FindEnv("REDIS_PORT")
 	redisPassword string = utils.FindEnv("REDIS_PASSWORD")
 	redisUsername string = utils.FindEnv("REDIS_USERNAME")
-	redisDB       int    = utils.PanicIfError[int](strconv.Atoi(utils.FindEnv("REDIS_DB")))
+	redisDB       int    = utils.PanicIfError[int](strconv.Atoi(utils.FindEnv("REDIS_DB_SESSION")))
 )
 
 type SessionRepo struct {

@@ -21,6 +21,7 @@ import (
 	o2store "github.com/go-oauth2/oauth2/v4/store"
 
 	accessToken "beetle-quest/internal/auth/service/jwtAccessToken"
+	store "beetle-quest/internal/auth/service/oauth2/storage"
 )
 
 var (
@@ -38,7 +39,7 @@ func NewAuthController(srv *service.AuthService) *AuthController {
 	manager := o2manage.NewDefaultManager()
 	manager.SetAuthorizeCodeTokenCfg(o2manage.DefaultAuthorizeCodeTokenCfg)
 
-	manager.MustTokenStorage(o2store.NewMemoryTokenStore()) // TODO: Implementation for testing (Memory Storage) and for production (Redis Storage)
+	manager.MapTokenStorage(store.GetTokenStorage())
 	manager.MapAccessGenerate(accessToken.NewJWTAccessGenerate("", jwtSecretKey, jwt.SigningMethodHS512))
 
 	clientStore := o2store.NewClientStore()
