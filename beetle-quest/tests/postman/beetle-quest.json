@@ -1,0 +1,312 @@
+{
+  "info": {
+    "name": "Beetle Quest API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://reverse-proxy/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "hostUrl",
+      "value": "https://reverse-proxy",
+      "type": "string"
+    },
+    {
+      "key": "testUser",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "testEmail",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "testPasswd",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "testCookie",
+      "value": ""
+    },
+    {
+      "key": "testID",
+      "value": ""
+    },
+    {
+      "key": "gachaId",
+      "value": ""
+    },
+    {
+      "key": "gachaName",
+      "value": ""
+    },
+    {
+      "key": "auctionTime",
+      "value": ""
+    },
+    {
+      "key": "auctionId",
+      "value": ""
+    },
+    {
+      "key": "newTestPasswd",
+      "value": ""
+    },
+    {
+      "key": "newTestUser",
+      "value": ""
+    },
+    {
+      "key": "newTestEmail",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "POST /auth/register",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"{{testEmail}}\", \"username\": \"{{testUser}}\", \"password\": \"{{testPasswd}}\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "let userName = pm.variables.replaceIn('{{$randomUserName}}')",
+                  "",
+                  "pm.collectionVariables.set('testPasswd', pm.variables.replaceIn('{{$randomPassword}}'))",
+                  "pm.collectionVariables.set('testUser', userName)",
+                  "pm.collectionVariables.set('testEmail', `${userName}@test.it`)",
+                  "",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Response should be HTML', function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('text/html');",
+                  "});",
+                  "",
+                  "if (pm.response.code !== 201) {",
+                  "   pm.test('Status code is 400', function () {",
+                  "     pm.response.to.have.status(400);",
+                  "   });",
+                  "   pm.test('Response should contain success message in HTML', function () {",
+                  "       const responseBody = pm.response.text();",
+                  "       pm.expect(responseBody).to.include('inserted username or mail are already in the system');",
+                  "   });",
+                  "} else {",
+                  "   pm.test('Status code is 201', function () {",
+                  "     pm.response.to.have.status(201);",
+                  "   });",
+                  "   pm.test('Response should contain success message in HTML', function () {",
+                  "       const responseBody = pm.response.text();",
+                  "       pm.expect(responseBody).to.include('User registered successfully!');",
+                  "   });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /auth/login",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\": \"{{testUser}}\",\"password\": \"{{testPasswd}}\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const jwt = pm.cookies.get('identity_token')",
+                  "// console.log(jwt);",
+                  "if (jwt) {",
+                  "    const user_id = JSON.parse(atob(jwt.split('.')[1])).sub; ",
+                  "    pm.collectionVariables.set('testID', user_id)",
+                  "//    console.log('testID:', pm.collectionVariables.get('testID'));",
+                  "} else {",
+                  "    console.log('JWT not found.');",
+                  "}",
+                  "",
+                  "// console.log('identity_token:', pm.cookies.get(jwt));",
+                  "// pm.collectionVariables.set('testCookie', jwt)",
+                  "",
+                  "pm.test('Check if response is in HTML format', function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('text/html');",
+                  "});",
+                  "",
+                  "pm.test('Check the response content', function () {",
+                  "    const responseBody = pm.response.text();",
+                  "    pm.expect(responseBody).to.include('OAuth2 Authorization with PKCE');",
+                  "    pm.expect(responseBody).to.include('Select the scopes you want to request:');",
+                  "    pm.expect(responseBody).to.include('User service');",
+                  "    pm.expect(responseBody).to.include('Market service');",
+                  "    pm.expect(responseBody).to.include('Gacha service');",
+                  "    pm.expect(responseBody).to.include('Admin service');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /oauth/authorize",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "response_type",
+                  "value": "code",
+                  "type": "text"
+                },
+                {
+                  "key": "client_id",
+                  "value": "beetle-quest",
+                  "type": "text"
+                },
+                {
+                  "key": "redirect_uri",
+                  "value": "/api/v1/auth/tokenPage",
+                  "type": "text"
+                },
+                {
+                  "key": "scope",
+                  "value": "user, gacha, market",
+                  "type": "text"
+                },
+                {
+                  "key": "state",
+                  "value": "RANDOM-VALUE",
+                  "type": "text"
+                },
+                {
+                  "key": "code_challenge",
+                  "value": "VDi1atKAXj6MHF4KFZFeeqoCUb1E9JuQpFMcfAnek7E",
+                  "type": "text"
+                },
+                {
+                  "key": "code_challenge_method",
+                  "value": "S256",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{hostUrl}}/oauth/authorize",
+              "host": ["{{hostUrl}}"],
+              "path": ["oauth", "authorize"]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Check if response is in HTML format', function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('text/html');",
+                  "});",
+                  "pm.test('Check the response content', function () {",
+                  "    const responseBody = pm.response.text();",
+                  "    pm.expect(responseBody).to.include('Step 2: Exchange Code for Token');",
+                  "    pm.expect(responseBody).to.include('Code:');",
+                  "    pm.expect(responseBody).to.include('State:');",
+                  "});",
+                  "",
+                  "pm.test('Extract code and state', function () {",
+                  "   const responseBody = pm.response.text();",
+                  "   const codeStart = responseBody.indexOf('<em id=\"code\" name=\"code\">') + '<em id=\"code\" name=\"code\">'.length;",
+                  "   const codeEnd = responseBody.indexOf('</em>', codeStart);",
+                  "   const codeValue = responseBody.substring(codeStart, codeEnd).trim();",
+                  "",
+                  "   pm.expect(codeValue).to.not.be.empty;",
+                  "   pm.collectionVariables.set('OauthCode', codeValue)",
+                  "//   console.log('Extracted Code:', pm.collectionVariables.get('OauthCode'));",
+                  "",
+                  "",
+                  "   const stateStart = responseBody.indexOf('<em id=\"state\" name=\"state\">') + '<em id=\"state\" name=\"state\">'.length;",
+                  "const stateEnd = responseBody.indexOf('</em>', stateStart);",
+                  "const stateValue = responseBody.substring(stateStart, stateEnd).trim();",
+                  "",
+                  "   pm.expect(stateValue).to.not.be.empty;",
+                  "   pm.collectionVariables.set('OauthState', stateValue);",
+                  "//   console.log('Extracted State:', pm.collectionVariables.get('OauthState'));",
+                  "});",
+                  "",
+                  "const a = pm.request.headers",
+                  "//console.log(a);",
+                  "/*if (jwt) {",
+                  "    const user_id = JSON.parse(atob(jwt.split('.')[1])).sub; ",
+                  "    pm.collectionVariables.set('testID', user_id)",
+                  "//    console.log('testID:', pm.collectionVariables.get('testID'));",
+                  "} else {",
+                  "    console.log('JWT not found.');",
+                  "}*/"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
