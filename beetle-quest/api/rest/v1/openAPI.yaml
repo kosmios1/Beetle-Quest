@@ -135,18 +135,47 @@ paths:
 
     ### OAUTH ###
     /oauth/authorize:
-        post:
+        get:
             tags: [OAuth]
             security:
                 - cookieAuth: []
             servers:
                 - url: https://localhost/
-            requestBody:
-                required: true
-                content:
-                    multipart/form-data:
-                        schema:
-                            $ref: "#/components/schemas/AuthorizeReq"
+            parameters:
+                - name: response_type
+                  in: query
+                  required: true
+                  schema:
+                      type: string
+                      default: code
+                - name: client_id
+                  in: query
+                  required: true
+                  schema:
+                      type: string
+                      default: beetle-quest
+                - name: redirect_uri
+                  in: query
+                  required: true
+                  schema:
+                      type: string
+                      default: "https://localhost/api/v1/auth/tokenPage"
+                - name: state
+                  in: query
+                  required: false
+                  schema:
+                      type: string
+                - name: code_challenge
+                  in: query
+                  required: false
+                  schema:
+                      type: string
+                - name: code_challenge_method
+                  in: query
+                  required: false
+                  schema:
+                      type: string
+                      default: S256
             responses:
                 200:
                     description: ok
@@ -888,26 +917,6 @@ components:
                         admin: Admin scope
 
     schemas:
-        AuthorizeReq:
-            type: object
-            properties:
-                response_type:
-                    type: string
-                    default: code
-                client_id:
-                    type: string
-                    default: beetle-quest
-                redirect_uri:
-                    type: string
-                    default: "https://localhost/api/v1/auth/tokenPage"
-                state:
-                    type: string
-                code_challenge:
-                    type: string
-                code_challenge_method:
-                    type: string
-                    default: S256
-
         TokenReq:
             type: object
             properties:
@@ -942,6 +951,8 @@ components:
                     type: string
                 password:
                     type: string
+                redirect:
+                    type: string
 
         AdminLogin:
             type: object
@@ -951,6 +962,8 @@ components:
                 password:
                     type: string
                 otp_code:
+                    type: string
+                redirect:
                     type: string
 
         PatchUser:

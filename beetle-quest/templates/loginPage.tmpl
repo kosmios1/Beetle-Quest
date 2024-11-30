@@ -1,53 +1,74 @@
-<div class="container" id="auth-container" hx-ext="response-targets">
-    <form
-        hx-post="/api/v1/auth/login"
-        hx-target="#content"
-        hx-target-4xx="#notification-popup"
-        hx-target-5*="#notification-popup"
-        hx-swap="innerHTML"
-        hx-ext="json-enc"
-    >
-        <h2>Login</h2>
-        <label for="login-username">Username:</label>
-        <input type="text" id="login-username" name="username" required />
-        <label for="login-password">Password:</label>
-        <input type="password" id="login-password" name="password" required />
-        <button type="submit">Login</button>
-    </form>
+<!doctype html>
 
-    <form
-        hx-post="/api/v1/auth/register"
-        hx-target="#notification-popup"
-        hx-target-4xx="#notification-popup"
-        hx-target-5*="#notification-popup"
-        hx-swap="innerHTML"
-        hx-ext="json-enc"
-    >
-        <h2>Register</h2>
-        <label for="register-username">Username:</label>
-        <input type="text" id="register-username" name="username" required />
-        <label for="register-password">Password:</label>
-        <input type="password" id="register-password" name="password" required />
-        <label for="register-email">Email:</label>
-        <input type="email" id="register-email" name="email" required />
-        <button type="submit">Register</button>
-    </form>
+<html lang="en">
+    <head>
+        <title>Beetle Quest</title>
+        <link rel="stylesheet" href="/static/styles.css" />
 
-    <form
-        hx-post="/api/v1/auth/admin/login"
-        hx-target="#content"
-        hx-target-4xx="#notification-popup"
-        hx-target-5*="#notification-popup"
-        hx-swap="innerHTML"
-        hx-ext="json-enc"
-    >
-        <h2>Admin Login</h2>
-        <label for="login-admin_id">AdminID:</label>
-        <input type="text" id="login-admin_id" name="admin_id" required />
-        <label for="login-password">Password:</label>
-        <input type="password" id="login-password" name="password" required />
-        <label for="login-otp">OTP:</label>
-        <input type="text" id="login-otp" name="otp_code" required />
-        <button type="submit">Login</button>
-    </form>
-</div>
+        <script src="/static/scripts/index.js"></script>
+        <script src="/static/scripts/htmx.min.js"></script>
+        <script src="/static/scripts/json-enc.js"></script>
+        <script src="/static/scripts/response-targets.js"></script>
+    </head>
+
+    <body hx-ext="response-targets">
+        <div id="content">
+            <div class="container" id="auth-container" hx-ext="response-targets">
+                <form
+                    hx-post="/api/v1/auth/login"
+                    hx-target="#content"
+                    hx-target-4xx="#notification-popup"
+                    hx-target-5*="#notification-popup"
+                    hx-swap="innerHTML"
+                    hx-ext="json-enc"
+                >
+                    <h2>Login</h2>
+                    <label for="login-username">Username:</label>
+                    <input type="text" id="login-username" name="username" required />
+                    <label for="login-password">Password:</label>
+                    <input type="password" id="login-password" name="password" required />
+                    <input type="hidden" id="redirect" name="redirect" value="{{ .Redirect }}" />
+                    <button type="submit">Login</button>
+                </form>
+
+                <form
+                    hx-post="/api/v1/auth/register"
+                    hx-target="#notification-popup"
+                    hx-target-4xx="#notification-popup"
+                    hx-target-5*="#notification-popup"
+                    hx-swap="innerHTML"
+                    hx-ext="json-enc"
+                >
+                    <h2>Register</h2>
+                    <label for="register-username">Username:</label>
+                    <input type="text" id="register-username" name="username" required />
+                    <label for="register-password">Password:</label>
+                    <input type="password" id="register-password" name="password" required />
+                    <label for="register-email">Email:</label>
+                    <input type="email" id="register-email" name="email" required />
+                    <button type="submit">Register</button>
+                </form>
+
+                <form
+                    hx-post="/api/v1/auth/admin/login"
+                    hx-target="#content"
+                    hx-target-4xx="#notification-popup"
+                    hx-target-5*="#notification-popup"
+                    hx-swap="innerHTML"
+                    hx-ext="json-enc"
+                >
+                    <h2>Admin Login</h2>
+                    <label for="login-admin_id">AdminID:</label>
+                    <input type="text" id="login-admin_id" name="admin_id" required />
+                    <label for="login-password">Password:</label>
+                    <input type="password" id="login-password" name="password" required />
+                    <label for="login-otp">OTP:</label>
+                    <input type="text" id="login-otp" name="otp_code" required />
+                    <input type="hidden" id="redirect" name="redirect" value="{{ .Redirect }}" />
+                    <button type="submit">Login</button>
+                </form>
+            </div>
+        </div>
+        <div id="notification-popup" class="notification-popup"></div>
+    </body>
+</html>

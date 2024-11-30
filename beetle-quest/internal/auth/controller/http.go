@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"log"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -85,7 +86,28 @@ func NewAuthController(srv *service.AuthService) *AuthController {
 }
 
 func (c *AuthController) AuthenticationPage(ctx *gin.Context) {
-	ctx.HTML(http.StatusOK, "loginPage.tmpl", gin.H{})
+	redirect, _ := ctx.GetQuery("redirect")
+	if redirect != "" {
+		decodedRedirect, err := url.QueryUnescape(redirect)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": "Failed to decode redirect parameter"})
+			return
+		}
+		parsedURL, err := url.Parse(decodedRedirect)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": "Failed to parse redirect URL"})
+			return
+		}
+		redirectURI := parsedURL.Query().Get("redirect_uri")
+		if redirectURI == "" {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": "Missing redirect_uri in the decoded URL"})
+			return
+		}
+
+		secPolicy := ctx.GetHeader("Content-Security-Policy")
+		ctx.Header("Content-Security-Policy", secPolicy+"; connect-src 'self' "+redirectURI+";")
+	}
+	ctx.HTML(http.StatusOK, "loginPage.tmpl", gin.H{"Redirect": redirect})
 }
 
 func (c *AuthController) AuthorizePage(ctx *gin.Context) {
@@ -154,7 +176,12 @@ func (c *AuthController) Login(ctx *gin.Context) {
 
 	maxAge := token.Claims.(*utils.CustomClaims).ExpiresAt - time.Now().Unix()
 	ctx.SetCookie("identity_token", tokenString, int(maxAge), "/", "", false, true)
-	ctx.Redirect(http.StatusFound, "/api/v1/auth/authorizePage")
+
+	if loginData.Redirect != "" {
+		ctx.Redirect(http.StatusFound, loginData.Redirect)
+	} else {
+		ctx.Redirect(http.StatusFound, "/api/v1/auth/authorizePage")
+	}
 }
 
 func (c *AuthController) Logout(ctx *gin.Context) {
@@ -244,16 +271,16 @@ func (c *AuthController) OauthToken(ctx *gin.Context) {
 func (c *AuthController) userAuthorizationHandler(w http.ResponseWriter, r *http.Request) (userID string, err error) {
 	cookie, err := r.Cookie("identity_token")
 	if err != nil {
-		w.Header().Set("Location", "/api/v1/auth/authPage")
-		w.WriteHeader(http.StatusFound)
-		return "", err
+		redirect := "/api/v1/auth/authPage?redirect=" + url.QueryEscape(r.URL.RequestURI())
+		http.Redirect(w, r, redirect, http.StatusFound)
+		return
 	}
 
 	claims, ok := c.srv.VerifyToken(cookie.Value)
 	if !ok {
-		w.Header().Set("Location", "/api/v1/auth/authPage")
-		w.WriteHeader(http.StatusFound)
-		return "", o2errors.ErrAccessDenied
+		redirect := "/api/v1/auth/authPage?redirect=" + url.QueryEscape(r.URL.RequestURI())
+		http.Redirect(w, r, redirect, http.StatusFound)
+		return
 	}
 
 	return claims["sub"].(string), nil
@@ -265,16 +292,15 @@ func (c *AuthController) authorizeScopeHandler(w http.ResponseWriter, r *http.Re
 		if scope == "admin" {
 			cookie, err := r.Cookie("identity_token")
 			if err != nil {
-				w.Header().Set("Location", "/api/v1/auth/authPage")
-				w.WriteHeader(http.StatusFound)
+				redirect := "/api/v1/auth/authPage?redirect=" + url.QueryEscape(r.URL.RequestURI())
+				http.Redirect(w, r, redirect, http.StatusFound)
 				return "", err
 			}
 
 			claims, ok := c.srv.VerifyToken(cookie.Value)
 			if !ok {
-				w.Header().Set("Location", "/api/v1/auth/authPage")
-				w.WriteHeader(http.StatusFound)
-
+				redirect := "/api/v1/auth/authPage?redirect=" + url.QueryEscape(r.URL.RequestURI())
+				http.Redirect(w, r, redirect, http.StatusFound)
 				return "", o2errors.ErrServerError
 			}
 
@@ -313,5 +339,10 @@ func (c *AuthController) AdminLogin(ctx *gin.Context) {
 
 	maxAge := token.Claims.(*utils.CustomClaims).ExpiresAt - time.Now().Unix()
 	ctx.SetCookie("identity_token", tokenString, int(maxAge), "/", "", false, true)
-	ctx.Redirect(http.StatusFound, "/api/v1/auth/authorizePage")
+
+	if loginData.Redirect != "" {
+		ctx.Redirect(http.StatusFound, loginData.Redirect)
+	} else {
+		ctx.Redirect(http.StatusFound, "/api/v1/auth/authorizePage")
+	}
 }

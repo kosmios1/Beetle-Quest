@@ -37,7 +37,7 @@ func main() {
 
 	oauthPath := r.Group("/oauth")
 	{
-		oauthPath.POST("/authorize", cnt.OauthAuthorize)
+		oauthPath.GET("/authorize", cnt.OauthAuthorize)
 		oauthPath.POST("/token", cnt.OauthToken)
 	}
 

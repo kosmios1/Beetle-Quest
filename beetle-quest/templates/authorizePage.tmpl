@@ -1,5 +1,5 @@
 <h1>OAuth2 Authorization with PKCE</h1>
-<form id="authorizationForm" hx-post="/oauth/authorize" hx-encoding="multipart/form-data" hx-swap="innerHTML" hx-target="#content" hx-on::before-request="submitAuthorizationRequest(event)">
+<form id="authorizationForm" hx-get="/oauth/authorize" hx-swap="innerHTML" hx-target="#content" hx-on::before-request="submitAuthorizationRequest(event)">
     <h2>Step 1: Authorize</h2>
 
     <p>Select the scopes you want to request:</p>
