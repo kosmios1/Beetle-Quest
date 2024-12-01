@@ -344,6 +344,33 @@ func (c *MarketController) GetAllAuctions(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, models.GetAllAuctionDataResponse{AuctionList: auctions})
 }
 
+func (c *MarketController) UpdateAuction(ctx *gin.Context) {
+	var data models.Auction
+	if err := ctx.ShouldBindJSON(&data); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"Error": models.ErrInvalidData})
+		ctx.Abort()
+		return
+	}
+
+	if err := c.srv.UpdateAuction(&data); err != nil {
+		switch err {
+		case models.ErrAuctionNotFound:
+			ctx.JSON(http.StatusNotFound, gin.H{"Error": err.Error()})
+			ctx.Abort()
+			return
+		case models.ErrInternalServerError:
+			ctx.JSON(http.StatusInternalServerError, gin.H{"Error": err.Error()})
+			ctx.Abort()
+			return
+		case models.ErrInvalidData:
+			ctx.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
+			ctx.Abort()
+			return
+		}
+		log.Panicf("Unreachable code, err: %s", err.Error())
+	}
+}
+
 func (c *MarketController) GetTransactionHistory(ctx *gin.Context) {
 	transactions, err := c.srv.GetAllTransactions()
 	if err != nil {

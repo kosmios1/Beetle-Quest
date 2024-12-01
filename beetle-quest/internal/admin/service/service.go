@@ -5,6 +5,7 @@ import (
 	"beetle-quest/pkg/repositories"
 	"beetle-quest/pkg/utils"
 	"strconv"
+	"time"
 )
 
 type AdminService struct {
@@ -227,4 +228,33 @@ func (s *AdminService) FindAuctionByID(auctionId string) (*models.Auction, error
 		return nil, models.ErrInternalServerError
 	}
 	return s.mrepo.FindByID(aid)
+}
+
+func (s *AdminService) UpdateAuction(auctionId string, gachaId string) error {
+	aid, err := utils.ParseUUID(auctionId)
+	if err != nil {
+		return models.ErrInternalServerError
+	}
+
+	gid, err := utils.ParseUUID(gachaId)
+	if err != nil {
+		return models.ErrInternalServerError
+	}
+
+	auction, err := s.mrepo.FindByID(aid)
+	if err != nil {
+		return err
+	}
+
+	gacha, err := s.grepo.FindByID(gid)
+	if err != nil {
+		return err
+	}
+
+	if auction.EndTime.Before(time.Now()) {
+		return models.ErrAuctionEnded
+	}
+
+	auction.GachaID = gacha.GachaID
+	return s.mrepo.Update(auction)
 }

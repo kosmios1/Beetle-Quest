@@ -87,26 +87,6 @@ func NewAuthController(srv *service.AuthService) *AuthController {
 
 func (c *AuthController) AuthenticationPage(ctx *gin.Context) {
 	redirect, _ := ctx.GetQuery("redirect")
-	if redirect != "" {
-		decodedRedirect, err := url.QueryUnescape(redirect)
-		if err != nil {
-			ctx.JSON(http.StatusBadRequest, gin.H{"error": "Failed to decode redirect parameter"})
-			return
-		}
-		parsedURL, err := url.Parse(decodedRedirect)
-		if err != nil {
-			ctx.JSON(http.StatusBadRequest, gin.H{"error": "Failed to parse redirect URL"})
-			return
-		}
-		redirectURI := parsedURL.Query().Get("redirect_uri")
-		if redirectURI == "" {
-			ctx.JSON(http.StatusBadRequest, gin.H{"error": "Missing redirect_uri in the decoded URL"})
-			return
-		}
-
-		secPolicy := ctx.GetHeader("Content-Security-Policy")
-		ctx.Header("Content-Security-Policy", secPolicy+"; connect-src 'self' "+redirectURI+";")
-	}
 	ctx.HTML(http.StatusOK, "loginPage.tmpl", gin.H{"Redirect": redirect})
 }
 

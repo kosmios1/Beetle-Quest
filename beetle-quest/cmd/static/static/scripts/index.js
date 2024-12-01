@@ -47,17 +47,19 @@ async function submitAuthorizationRequest(event) {
         .map((input) => input.value)
         .join(", ");
 
-    const reqBody = new FormData();
-    reqBody.append("response_type", "code");
-    reqBody.append("client_id", CLIENT_ID);
-    reqBody.append("redirect_uri", "/api/v1/auth/tokenPage");
-    reqBody.append("scope", selectedScopes);
-    reqBody.append("state", state);
-    reqBody.append("code_challenge", codeChallenge);
-    reqBody.append("code_challenge_method", "S256");
+    const queryParams = new URLSearchParams({
+        response_type: "code",
+        client_id: CLIENT_ID,
+        redirect_uri: "/api/v1/auth/tokenPage",
+        scope: selectedScopes,
+        state: state,
+        code_challenge: codeChallenge,
+        code_challenge_method: "S256",
+    }).toString();
 
     const xhr = event.detail.xhr;
-    xhr.send(reqBody);
+    xhr.open("GET", `/oauth/authorize?${queryParams}`);
+    xhr.send();
 }
 
 async function submitTokenRequest(event) {

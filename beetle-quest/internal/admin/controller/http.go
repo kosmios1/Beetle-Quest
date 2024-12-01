@@ -313,7 +313,38 @@ func (cnt *AdminController) GetMarketHistory(ctx *gin.Context) {
 }
 
 func (cnt *AdminController) UpdateAuction(ctx *gin.Context) {
-	ctx.Status(http.StatusNotImplemented) // TODO: Implement this
+	var data models.AdminUpdateAuctionRequest
+	if err := ctx.ShouldBindJSON(&data); err != nil {
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
+		ctx.Abort()
+		return
+	}
+
+	auctionId := ctx.Param("auction_id")
+	if auctionId == "" {
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": models.ErrInvalidData.Error()})
+		ctx.Abort()
+		return
+	}
+
+	if err := cnt.srv.UpdateAuction(auctionId, data.GachaID); err != nil {
+		switch err {
+		case models.ErrInternalServerError:
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err.Error()})
+			ctx.Abort()
+			return
+		case models.ErrAuctionNotFound, models.ErrGachaNotFound:
+			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err.Error()})
+			ctx.Abort()
+			return
+		case models.ErrInvalidData:
+			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
+			ctx.Abort()
+			return
+		}
+		log.Panicf("Unreachable code, err: %s", err.Error())
+	}
+	ctx.JSON(http.StatusOK, gin.H{"Message": "Auction updated successfully!"})
 }
 
 func (cnt *AdminController) GetAllAuctions(ctx *gin.Context) {

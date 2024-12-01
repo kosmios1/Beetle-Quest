@@ -21,6 +21,8 @@ var (
 	getAllTransactionsEndpoint           = os.Getenv("GET_ALL_TRANSACTIONS_ENDPOINT")
 	getUserTransactionHistoryEndpoint    = os.Getenv("GET_USER_TRANSACTION_HISTORY_ENDPOINT")
 	deleteUserTransactionHistoryEndpoint = os.Getenv("DELETE_USER_TRANSACTION_HISTORY_ENDPOINT")
+
+	updateAuctionEndpoint = os.Getenv("UPDATE_AUCTION_ENDPOINT")
 )
 
 type MarketRepo struct {
@@ -303,10 +305,50 @@ func (r *MarketRepo) GetUserAuctions(uid models.UUID) ([]models.Auction, error) 
 	return nil, models.ErrInternalServerError
 }
 
+func (r *MarketRepo) Update(auction *models.Auction) error {
+	jsonData, err := json.Marshal(auction)
+	if err != nil {
+		return models.ErrInternalServerError
+	}
+
+	resp, err := r.cb.Execute(func() (*http.Response, error) {
+		resp, err := r.client.Post(
+			updateAuctionEndpoint,
+			"application/json",
+			bytes.NewBuffer(jsonData),
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		return resp, nil
+	})
+	if err != nil {
+		return models.ErrInternalServerError
+	}
+	defer resp.Body.Close()
+
+	switch resp.StatusCode {
+	case http.StatusInternalServerError:
+		return models.ErrInternalServerError
+	case http.StatusNotFound:
+		return models.ErrAuctionNotFound
+	case http.StatusBadRequest:
+		return models.ErrInvalidData
+	}
+
+	if resp.StatusCode == http.StatusOK {
+		return nil
+	}
+
+	log.Panicf("Unreachable code, status code received: %d", resp.StatusCode)
+	return models.ErrInternalServerError
+}
+
 // Not to be implemented, never used
 
 func (r *MarketRepo) Create(*models.Auction) error { return nil }
-func (r *MarketRepo) Update(*models.Auction) error { return nil }
 func (r *MarketRepo) Delete(*models.Auction) error { return nil }
 func (r *MarketRepo) GetBidListOfAuction(models.UUID) ([]models.Bid, error) {
 	return []models.Bid{}, nil

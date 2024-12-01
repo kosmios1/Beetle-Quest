@@ -57,6 +57,8 @@ func main() {
 
 	internalPath := r.Group("/api/v1/internal/market")
 	{
+
+		internalPath.PATCH("/auction/update", cnt.UpdateAuction)
 		internalPath.POST("/auction/find_by_id", cnt.FindAuctionByID)
 		internalPath.GET("/auction/get_all", cnt.GetAllAuctions)
 		internalPath.POST("/auction/get_user_auctions", cnt.GetUserAuctions)

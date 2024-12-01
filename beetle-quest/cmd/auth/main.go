@@ -6,6 +6,7 @@ import (
 
 	entrypoint "beetle-quest/internal/auth/entrypoints"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/secure"
 	"github.com/gin-gonic/gin"
 )
@@ -28,6 +29,8 @@ func main() {
 		SSLProxyHeaders:       map[string]string{"X-Forwarded-Proto": "https"},
 		AllowedHosts:          []string{},
 	}))
+
+	r.Use(cors.Default())
 	r.LoadHTMLGlob("templates/*")
 
 	cnt, err := entrypoint.NewAuthController()

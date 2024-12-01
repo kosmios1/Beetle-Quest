@@ -103,6 +103,10 @@ type GetAllAuctionDataResponse struct {
 	AuctionList []Auction `json:"AuctionList"`
 }
 
+type AdminUpdateAuctionRequest struct {
+	GachaID string `json:"gacha_id"`
+}
+
 // ============================================
 // Internal models
 // ============================================

@@ -69,7 +69,6 @@ func (s *MarketService) AddBugsCoin(userId string, amount int64) error {
 		if err != models.ErrUserNotFound {
 			// NOTE: Because the client should not know how we are updating the user in the backend
 			//  and an error like models.ErrUsernameOrEmailAlreadyExists should not be reported
-			// TODO: problem
 			return models.ErrInternalServerError
 		}
 		return err
@@ -152,7 +151,6 @@ func (s *MarketService) RollGacha(userId string) (string, error) {
 		if err != models.ErrUserNotFound {
 			// Because the client should not know how we are updating the user in the backend
 			//  and an error like models.ErrUsernameOrEmailAlreadyExists should not be reported
-			// TODO: Problem
 			return "", models.ErrInternalServerError
 		}
 		return "", err
@@ -170,7 +168,6 @@ func (s *MarketService) RollGacha(userId string) (string, error) {
 		if err != models.ErrUserNotFound {
 			// Because the client should not know how we are updating the user in the backend
 			//  and an error like models.ErrUsernameOrEmailAlreadyExists should not be reported
-			// TODO: Problem
 			return "", models.ErrInternalServerError
 		}
 		return "", err
@@ -682,7 +679,6 @@ func (s *MarketService) closeAuctionCallback(aid models.UUID) {
 		user.Currency += maxBid
 		if err := s.urepo.Update(user); err != nil {
 			s.closeAuctionErrorCallback(models.ErrCouldNotUpdate)
-			// TODO: What should we do here ?
 			return
 		}
 	}
@@ -696,6 +692,10 @@ func (s *MarketService) closeAuctionErrorCallback(err error) {
 
 func (s *MarketService) GetAuctionList() ([]models.Auction, error) {
 	return s.mrepo.GetAll()
+}
+
+func (s *MarketService) UpdateAuction(auction *models.Auction) error {
+	return s.mrepo.Update(auction)
 }
 
 func (s *MarketService) GetAuctionListOfUser(uid models.UUID) ([]models.Auction, error) {
