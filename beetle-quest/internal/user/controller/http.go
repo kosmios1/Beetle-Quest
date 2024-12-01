@@ -164,14 +164,14 @@ func (c *UserController) GetAllUsers(ctx *gin.Context) {
 }
 
 func (c *UserController) CreateUser(ctx *gin.Context) {
-	var req models.CreateUserData
-	if err := ctx.ShouldBindJSON(&req); err != nil {
+	var data models.User
+	if err := ctx.ShouldBindJSON(&data); err != nil {
 		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": models.ErrInvalidData})
 		ctx.Abort()
 		return
 	}
 
-	if err := c.srv.Create(req.Email, req.Username, req.HashedPassword, req.Currency); err != nil {
+	if err := c.srv.Create(&data); err != nil {
 		switch err {
 		case models.ErrInternalServerError:
 			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err.Error()})

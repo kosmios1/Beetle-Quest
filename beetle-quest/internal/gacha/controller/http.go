@@ -74,7 +74,7 @@ func (c *GachaController) GetGachaDetails(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, models.GetGachaDetailsResponse{
 		GachaID:   gacha.GachaID.String(),
 		Name:      gacha.Name,
-		Rarity:    string(gacha.Rarity),
+		Rarity:    gacha.Rarity.String(),
 		Price:     gacha.Price,
 		ImagePath: gacha.ImagePath,
 	})

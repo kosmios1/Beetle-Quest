@@ -133,8 +133,8 @@ func (s *UserService) GetAllUsers() ([]models.User, error) {
 	return s.urepo.GetAll()
 }
 
-func (s *UserService) Create(email, username string, hashedPassword []byte, currency int64) error {
-	return s.urepo.Create(email, username, hashedPassword, currency)
+func (s *UserService) Create(user *models.User) error {
+	return s.urepo.Create(user)
 }
 
 func (s *UserService) Update(user *models.User) error {

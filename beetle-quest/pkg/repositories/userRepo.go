@@ -7,7 +7,7 @@ import (
 type UserRepo interface {
 	GetAll() ([]models.User, error)
 
-	Create(email, username string, hashedPassword []byte, currency int64) error
+	Create(user *models.User) error
 	Update(user *models.User) error
 	Delete(user *models.User) error
 

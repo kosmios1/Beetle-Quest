@@ -10,6 +10,7 @@ import (
 	grepo "beetle-quest/pkg/repositories/impl/mock/gacha"
 	mrepo "beetle-quest/pkg/repositories/impl/mock/market"
 	urepo "beetle-quest/pkg/repositories/impl/mock/user"
+	"beetle-quest/pkg/utils"
 )
 
 func NewMarketController() (*controller.MarketController, error) {
@@ -18,7 +19,7 @@ func NewMarketController() (*controller.MarketController, error) {
 			urepo.NewUserRepo(),
 			grepo.NewGachaRepo(),
 			mrepo.NewMarketRepo(),
-			evrepo.NewEventRepo(),
+			utils.PanicIfError[*evrepo.EventRepo](evrepo.NewEventRepo()),
 		),
 	), nil
 }

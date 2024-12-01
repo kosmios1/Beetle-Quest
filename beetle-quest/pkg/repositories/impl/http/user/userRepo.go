@@ -85,15 +85,8 @@ func (r *UserRepo) GetAll() ([]models.User, error) {
 	return nil, models.ErrInternalServerError
 }
 
-func (r *UserRepo) Create(email, username string, hashedPassword []byte, currency int64) error {
-	requestData := models.CreateUserData{
-		Email:          email,
-		Username:       username,
-		HashedPassword: hashedPassword,
-		Currency:       currency,
-	}
-
-	jsonData, err := json.Marshal(requestData)
+func (r *UserRepo) Create(user *models.User) error {
+	jsonData, err := json.Marshal(user)
 	if err != nil {
 		return models.ErrInternalServerError
 	}

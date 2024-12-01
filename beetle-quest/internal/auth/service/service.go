@@ -39,7 +39,15 @@ func (s *AuthService) Register(email, username, password string) error {
 		return models.ErrInternalServerError
 	}
 
-	if err := s.userRepo.Create(email, username, hashedPassword, 200); err != nil {
+	user := models.User{
+		UserID:       utils.GenerateUUID(),
+		Email:        email,
+		Username:     username,
+		PasswordHash: hashedPassword,
+		Currency:     200,
+	}
+
+	if err := s.userRepo.Create(&user); err != nil {
 		return err
 	}
 

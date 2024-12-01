@@ -3,6 +3,7 @@ package repository
 import (
 	"beetle-quest/pkg/models"
 	"beetle-quest/pkg/utils"
+	"log"
 	"sync"
 )
 
@@ -33,12 +34,12 @@ func (r *UserRepo) GetAll() ([]models.User, error) {
 	return values, nil
 }
 
-func (r *UserRepo) Create(email, username string, hashedPassword []byte, currency int64) error {
+func (r *UserRepo) Create(user *models.User) error {
 	r.mux.RLock()
 	uuid := utils.GenerateUUID()
 
-	for _, user := range r.users {
-		if user.Email == email || user.Username == username {
+	for _, u := range r.users {
+		if user.Email == u.Email || user.Username == u.Username {
 			return models.ErrUsernameOrEmailAlreadyExists
 		}
 	}
@@ -50,13 +51,7 @@ func (r *UserRepo) Create(email, username string, hashedPassword []byte, currenc
 
 	r.mux.Lock()
 	defer r.mux.Unlock()
-	r.users[uuid] = models.User{
-		UserID:       uuid,
-		Username:     username,
-		Email:        email,
-		Currency:     currency,
-		PasswordHash: hashedPassword,
-	}
+	r.users[uuid] = *user
 	return nil
 }
 
@@ -123,18 +118,21 @@ func (r *UserRepo) FindByUsername(username string) (*models.User, error) {
 func populateMockRepo(repo *UserRepo) {
 	mockUsers := []models.User{
 		{
+			UserID:       utils.PanicIfError[models.UUID](utils.ParseUUID("02b84c2f-6b7d-48fd-9850-35610a1d4373")),
 			Username:     "Alice",
 			Email:        "alice@example.com",
 			Currency:     200,
 			PasswordHash: utils.PanicIfError(utils.GenerateHashFromPassword([]byte("password"))),
 		},
 		{
+			UserID:       utils.PanicIfError[models.UUID](utils.ParseUUID("744a2f4d-a693-4352-916e-64f4ef94b709")),
 			Username:     "Bob",
 			Email:        "bob@example.com",
 			Currency:     200,
 			PasswordHash: utils.PanicIfError(utils.GenerateHashFromPassword([]byte("password"))),
 		},
 		{
+			UserID:       utils.PanicIfError[models.UUID](utils.ParseUUID("7712a483-1202-4225-8dca-0d2d2b60f403")),
 			Username:     "Charlie",
 			Email:        "charlie@example.com",
 			Currency:     200,
@@ -143,6 +141,8 @@ func populateMockRepo(repo *UserRepo) {
 	}
 
 	for _, user := range mockUsers {
-		repo.Create(user.Email, user.Email, user.PasswordHash, user.Currency)
+		if err := repo.Create(&user); err != nil {
+			log.Fatal("[FATAL] Could not create user in mock repo!")
+		}
 	}
 }

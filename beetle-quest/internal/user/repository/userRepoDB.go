@@ -54,14 +54,8 @@ func (r *UserRepo) GetAll() ([]models.User, error) {
 	return users, nil
 }
 
-func (r *UserRepo) Create(email, username string, hashedPassword []byte, currency int64) error {
-	result := r.db.Table("users").Create(&models.User{
-		UserID:       utils.GenerateUUID(),
-		Username:     username,
-		Email:        email,
-		PasswordHash: hashedPassword,
-		Currency:     currency,
-	})
+func (r *UserRepo) Create(user *models.User) error {
+	result := r.db.Table("users").Create(user)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrDuplicatedKey) {
 			return models.ErrUsernameOrEmailAlreadyExists

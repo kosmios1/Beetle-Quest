@@ -96,9 +96,9 @@ func (r *GachaRepo) FindByID(gid models.UUID) (*models.Gacha, error) {
 
 func (r *GachaRepo) AddGachaToUser(uid, gid models.UUID) error {
 	r.mux.RLock()
-	if _, ok := r.userGachas[uid]; !ok {
-		return models.ErrInternalServerError
-	}
+	// if _, ok := r.userGachas[uid]; !ok {
+	// 	return models.ErrInternalServerError
+	// }
 
 	gachas := r.userGachas[uid]
 	for _, gachaID := range gachas {
@@ -177,25 +177,29 @@ func (r *GachaRepo) GetUserGachas(uid models.UUID) ([]models.Gacha, error) {
 func populateMockRepo(repo *GachaRepo) {
 	{ // Add Gachas
 		gachas := []models.Gacha{
-			{GachaID: utils.GenerateUUID(), Name: "Tank Mole Cricket", Rarity: models.Rarity(0), Price: 3000, ImagePath: "/static/images/tank_mole-cricket_common.webp"},
-			{GachaID: utils.GenerateUUID(), Name: "Warrior Locust", Rarity: models.Rarity(0), Price: 3000, ImagePath: "/static/images/warrior_locust_common.webp"},
-			{GachaID: utils.GenerateUUID(), Name: "Warrior Cricket", Rarity: models.Rarity(0), Price: 3000, ImagePath: "/static/images/warrior_cricket_common.webp"},
-			{GachaID: utils.GenerateUUID(), Name: "Munich Grasshopper", Rarity: models.Rarity(0), Price: 3000, ImagePath: "/static/images/munich_grasshopper_common.webp"},
-			{GachaID: utils.GenerateUUID(), Name: "Warrior Centipede", Rarity: models.Rarity(1), Price: 5000, ImagePath: "/static/images/warrior_centipede_uncommon.webp"},
-			{GachaID: utils.GenerateUUID(), Name: "Priest Cicada", Rarity: models.Rarity(1), Price: 5000, ImagePath: "/static/images/priest_cicada_uncommon.webp"},
-			{GachaID: utils.GenerateUUID(), Name: "Mage Mosquito", Rarity: models.Rarity(1), Price: 5000, ImagePath: "/static/images/mage_mosquito_uncommon.webp"},
-			{GachaID: utils.GenerateUUID(), Name: "Druid Bee", Rarity: models.Rarity(1), Price: 5000, ImagePath: "/static/images/druid_bee_uncommon.webp"},
-			{GachaID: utils.GenerateUUID(), Name: "Warrior Beetle", Rarity: models.Rarity(2), Price: 7000, ImagePath: "/static/images/warrior_beetle_rare.webp"},
-			{GachaID: utils.GenerateUUID(), Name: "Tank Bee 1", Rarity: models.Rarity(2), Price: 7000, ImagePath: "/static/images/tank_bee_rare.webp"},
-			{GachaID: utils.GenerateUUID(), Name: "Priest Moth", Rarity: models.Rarity(2), Price: 7000, ImagePath: "/static/images/priest_moth_rare.webp"},
-			{GachaID: utils.GenerateUUID(), Name: "Druid Butterfly 1", Rarity: models.Rarity(2), Price: 7000, ImagePath: "/static/images/druid_butterfly_rare.webp"},
-			{GachaID: utils.GenerateUUID(), Name: "Assassin Mosquito", Rarity: models.Rarity(2), Price: 7000, ImagePath: "/static/images/assassin_mosquito_rare.webp"},
+			{GachaID: utils.PanicIfError[models.UUID](utils.ParseUUID("f6975151-5554-4160-b3cd-2d5aab548ccf")), Name: "Tank Mole Cricket", Rarity: models.Rarity(0), Price: 3000, ImagePath: "/static/images/tank_mole-cricket_common.webp"},
+			{GachaID: utils.PanicIfError[models.UUID](utils.ParseUUID("7219d1c4-d71b-4603-9bbc-ce902bb3d895")), Name: "Warrior Locust", Rarity: models.Rarity(0), Price: 3000, ImagePath: "/static/images/warrior_locust_common.webp"},
+			{GachaID: utils.PanicIfError[models.UUID](utils.ParseUUID("2e80dca8-51f4-46c9-9546-81c7cf78a4f7")), Name: "Warrior Cricket", Rarity: models.Rarity(0), Price: 3000, ImagePath: "/static/images/warrior_cricket_common.webp"},
+			{GachaID: utils.PanicIfError[models.UUID](utils.ParseUUID("5a518a08-9c1d-4a1b-a6bf-191b3eb83456")), Name: "Munich Grasshopper", Rarity: models.Rarity(0), Price: 3000, ImagePath: "/static/images/munich_grasshopper_common.webp"},
+			{GachaID: utils.PanicIfError[models.UUID](utils.ParseUUID("4b00f833-ac14-4f54-9ad0-9527b96d42b5")), Name: "Warrior Centipede", Rarity: models.Rarity(1), Price: 5000, ImagePath: "/static/images/warrior_centipede_uncommon.webp"},
+			{GachaID: utils.PanicIfError[models.UUID](utils.ParseUUID("ed46194c-08b3-45a7-b735-7168a49f43ac")), Name: "Priest Cicada", Rarity: models.Rarity(1), Price: 5000, ImagePath: "/static/images/priest_cicada_uncommon.webp"},
+			{GachaID: utils.PanicIfError[models.UUID](utils.ParseUUID("96f8ced4-0305-43ad-9e52-779013fa8502")), Name: "Mage Mosquito;", Rarity: models.Rarity(1), Price: 5000, ImagePath: "/static/images/mage_mosquito_uncommon.webp"},
+			{GachaID: utils.PanicIfError[models.UUID](utils.ParseUUID("6f5d6b25-4b87-44f8-8878-3f06e6c9239c")), Name: "Druid Bee", Rarity: models.Rarity(1), Price: 5000, ImagePath: "/static/images/druid_bee_uncommon.webp"},
+			{GachaID: utils.PanicIfError[models.UUID](utils.ParseUUID("c6cae6d7-e6aa-49c2-a5a3-5b6b2f435e6f")), Name: "Warrior Beetle", Rarity: models.Rarity(2), Price: 7000, ImagePath: "/static/images/warrior_beetle_rare.webp"},
+			{GachaID: utils.PanicIfError[models.UUID](utils.ParseUUID("eda3bd94-322a-44fb-8268-b596cacb77c3")), Name: "Tank Bee 1", Rarity: models.Rarity(2), Price: 7000, ImagePath: "/static/images/tank_bee_rare.webp"},
+			{GachaID: utils.PanicIfError[models.UUID](utils.ParseUUID("05311293-f0bf-4bbd-a879-72183c4cdab8")), Name: "Priest Moth", Rarity: models.Rarity(2), Price: 7000, ImagePath: "/static/images/priest_moth_rare.webp"},
+			{GachaID: utils.PanicIfError[models.UUID](utils.ParseUUID("e455113c-655c-478d-bd24-b2a59c11e1f3")), Name: "Druid Butterfly 1", Rarity: models.Rarity(2), Price: 7000, ImagePath: "/static/images/druid_butterfly_rare.webp"},
+			{GachaID: utils.PanicIfError[models.UUID](utils.ParseUUID("deb88718-311a-4aa1-a9da-afe2a901d5f6")), Name: "Assassin Mosquito", Rarity: models.Rarity(2), Price: 7000, ImagePath: "/static/images/assassin_mosquito_rare.webp"},
 		}
 
 		for _, g := range gachas {
 			repo.gachas[g.GachaID] = g
 		}
 	}
+
+	bobUID := utils.PanicIfError[models.UUID](utils.ParseUUID("744a2f4d-a693-4352-916e-64f4ef94b709"))
+	repo.userGachas[bobUID] = make([]models.UUID, 0)
+	repo.userGachas[bobUID] = append(repo.userGachas[bobUID], utils.PanicIfError[models.UUID](utils.ParseUUID("96f8ced4-0305-43ad-9e52-779013fa8502")))
 
 	// TODO: populate the userGachas map
 }

@@ -1,4 +1,4 @@
-//go:build !beetleQuestTest
+//go:build beetleQuestTest
 
 package middleware
 
@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt"
 )
 
 var (
@@ -33,30 +34,18 @@ func CheckAdminJWTAuthorizationToken(requestedScope models.Scope) gin.HandlerFun
 		}
 
 		accessToken := parsedAuthHeader[1]
-		claims, err := utils.VerifyJWTToken(accessToken, jwtSecretKey)
+		claims := jwt.MapClaims{}
+		_, err := jwt.ParseWithClaims(accessToken, claims, func(token *jwt.Token) (interface{}, error) {
+			return jwtSecretKey, nil
+		})
+
 		if err != nil {
-			ctx.HTML(http.StatusUnauthorized, "errorMsg.tmpl", gin.H{"Error": "Unauthorized access."})
+			ctx.HTML(http.StatusUnauthorized, "errorMsg.tmpl", gin.H{"Error": err})
 			ctx.Abort()
 			return
 		}
 
-		if claims.Valid() != nil {
-			ctx.HTML(http.StatusUnauthorized, "errorMsg.tmpl", gin.H{"Error": "Unauthorized access."})
-			ctx.Abort()
-			return
-		}
-
-		scope := claims["scope"].(string)
-		scopes := strings.Split(scope, ", ")
-		for _, s := range scopes {
-			if models.Scope(s) == models.AdminScope {
-				ctx.Set("admin_id", claims["sub"])
-				ctx.Next()
-				return
-			}
-		}
-
-		ctx.HTML(http.StatusUnauthorized, "errorMsg.tmpl", gin.H{"Error": "Unauthorized access."})
-		ctx.Abort()
+		ctx.Set("admin_id", claims["sub"])
+		ctx.Next()
 	}
 }
