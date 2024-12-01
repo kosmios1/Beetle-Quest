@@ -982,7 +982,7 @@ components:
             type: object
             properties:
                 amount:
-                    type: integer
+                    type: string
 
         CreateAuction:
             type: object

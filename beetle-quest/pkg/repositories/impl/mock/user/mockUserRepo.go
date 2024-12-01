@@ -36,7 +36,6 @@ func (r *UserRepo) GetAll() ([]models.User, error) {
 
 func (r *UserRepo) Create(user *models.User) error {
 	r.mux.RLock()
-	uuid := utils.GenerateUUID()
 
 	for _, u := range r.users {
 		if user.Email == u.Email || user.Username == u.Username {
@@ -44,14 +43,14 @@ func (r *UserRepo) Create(user *models.User) error {
 		}
 	}
 
-	if _, ok := r.users[uuid]; ok {
+	if _, ok := r.users[user.UserID]; ok {
 		return models.ErrInternalServerError
 	}
 	r.mux.RUnlock()
 
 	r.mux.Lock()
 	defer r.mux.Unlock()
-	r.users[uuid] = *user
+	r.users[user.UserID] = *user
 	return nil
 }
 
