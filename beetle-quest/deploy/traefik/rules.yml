@@ -33,6 +33,7 @@ http:
                     ca: /certs/cacert.pem
                     cert: /certs/client_internal_cert.pem
                     key: /certs/client_internal_key.pem
+
         service-health-check:
             circuitBreaker:
                 expression: "ResponseCodeRatio(500, 600, 0, 600) > 0.25 || NetworkErrorRatio() > 0.33"
@@ -40,22 +41,7 @@ http:
                 FallbackDuration: 1s
                 RecoveryDuration: 3s
 
-        # root-redirect:
-        #     redirectRegex:
-        #         regex: "^https://localhost/$"
-        #         replacement: "https://localhost/static"
-
     routers:
-        # redirect-service:
-        #     rule: "PathPrefix(`/`) && Host(`localhost`)"
-        #     entryPoints:
-        #         - websec
-        #     service: static-service
-        #     priority: 1
-        #     tls: true
-        #     middlewares:
-        #         - "root-redirect"
-
         admin-service:
             rule: "PathPrefix(`/api/v1/admin`) && (Host(`localhost`) || Host(`reverse-proxy`))"
             entryPoints:
@@ -119,6 +105,39 @@ http:
             tls: true
             middlewares:
                 - "service-health-check"
+
+        # New router for internal service paths
+        internal-user-service:
+            rule: "PathPrefix(`/api/v1/internal/user`) && Host(`reverse-proxy`)"
+            entryPoints:
+                - websec
+            service: user-service
+            priority: 1
+            tls: true
+
+        internal-gacha-service:
+            rule: "PathPrefix(`/api/v1/internal/gacha`) && Host(`reverse-proxy`)"
+            entryPoints:
+                - websec
+            service: gacha-service
+            priority: 1
+            tls: true
+
+        internal-market-service:
+            rule: "PathPrefix(`/api/v1/internal/market`) && Host(`reverse-proxy`)"
+            entryPoints:
+                - websec
+            service: market-service
+            priority: 1
+            tls: true
+
+        internal-admin-service:
+            rule: "PathPrefix(`/api/v1/internal/admin`) && Host(`reverse-proxy`)"
+            entryPoints:
+                - websec
+            service: admin-service
+            priority: 1
+            tls: true
 
     services:
         admin-service:

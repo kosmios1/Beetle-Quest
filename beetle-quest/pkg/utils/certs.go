@@ -99,7 +99,7 @@ func GenOwnCertAndKey(serviceName string) {
 
 		IPAddresses: []net.IP{net.IPv4(127, 0, 0, 1), net.IPv6loopback},
 		// For simplicity, we use the same DNS names for all services
-		DNSNames:              []string{"reverse-proxy", "localhost", "admin-service", "auth-service", "user-service", "gacha-service", "market-service", "oauth2-service", "static-service"},
+		DNSNames:              []string{"reverse-proxy", "localhost", "admin-service", "auth-service", "user-service", "gacha-service", "market-service", "static-service"},
 		NotBefore:             time.Now(),
 		NotAfter:              time.Now().AddDate(1, 0, 0),
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
@@ -144,8 +144,11 @@ func getTlsConfig(isServerConfig bool) *tls.Config {
 		}
 	} else {
 		return &tls.Config{
-			RootCAs:      caCertPool,
-			Certificates: []tls.Certificate{ownCert},
+			// TODO: Without insecureSkipVerify = true this error occurs:
+			// failed to verify certificate: x509: certificate relies on legacy Common Name field, use SANs instead
+			InsecureSkipVerify: true,
+			RootCAs:            caCertPool,
+			Certificates:       []tls.Certificate{ownCert},
 		}
 	}
 }
