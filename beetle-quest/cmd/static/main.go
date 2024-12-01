@@ -1,37 +1,26 @@
 package main
 
 import (
-	"beetle-quest/pkg/utils"
 	"embed"
 	_ "embed"
 	"io/fs"
 	"log"
 	"net/http"
 
-	"github.com/gin-contrib/secure"
 	"github.com/gin-gonic/gin"
+
+	"beetle-quest/pkg/httpserver"
+	packageMiddleware "beetle-quest/pkg/middleware/secure"
 )
 
 //go:embed static
 var staticFiles embed.FS
 
 func main() {
-	utils.GenOwnCertAndKey("static-service")
+	httpserver.GenOwnCertAndKey("static-service")
 	r := gin.Default()
 	r.Use(gin.Recovery())
-	r.Use(secure.New(secure.Config{
-		SSLRedirect:           true,
-		IsDevelopment:         false,
-		STSSeconds:            315360000,
-		STSIncludeSubdomains:  true,
-		FrameDeny:             true,
-		ContentTypeNosniff:    true,
-		BrowserXssFilter:      true,
-		ContentSecurityPolicy: "default-src 'self'; img-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self'",
-		IENoOpen:              true,
-		SSLProxyHeaders:       map[string]string{"X-Forwarded-Proto": "https"},
-		AllowedHosts:          []string{},
-	}))
+	r.Use(packageMiddleware.NewSecureMiddleware())
 
 	staticFS, err := fs.Sub(staticFiles, "static")
 	if err != nil {
@@ -39,8 +28,6 @@ func main() {
 	}
 	r.StaticFS("/static", http.FS(staticFS))
 
-	server := utils.SetupHTPPSServer(r)
-	if err := server.ListenAndServeTLS("/serverCert.pem", "/serverKey.pem"); err != nil {
-		log.Fatal("Failed to start server: ", err)
-	}
+	server := httpserver.SetupHTPPSServer(r)
+	httpserver.ListenAndServe(server)
 }

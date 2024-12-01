@@ -1,35 +1,24 @@
 package main
 
 import (
-	"beetle-quest/pkg/middleware"
+	"beetle-quest/pkg/httpserver"
+	middleware "beetle-quest/pkg/middleware/authorization"
 	"beetle-quest/pkg/models"
-	"beetle-quest/pkg/utils"
 	"log"
 
-	"github.com/gin-contrib/secure"
 	"github.com/gin-gonic/gin"
 
 	entrypoint "beetle-quest/internal/market/entrypoints"
+
+	packageMiddleware "beetle-quest/pkg/middleware/secure"
 )
 
 func main() {
-	utils.GenOwnCertAndKey("market-service")
+	httpserver.GenOwnCertAndKey("market-service")
 
 	r := gin.Default()
 	r.Use(gin.Recovery())
-	r.Use(secure.New(secure.Config{
-		SSLRedirect:           true,
-		IsDevelopment:         false,
-		STSSeconds:            315360000,
-		STSIncludeSubdomains:  true,
-		FrameDeny:             true,
-		ContentTypeNosniff:    true,
-		BrowserXssFilter:      true,
-		ContentSecurityPolicy: "default-src 'self'; img-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self'",
-		IENoOpen:              true,
-		SSLProxyHeaders:       map[string]string{"X-Forwarded-Proto": "https"},
-		AllowedHosts:          []string{},
-	}))
+	r.Use(packageMiddleware.NewSecureMiddleware())
 
 	r.LoadHTMLGlob("templates/*")
 
@@ -68,8 +57,6 @@ func main() {
 		internalPath.POST("/delete_user_transaction_history", cnt.DeleteUserTransactionHistory)
 	}
 
-	server := utils.SetupHTPPSServer(r)
-	if err := server.ListenAndServeTLS("/serverCert.pem", "/serverKey.pem"); err != nil {
-		log.Fatal("Failed to start server: ", err)
-	}
+	server := httpserver.SetupHTPPSServer(r)
+	httpserver.ListenAndServe(server)
 }

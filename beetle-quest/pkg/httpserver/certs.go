@@ -1,4 +1,6 @@
-package utils
+//go:build !beetleQuestTest
+
+package httpserver
 
 import (
 	"crypto/rand"
@@ -169,4 +171,10 @@ func SetupHTTPSClient() *http.Client {
 	transport := &http.Transport{TLSClientConfig: tlsConfig}
 	client := &http.Client{Transport: transport}
 	return client
+}
+
+func ListenAndServe(srv *http.Server) {
+	if err := srv.ListenAndServeTLS(serverCertPath, serverKeyPath); err != nil {
+		log.Fatal("Failed to start server: ", err)
+	}
 }

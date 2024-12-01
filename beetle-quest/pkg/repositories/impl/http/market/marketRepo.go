@@ -1,8 +1,8 @@
 package repository
 
 import (
+	"beetle-quest/pkg/httpserver"
 	"beetle-quest/pkg/models"
-	"beetle-quest/pkg/utils"
 	"bytes"
 	"encoding/json"
 	"log"
@@ -32,7 +32,7 @@ type MarketRepo struct {
 
 func NewMarketRepo() *MarketRepo {
 	return &MarketRepo{
-		client: utils.SetupHTTPSClient(),
+		client: httpserver.SetupHTTPSClient(),
 		// closed: ok, open: service does not respond
 		cb: gobreaker.NewCircuitBreaker[*http.Response](gobreaker.Settings{
 			MaxRequests: 5,

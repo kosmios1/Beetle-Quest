@@ -1,36 +1,24 @@
 package main
 
 import (
-	"beetle-quest/pkg/middleware"
+	"beetle-quest/pkg/httpserver"
+	middleware "beetle-quest/pkg/middleware/authorization"
 	"beetle-quest/pkg/models"
-	"beetle-quest/pkg/utils"
-	"log"
 
 	entrypoint "beetle-quest/internal/user/entrypoints"
 	internalMiddleware "beetle-quest/internal/user/middleware"
 
-	"github.com/gin-contrib/secure"
 	"github.com/gin-gonic/gin"
+
+	packageMiddleware "beetle-quest/pkg/middleware/secure"
 )
 
 func main() {
-	utils.GenOwnCertAndKey("user-service")
+	httpserver.GenOwnCertAndKey("user-service")
 
 	r := gin.Default()
 	r.Use(gin.Recovery())
-	r.Use(secure.New(secure.Config{
-		SSLRedirect:           true,
-		IsDevelopment:         false,
-		STSSeconds:            315360000,
-		STSIncludeSubdomains:  true,
-		FrameDeny:             true,
-		ContentTypeNosniff:    true,
-		BrowserXssFilter:      true,
-		ContentSecurityPolicy: "default-src 'self'; img-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self'",
-		IENoOpen:              true,
-		SSLProxyHeaders:       map[string]string{"X-Forwarded-Proto": "https"},
-		AllowedHosts:          []string{},
-	}))
+	r.Use(packageMiddleware.NewSecureMiddleware())
 
 	r.LoadHTMLGlob("templates/*")
 
@@ -58,8 +46,6 @@ func main() {
 		internalPath.POST("/find_by_username", cnt.FindByUsername)
 	}
 
-	server := utils.SetupHTPPSServer(r)
-	if err := server.ListenAndServeTLS("/serverCert.pem", "/serverKey.pem"); err != nil {
-		log.Fatal("Failed to start server: ", err)
-	}
+	server := httpserver.SetupHTPPSServer(r)
+	httpserver.ListenAndServe(server)
 }

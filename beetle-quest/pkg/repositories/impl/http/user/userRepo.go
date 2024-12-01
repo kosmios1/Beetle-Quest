@@ -1,8 +1,8 @@
 package repository
 
 import (
+	"beetle-quest/pkg/httpserver"
 	"beetle-quest/pkg/models"
-	"beetle-quest/pkg/utils"
 	"bytes"
 	"encoding/json"
 	"errors"
@@ -32,7 +32,7 @@ type UserRepo struct {
 
 func NewUserRepo() *UserRepo {
 	return &UserRepo{
-		client: utils.SetupHTTPSClient(),
+		client: httpserver.SetupHTTPSClient(),
 		// closed: ok, open: service does not respond
 		cb: gobreaker.NewCircuitBreaker[*http.Response](gobreaker.Settings{
 			MaxRequests: 5,

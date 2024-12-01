@@ -1,34 +1,23 @@
 package main
 
 import (
-	"beetle-quest/pkg/utils"
+	"beetle-quest/pkg/httpserver"
 	"log"
 
 	entrypoint "beetle-quest/internal/auth/entrypoints"
 
 	"github.com/gin-contrib/cors"
-	"github.com/gin-contrib/secure"
 	"github.com/gin-gonic/gin"
+
+	packageMiddleware "beetle-quest/pkg/middleware/secure"
 )
 
 func main() {
-	utils.GenOwnCertAndKey("auth-service")
+	httpserver.GenOwnCertAndKey("auth-service")
 
 	r := gin.Default()
 	r.Use(gin.Recovery())
-	r.Use(secure.New(secure.Config{
-		SSLRedirect:           true,
-		IsDevelopment:         false,
-		STSSeconds:            315360000,
-		STSIncludeSubdomains:  true,
-		FrameDeny:             true,
-		ContentTypeNosniff:    true,
-		BrowserXssFilter:      true,
-		ContentSecurityPolicy: "default-src 'self'; img-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self'",
-		IENoOpen:              true,
-		SSLProxyHeaders:       map[string]string{"X-Forwarded-Proto": "https"},
-		AllowedHosts:          []string{},
-	}))
+	r.Use(packageMiddleware.NewSecureMiddleware())
 
 	r.Use(cors.Default())
 	r.LoadHTMLGlob("templates/*")
@@ -63,8 +52,6 @@ func main() {
 		adminSpecific.POST("/login", cnt.AdminLogin)
 	}
 
-	server := utils.SetupHTPPSServer(r)
-	if err := server.ListenAndServeTLS("/serverCert.pem", "/serverKey.pem"); err != nil {
-		log.Fatal("Failed to start server: ", err)
-	}
+	server := httpserver.SetupHTPPSServer(r)
+	httpserver.ListenAndServe(server)
 }

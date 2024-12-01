@@ -1,8 +1,8 @@
 package repository
 
 import (
+	"beetle-quest/pkg/httpserver"
 	"beetle-quest/pkg/models"
-	"beetle-quest/pkg/utils"
 	"bytes"
 	"encoding/json"
 	"log"
@@ -24,7 +24,7 @@ type AdminRepo struct {
 
 func NewAdminRepo() *AdminRepo {
 	return &AdminRepo{
-		client: utils.SetupHTTPSClient(),
+		client: httpserver.SetupHTTPSClient(),
 		// closed: ok, open: service does not respond
 		cb: gobreaker.NewCircuitBreaker[*http.Response](gobreaker.Settings{
 			MaxRequests: 5,
