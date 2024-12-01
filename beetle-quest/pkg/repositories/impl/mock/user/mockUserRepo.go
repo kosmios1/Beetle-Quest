@@ -57,7 +57,7 @@ func (r *UserRepo) Create(user *models.User) error {
 func (r *UserRepo) Update(user *models.User) error {
 	r.mux.RLock()
 	for _, u := range r.users {
-		if u.Username == user.Username || u.Email == user.Email {
+		if (u.Username == user.Username || u.Email == user.Email) && u.UserID != user.UserID {
 			return models.ErrUsernameOrEmailAlreadyExists
 		}
 	}
