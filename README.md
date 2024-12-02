@@ -115,8 +115,18 @@ docker run --rm --network=beetle-quest_external -p 127.0.0.1:8089:8089 beetle-qu
 ### How to run unit tests on a single service
 
 > [!IMPORTANT]
-> The services use mTLS so to test them you need to provide the correct certificates, the `cacerts` folder contains the needed certificates.
-> For the time being this is not deactivated in the tests build.
+> Being in test mode the microservices which are started in this mode have the following characteristics:
+>
+> - mTLS is disabled.
+> - Authorization is provided by an API key instead of Oauth2 (to use mock tokens in testing environment).
+> - Data are stored in memory.
+> - The services are not behind a reverse proxy.
+> - The services CORS protection is disabled.
+> - The services will not be able to communicate with the other services, they simulate the other services with a memory storage thanks to the mock repositories.
+
+> [!NOTE]
+> The unit tests are developed to test one service at the time. The right procedure would be to run a specific test and
+> run only the right section in postman, then stop the service, run the next service with its tests.
 
 The first thing to do is to build a test image of a service (from the deploy folder), for example the `auth` service:
 
@@ -128,12 +138,8 @@ docker build -t beetle-quest-auth:test -f ./auth/Dockerfile ..
 Now we can run the image using the correct parameters:
 
 ```sh
-docker run --rm -it -p 8080:443 \
--e JWT_SECRET_KEY="e6df59f91871f2229a0296c6b5ffaf44cef6af30cd05057857b9f0a74b0d28c1" \
--v ./cacerts/cert.pem:/certs/caCert.pem:ro -v ./cacerts/key.pem:/certs/caKey.pem:ro beetle-quest-auth:test
+docker run --rm -it -p 8080:8080 -e JWT_SECRET_KEY="e6df59f91871f2229a0296c6b5ffaf44cef6af30cd05057857b9f0a74b0d28c1" beetle-quest-auth:test
 ```
-
-To build and run this images a script can be found in `deploy/tests` folder.
 
 ## Project structure
 

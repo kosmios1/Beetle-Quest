@@ -34,6 +34,10 @@ func (c *UserController) GetUserAccountDetails(ctx *gin.Context) {
 			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
+		case models.ErrUserNotFound:
+			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err.Error()})
+			ctx.Abort()
+			return
 		}
 		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
