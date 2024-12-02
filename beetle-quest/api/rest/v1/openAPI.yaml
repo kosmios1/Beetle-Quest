@@ -1035,7 +1035,5 @@ components:
         UpdateAuction:
             type: object
             properties:
-                auction_id:
-                    type: string
                 gacha_id:
                     type: string

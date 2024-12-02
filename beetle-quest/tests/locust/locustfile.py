@@ -11,13 +11,14 @@ import base64
 
 from datetime import datetime
 from http import HTTPStatus
-from locust import task, FastHttpUser, between
+from locust import task, between, FastHttpUser, LoadTestShape
 
 base_path = "/api/v1"
 
 user_ids = []
 gacha_ids = []
 auction_ids = []
+
 
 class AuthenticatedUser(FastHttpUser):
     abstract = True
@@ -144,16 +145,14 @@ class UserMSRequests(AuthenticatedUser):
             response.raise_for_status()
             return
 
-    # NOTE: Maybe deactivate this task, as it will be a noisance to the testing system,
-    # we could run a separate task set that will delete all the auctions, users and gachas
-    # after all the test are done.
-    # def delete_user(self):
-    #     response = self.client.delete(f"{base_path}/user/account/delete", json={
-    #         "password": self.password,
-    #     }, allow_redirects=False)
-    #     if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
-    #         response.raise_for_status()
-    #         return
+    # @task
+    def delete_user(self):
+        response = self.client.delete(f"{base_path}/user/account/delete", json={
+            "password": self.password,
+        }, allow_redirects=False)
+        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
+            response.raise_for_status()
+            return
 
 class GachaMSRequests(AuthenticatedUser):
     wait_time = between(1, 2)
@@ -268,19 +267,17 @@ class MarketMSRequests(AuthenticatedUser):
             response.raise_for_status()
             return
 
-    # NOTE: Maybe deactivate this task, as it will be a noisance to the testing system,
-    # we could run a separate task set that will delete all the auctions, users and gachas
-    # after all the test are done.
-    # def delete_auction(self):
-    #     if len(auction_ids) == 0:
-    #         return
-    #     randauctionid = random.choice(auction_ids)
-    #     response = self.client.delete(f"{base_path}/market/auction/{randauctionid}", data={
-    #         "password": self.password,
-    #     }, allow_redirects=False)
-    #     if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
-    #         response.raise_for_status()
-    #         return
+    # @task
+    def delete_auction(self):
+        if len(auction_ids) == 0:
+            return
+        randauctionid = random.choice(auction_ids)
+        response = self.client.delete(f"{base_path}/market/auction/{randauctionid}", data={
+            "password": self.password,
+        }, allow_redirects=False)
+        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
+            response.raise_for_status()
+            return
 
 # ==============================================================================
 # Admin
@@ -301,6 +298,7 @@ class AuthenticatedAdmin(FastHttpUser):
 
     access_token = None
     identity_token = None
+
 
     def on_start(self):
         self.make_authentication_request()
@@ -492,17 +490,15 @@ class AdminMSRequests(AuthenticatedAdmin):
             response.raise_for_status()
             return
 
-    # NOTE: Maybe deactivate this task, as it will be a noisance to the testing system,
-    # we could run a separate task set that will delete all the auctions, users and gachas
-    # after all the test are done.
-    # def delete_gacha(self):
-    #     if len(gacha_ids) == 0:
-    #         return
-    #     randgachaid = random.choice(gacha_ids)
-    #     response = self.client.delete(f"{base_path}/admin/gacha/{randgachaid}", allow_redirects=False)
-    #     if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
-    #         response.raise_for_status()
-    #         return
+    # @task
+    def delete_gacha(self):
+        if len(gacha_ids) == 0:
+            return
+        randgachaid = random.choice(gacha_ids)
+        response = self.client.delete(f"{base_path}/admin/gacha/{randgachaid}", allow_redirects=False)
+        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
+            response.raise_for_status()
+            return
 
     @task
     def get_transaction_history(self):
@@ -532,6 +528,34 @@ class AdminMSRequests(AuthenticatedAdmin):
         if response.status_code != HTTPStatus.INTERNAL_SERVER_ERROR:
             response.raise_for_status()
             return
+
+# ==============================================================================
+# Test stages definition
+# ==============================================================================
+
+class StagesShapeWithCustomUsers(LoadTestShape):
+    stages = [
+        {"duration": 10, "users": 10, "spawn_rate": 10, "user_classes": [AdminMSRequests]},
+        {"duration": 30, "users": 50, "spawn_rate": 10, "user_classes": [UserMSRequests, GachaMSRequests]},
+        {"duration": 60, "users": 100, "spawn_rate": 10, "user_classes": [MarketMSRequests]},
+        {"duration": 120, "users": 100, "spawn_rate": 10, "user_classes": [UserMSRequests, GachaMSRequests, MarketMSRequests]},
+        {"duration": 60, "users": 100, "spawn_rate": 10, "user_classes": [MarketMSRequests]},
+        {"duration": 30, "users": 50, "spawn_rate": 10, "user_classes": [UserMSRequests, GachaMSRequests]},
+        {"duration": 10, "users": 10, "spawn_rate": 10, "user_classes": [AdminMSRequests]},
+    ]
+
+    def tick(self):
+        run_time = self.get_run_time()
+
+        for stage in self.stages:
+            if run_time < stage["duration"]:
+                try:
+                    tick_data = (stage["users"], stage["spawn_rate"], stage["user_classes"])
+                except:
+                    tick_data = (stage["users"], stage["spawn_rate"])
+                return tick_data
+
+        return None
 
 # ==============================================================================
 # Utils
