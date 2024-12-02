@@ -13,7 +13,6 @@ type RegisterRequest struct {
 type LoginRequest struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
-	Redirect string `json:"redirect"`
 }
 
 // User ======================================
@@ -76,7 +75,6 @@ type AdminLoginRequest struct {
 	AdminID  string `json:"admin_id"`
 	Password string `json:"password"`
 	OtpCode  string `json:"otp_code"`
-	Redirect string `json:"redirect"`
 }
 
 type AdminUpdateUserAccount struct {

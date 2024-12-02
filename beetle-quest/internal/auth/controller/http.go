@@ -5,6 +5,7 @@ import (
 	"beetle-quest/pkg/models"
 	"beetle-quest/pkg/utils"
 	"encoding/hex"
+	"encoding/json"
 	"log"
 	"net/http"
 	"net/url"
@@ -12,6 +13,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-session/session"
 	"github.com/golang-jwt/jwt"
 
 	"github.com/go-oauth2/oauth2/v4"
@@ -79,6 +81,46 @@ func NewAuthController(srv *service.AuthService) *AuthController {
 		o2srv: o2srv,
 	}
 
+	o2srv.SetResponseTokenHandler(func(w http.ResponseWriter, data map[string]interface{}, header http.Header, statusCode ...int) error {
+		w.Header().Set("Content-Type", "application/json;charset=UTF-8")
+		w.Header().Set("Cache-Control", "no-store")
+		w.Header().Set("Pragma", "no-cache")
+
+		for key := range header {
+			w.Header().Set(key, header.Get(key))
+		}
+
+		status := http.StatusOK
+		if len(statusCode) > 0 && statusCode[0] > 0 {
+			status = statusCode[0]
+		}
+
+		{
+			accessTokenClaims, err := utils.VerifyJWTToken(data["access_token"].(string), jwtSecretKey)
+			if err != nil {
+				return err
+			}
+			claims := jwt.MapClaims{
+				"sub": accessTokenClaims["sub"],
+				"iss": "Beetle Quest",
+				"aud": "beetle-quest",
+				"iat": time.Now().Unix(),
+				"nbf": time.Now().Unix(),
+				"exp": time.Now().Add(time.Hour).Unix(),
+			}
+			token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+			idTok, err := token.SignedString(jwtSecretKey)
+			if err != nil {
+				return err
+			}
+
+			data["id_token"] = idTok
+		}
+
+		w.WriteHeader(status)
+		return json.NewEncoder(w).Encode(data)
+	})
+
 	o2srv.SetUserAuthorizationHandler(cnt.userAuthorizationHandler)
 	o2srv.SetAuthorizeScopeHandler(cnt.authorizeScopeHandler)
 
@@ -86,11 +128,21 @@ func NewAuthController(srv *service.AuthService) *AuthController {
 }
 
 func (c *AuthController) AuthenticationPage(ctx *gin.Context) {
-	redirect, _ := ctx.GetQuery("redirect")
-	ctx.HTML(http.StatusOK, "loginPage.tmpl", gin.H{"Redirect": redirect})
+	ctx.HTML(http.StatusOK, "loginPage.tmpl", gin.H{})
 }
 
 func (c *AuthController) AuthorizePage(ctx *gin.Context) {
+	store, err := session.Start(nil, ctx.Writer, ctx.Request)
+	if err != nil {
+		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err.Error()})
+		ctx.Abort()
+		return
+	}
+
+	if _, ok := store.Get("LoggedInUserID"); !ok {
+		ctx.Redirect(http.StatusFound, "/api/v1/auth/authPage")
+		return
+	}
 	ctx.HTML(http.StatusOK, "authorizePage.tmpl", gin.H{})
 }
 
@@ -135,7 +187,7 @@ func (c *AuthController) Login(ctx *gin.Context) {
 		return
 	}
 
-	token, tokenString, err := c.srv.Login(loginData.Username, loginData.Password)
+	user, err := c.srv.Login(loginData.Username, loginData.Password)
 	if err != nil {
 		switch err {
 		case models.ErrInternalServerError:
@@ -154,28 +206,25 @@ func (c *AuthController) Login(ctx *gin.Context) {
 		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 
-	maxAge := token.Claims.(*utils.CustomClaims).ExpiresAt - time.Now().Unix()
-	ctx.SetCookie("identity_token", tokenString, int(maxAge), "/", "", false, true)
-
-	if loginData.Redirect != "" {
-		ctx.Redirect(http.StatusFound, loginData.Redirect)
-	} else {
-		ctx.Redirect(http.StatusFound, "/api/v1/auth/authorizePage")
+	store, err := session.Start(ctx.Request.Context(), ctx.Writer, ctx.Request)
+	if err != nil {
+		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err.Error()})
+		ctx.Abort()
+		return
 	}
+
+	store.Set("LoggedInUserID", user.UserID.String())
+	store.Set("IsAdmin", false)
+	if err := store.Save(); err != nil {
+		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err.Error()})
+		ctx.Abort()
+		return
+	}
+
+	ctx.Redirect(http.StatusFound, "/api/v1/auth/authorizePage")
 }
 
 func (c *AuthController) Logout(ctx *gin.Context) {
-	token, err := ctx.Cookie("identity_token")
-	if err == nil {
-		if ok := c.srv.RevokeToken(token); !ok {
-			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": models.ErrInternalServerError})
-			ctx.Abort()
-			return
-		}
-	} else {
-		// NOTE: We do not return, we still want to delete the access token
-	}
-
 	authHeader := ctx.GetHeader("Authorization")
 	bearerToken := strings.Split(authHeader, " ")
 	if len(bearerToken) != 2 {
@@ -232,6 +281,22 @@ func (c *AuthController) CheckSession(ctx *gin.Context) {
 // Oauth ==============================================================================================================-
 
 func (c *AuthController) OauthAuthorize(ctx *gin.Context) {
+	store, err := session.Start(ctx.Request.Context(), ctx.Writer, ctx.Request)
+	if err != nil {
+		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
+		ctx.Abort()
+		return
+	}
+
+	var form url.Values
+	if v, ok := store.Get("ReturnUri"); ok {
+		form = v.(url.Values)
+	}
+	ctx.Request.Form = form
+
+	store.Delete("ReturnUri")
+	_ = store.Save()
+
 	if err := c.o2srv.HandleAuthorizeRequest(ctx.Writer, ctx.Request); err != nil {
 		ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 		ctx.Abort()
@@ -248,44 +313,47 @@ func (c *AuthController) OauthToken(ctx *gin.Context) {
 }
 
 func (c *AuthController) userAuthorizationHandler(w http.ResponseWriter, r *http.Request) (userID string, err error) {
-	cookie, err := r.Cookie("identity_token")
+	store, err := session.Start(r.Context(), w, r)
 	if err != nil {
-		redirect := "/api/v1/auth/authPage?redirect=" + url.QueryEscape(r.URL.RequestURI())
-		http.Redirect(w, r, redirect, http.StatusFound)
-		return
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return "", err
 	}
 
-	claims, ok := c.srv.VerifyToken(cookie.Value)
+	uid, ok := store.Get("LoggedInUserID")
 	if !ok {
-		redirect := "/api/v1/auth/authPage?redirect=" + url.QueryEscape(r.URL.RequestURI())
-		http.Redirect(w, r, redirect, http.StatusFound)
+		if r.Form == nil {
+			_ = r.ParseForm()
+		}
+
+		store.Set("ReturnUri", r.Form)
+		_ = store.Save()
+
+		w.Header().Set("Location", "/api/v1/auth/authPage")
+		w.WriteHeader(http.StatusFound)
 		return
 	}
 
-	return claims["sub"].(string), nil
+	userID = uid.(string)
+	store.Delete("LoggedInUserID")
+	_ = store.Save()
+	return
 }
 
-func (c *AuthController) authorizeScopeHandler(w http.ResponseWriter, r *http.Request) (scope string, err error) {
+func (c *AuthController) authorizeScopeHandler(w http.ResponseWriter, r *http.Request) (string, error) {
 	scopes := r.FormValue("scope")
 	for _, scope := range strings.Split(scopes, ", ") {
 		if scope == "admin" {
-			cookie, err := r.Cookie("identity_token")
+			store, err := session.Start(nil, w, r)
 			if err != nil {
-				redirect := "/api/v1/auth/authPage?redirect=" + url.QueryEscape(r.URL.RequestURI())
-				http.Redirect(w, r, redirect, http.StatusFound)
+				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return "", err
 			}
 
-			claims, ok := c.srv.VerifyToken(cookie.Value)
-			if !ok {
-				redirect := "/api/v1/auth/authPage?redirect=" + url.QueryEscape(r.URL.RequestURI())
-				http.Redirect(w, r, redirect, http.StatusFound)
-				return "", o2errors.ErrServerError
+			isAdmin, ok := store.Get("IsAdmin")
+			if !ok || !isAdmin.(bool) {
+				return "", o2errors.ErrUnauthorizedClient
 			}
-
-			if claims["is_admin"].(bool) == false {
-				return "", o2errors.ErrInvalidScope
-			}
+			break
 		}
 	}
 	return scopes, nil
@@ -301,7 +369,7 @@ func (c *AuthController) AdminLogin(ctx *gin.Context) {
 		return
 	}
 
-	token, tokenString, err := c.srv.AdminLogin(loginData.AdminID, loginData.Password, loginData.OtpCode)
+	admin, err := c.srv.AdminLogin(loginData.AdminID, loginData.Password, loginData.OtpCode)
 	if err != nil {
 		switch err {
 		case models.ErrInternalServerError:
@@ -316,12 +384,20 @@ func (c *AuthController) AdminLogin(ctx *gin.Context) {
 		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 
-	maxAge := token.Claims.(*utils.CustomClaims).ExpiresAt - time.Now().Unix()
-	ctx.SetCookie("identity_token", tokenString, int(maxAge), "/", "", false, true)
-
-	if loginData.Redirect != "" {
-		ctx.Redirect(http.StatusFound, loginData.Redirect)
-	} else {
-		ctx.Redirect(http.StatusFound, "/api/v1/auth/authorizePage")
+	store, err := session.Start(ctx.Request.Context(), ctx.Writer, ctx.Request)
+	if err != nil {
+		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err.Error()})
+		ctx.Abort()
+		return
 	}
+
+	store.Set("LoggedInUserID", admin.AdminId.String())
+	store.Set("IsAdmin", true)
+	if err := store.Save(); err != nil {
+		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err.Error()})
+		ctx.Abort()
+		return
+	}
+
+	ctx.Redirect(http.StatusFound, "/api/v1/auth/authorizePage")
 }

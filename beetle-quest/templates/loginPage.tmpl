@@ -27,7 +27,6 @@
                     <input type="text" id="login-username" name="username" required />
                     <label for="login-password">Password:</label>
                     <input type="password" id="login-password" name="password" required />
-                    <input type="hidden" id="redirect" name="redirect" value="{{ .Redirect }}" />
                     <button type="submit">Login</button>
                 </form>
 
@@ -64,7 +63,6 @@
                     <input type="password" id="login-password" name="password" required />
                     <label for="login-otp">OTP:</label>
                     <input type="text" id="login-otp" name="otp_code" required />
-                    <input type="hidden" id="redirect" name="redirect" value="{{ .Redirect }}" />
                     <button type="submit">Login</button>
                 </form>
             </div>
