@@ -1,14 +1,71 @@
 {
 	"info": {
-		"_postman_id": "c2ad1b81-1b6f-422b-9919-0c90c4f2d6ee",
-		"name": "User Service Unit tests",
+		"_postman_id": "3c603c51-8438-47dc-9b08-ee9cad9d07e0",
+		"name": "beetle_quest-user_service-unit_tests",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "39361032"
+		"_exporter_id": "39385405"
 	},
 	"item": [
 		{
 			"name": "public",
 			"item": [
+				{
+					"name": "bad_user_request_public",
+					"item": [
+						{
+							"name": "wrong password",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response code is 400\", function () {",
+											"    pm.response.to.have.status(400);",
+											"});",
+											"",
+											"pm.test(\"Password is not correct\", function () {",
+											"    pm.response.to.have.status(400);",
+											"    pm.expect(pm.response.text()).to.include('invalid password');",
+											"});",
+											"",
+											"pm.test(\"Response time is less than 500ms\", function () {",
+											"    pm.expect(pm.response.responseTime).to.be.below(500);",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"password\": \"nnnnnnn\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/user/account/{{userId}}",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"user",
+										"account",
+										"{{userId}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
 				{
 					"name": "Get User Account Details",
 					"event": [
@@ -175,6 +232,58 @@
 		{
 			"name": "internal",
 			"item": [
+				{
+					"name": "bad_user_request_internal",
+					"item": [
+						{
+							"name": "bad request find user by username",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 404\", function () {",
+											"    pm.response.to.have.status(404);",
+											"});",
+											"",
+											"pm.test(\"Response body contains 'user not found'\", function () {",
+											"    pm.expect(pm.response.text()).to.include('user not found');",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"username\": \"Json\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/internal/user/find_by_username",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"internal",
+										"user",
+										"find_by_username"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
 				{
 					"name": "Get all users",
 					"event": [
@@ -439,7 +548,7 @@
 									"    pm.response.to.have.status(200);",
 									"});",
 									"",
-									"pm.test(\"Response body contains message\", function () {",
+									"pm.test(\"User updated successfully\", function () {",
 									"    pm.expect(pm.response.json().Message).to.equal(\"User updated successfully\");",
 									"});",
 									"",

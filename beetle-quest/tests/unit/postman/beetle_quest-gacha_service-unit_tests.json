@@ -1,14 +1,55 @@
 {
 	"info": {
-		"_postman_id": "cd86fb22-1fac-4019-aed4-42a2dbdc22e5",
-		"name": "Gacha Service Unit tests",
+		"_postman_id": "ec5c2ac8-51da-4107-9c70-f7773f86e5e8",
+		"name": "beetle_quest-gacha_service-unit_tests",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "39361032"
+		"_exporter_id": "39385405"
 	},
 	"item": [
 		{
 			"name": "public",
 			"item": [
+				{
+					"name": "bad_gacha_request_public",
+					"item": [
+						{
+							"name": "bad request gachas details",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 404\", function () {",
+											"    pm.response.to.have.status(404);",
+											"});",
+											"",
+											"pm.test(\"Response body contains 'gacha not found\", function () {",
+											"    pm.expect(pm.response.text()).to.include('gacha not found');",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/gacha/96f8ced4-0305-43ad-9e52-779013fa850a",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"gacha",
+										"96f8ced4-0305-43ad-9e52-779013fa850a"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
 				{
 					"name": "Get system gacha list",
 					"event": [
@@ -783,6 +824,58 @@
 		{
 			"name": "internal",
 			"item": [
+				{
+					"name": "bad_gacha_request_internal",
+					"item": [
+						{
+							"name": "bad create gacha",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 409\", function () {",
+											"    pm.response.to.have.status(409);",
+											"});",
+											"",
+											"pm.test(\"Response body contains error message for existing gacha\", function () {",
+											"    pm.expect(pm.response.json().Error).to.equal(\"gacha already exists\");",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"gacha_id\": [198,22,220,172,20,199,71,9,154,123,80,77,195,25,137,240],\n    \"name\": \"Mage Mosquito\",\n    \"rarity\": 1,\n    \"price\": 500,\n    \"image_path\": \"/images/mage_mosquito_uncommon.png\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/internal/gacha/create",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"internal",
+										"gacha",
+										"create"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
 				{
 					"name": "Create gacha",
 					"event": [
