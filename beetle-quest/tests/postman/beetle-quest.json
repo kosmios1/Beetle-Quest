@@ -196,59 +196,21 @@
               }
             }
           ]
-        },
+        }
+      ]
+    },
+    {
+      "name": "Static",
+      "item": [
         {
-          "name": "POST /oauth/authorize",
+          "name": "GET /static/",
           "request": {
-            "auth": {
-              "type": "noauth"
-            },
-            "method": "POST",
+            "method": "GET",
             "header": [],
-            "body": {
-              "mode": "formdata",
-              "formdata": [
-                {
-                  "key": "response_type",
-                  "value": "code",
-                  "type": "text"
-                },
-                {
-                  "key": "client_id",
-                  "value": "beetle-quest",
-                  "type": "text"
-                },
-                {
-                  "key": "redirect_uri",
-                  "value": "/api/v1/auth/tokenPage",
-                  "type": "text"
-                },
-                {
-                  "key": "scope",
-                  "value": "user, gacha, market",
-                  "type": "text"
-                },
-                {
-                  "key": "state",
-                  "value": "RANDOM-VALUE",
-                  "type": "text"
-                },
-                {
-                  "key": "code_challenge",
-                  "value": "VDi1atKAXj6MHF4KFZFeeqoCUb1E9JuQpFMcfAnek7E",
-                  "type": "text"
-                },
-                {
-                  "key": "code_challenge_method",
-                  "value": "S256",
-                  "type": "text"
-                }
-              ]
-            },
             "url": {
-              "raw": "{{hostUrl}}/oauth/authorize",
+              "raw": "{{hostUrl}}/static/",
               "host": ["{{hostUrl}}"],
-              "path": ["oauth", "authorize"]
+              "path": ["static/"]
             }
           },
           "response": [],
@@ -259,48 +221,18 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Status code is 200', function () {",
-                  "    pm.response.to.have.status(200);",
+                  "   pm.response.to.have.status(200);",
                   "});",
-                  "",
-                  "pm.test('Check if response is in HTML format', function () {",
+                  "pm.test('Response should be HTML', function () {",
                   "    pm.expect(pm.response.headers.get('Content-Type')).to.include('text/html');",
                   "});",
-                  "pm.test('Check the response content', function () {",
-                  "    const responseBody = pm.response.text();",
-                  "    pm.expect(responseBody).to.include('Step 2: Exchange Code for Token');",
-                  "    pm.expect(responseBody).to.include('Code:');",
-                  "    pm.expect(responseBody).to.include('State:');",
-                  "});",
-                  "",
-                  "pm.test('Extract code and state', function () {",
-                  "   const responseBody = pm.response.text();",
-                  "   const codeStart = responseBody.indexOf('<em id=\"code\" name=\"code\">') + '<em id=\"code\" name=\"code\">'.length;",
-                  "   const codeEnd = responseBody.indexOf('</em>', codeStart);",
-                  "   const codeValue = responseBody.substring(codeStart, codeEnd).trim();",
-                  "",
-                  "   pm.expect(codeValue).to.not.be.empty;",
-                  "   pm.collectionVariables.set('OauthCode', codeValue)",
-                  "//   console.log('Extracted Code:', pm.collectionVariables.get('OauthCode'));",
-                  "",
-                  "",
-                  "   const stateStart = responseBody.indexOf('<em id=\"state\" name=\"state\">') + '<em id=\"state\" name=\"state\">'.length;",
-                  "const stateEnd = responseBody.indexOf('</em>', stateStart);",
-                  "const stateValue = responseBody.substring(stateStart, stateEnd).trim();",
-                  "",
-                  "   pm.expect(stateValue).to.not.be.empty;",
-                  "   pm.collectionVariables.set('OauthState', stateValue);",
-                  "//   console.log('Extracted State:', pm.collectionVariables.get('OauthState'));",
-                  "});",
-                  "",
-                  "const a = pm.request.headers",
-                  "//console.log(a);",
-                  "/*if (jwt) {",
-                  "    const user_id = JSON.parse(atob(jwt.split('.')[1])).sub; ",
-                  "    pm.collectionVariables.set('testID', user_id)",
-                  "//    console.log('testID:', pm.collectionVariables.get('testID'));",
-                  "} else {",
-                  "    console.log('JWT not found.');",
-                  "}*/"
+                  "pm.test('Response should contain success message in HTML', function () {",
+                  "     const responseBody = pm.response.text();",
+                  "     pm.expect(responseBody).to.include('Beetle Quest');",
+                  "     pm.expect(responseBody).to.include('Login');",
+                  "     pm.expect(responseBody).to.include('Register');",
+                  "     pm.expect(responseBody).to.include('Admin Login');",
+                  "});"
                 ]
               }
             }
@@ -308,5 +240,50 @@
         }
       ]
     }
-  ]
+  ],
+  "auth": {
+    "type": "jwt",
+    "jwt": [
+      {
+        "key": "payload",
+        "value": "{'sub': '744a2f4d-a693-4352-916e-64f4ef94b709'}",
+        "type": "string"
+      },
+      {
+        "key": "isSecretBase64Encoded",
+        "value": true,
+        "type": "boolean"
+      },
+      {
+        "key": "secret",
+        "value": "5t9Z+Rhx8iKaApbGtf+vRM72rzDNBQV4V7nwp0sNKME=",
+        "type": "string"
+      },
+      {
+        "key": "algorithm",
+        "value": "HS512",
+        "type": "string"
+      },
+      {
+        "key": "addTokenTo",
+        "value": "header",
+        "type": "string"
+      },
+      {
+        "key": "headerPrefix",
+        "value": "Bearer",
+        "type": "string"
+      },
+      {
+        "key": "queryParamKey",
+        "value": "token",
+        "type": "string"
+      },
+      {
+        "key": "header",
+        "value": "{}",
+        "type": "string"
+      }
+    ]
+  }
 }

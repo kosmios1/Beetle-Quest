@@ -37,6 +37,7 @@ func (r *MarketRepo) Create(auction *models.Auction) error {
 	}
 
 	r.auctions[auction.AuctionID] = *auction
+	r.auctionBids[auction.AuctionID] = make([]models.Bid,0)
 	return nil
 }
 
@@ -57,7 +58,10 @@ func (r *MarketRepo) Delete(auction *models.Auction) error {
 		return models.ErrUserNotFound
 	}
 	delete(r.auctions, auction.AuctionID)
-	return nil
+	if _, ok:= r.auctionBids[auction.AuctionID]; !ok {
+	  return
+	}
+	delete(r.auctionBids, auction.AuctionID)
 }
 
 func (r *MarketRepo) GetAll() ([]models.Auction, error) {
