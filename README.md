@@ -141,6 +141,35 @@ Now we can run the image using the correct parameters:
 docker run --rm -it -p 8080:8080 -e JWT_SECRET_KEY="e6df59f91871f2229a0296c6b5ffaf44cef6af30cd05057857b9f0a74b0d28c1" beetle-quest-auth:test
 ```
 
+#### Utility script
+
+To start services in test mode there is `deploy/beetle_quest_unit_tests_utility.sh` script, it can be used to start a service in test mode.
+
+Help message:
+
+```sh
+Usage: ./beetle_quest_unit_tests_utility.sh <service-name> [options]
+Options:
+  -p, --port PORT      Container port mapping (default: 8080)
+  -e, --env KEY=VALUE  Environment variables
+  -h, --help           Show this help message
+```
+
+```sh
+./beetle_quest_unit_tests_utility.sh -p 8080 --env JWT_SECRET_KEY="e6df59f91871f2229a0296c6b5ffaf44cef6af30cd05057857b9f0a74b0d28c1" <service-name>
+```
+
+> [!NOTE]
+> 'service-name' value can be:
+>
+> - `auth`
+> - `gacha`
+> - `user`
+> - `market`
+> - `admin`
+
+````sh
+
 ## Project structure
 
 The project is structured as follows:
@@ -162,7 +191,7 @@ The project is structured as follows:
 │   └── templates/
 ├── doc/
 └── README.md
-```
+````
 
 ## References
 
