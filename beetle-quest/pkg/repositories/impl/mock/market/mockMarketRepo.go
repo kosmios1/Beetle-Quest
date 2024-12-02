@@ -30,14 +30,12 @@ func NewMarketRepo() *MarketRepo {
 }
 
 func (r *MarketRepo) Create(auction *models.Auction) error {
-	r.mux.RLock()
+	r.mux.Lock()
+	defer r.mux.Unlock()
 	if _, ok := r.auctions[auction.AuctionID]; ok {
 		return models.ErrAuctionAltreadyExists
 	}
-	r.mux.RUnlock()
 
-	r.mux.Lock()
-	defer r.mux.Unlock()
 	r.auctions[auction.AuctionID] = *auction
 	return nil
 }
@@ -151,14 +149,11 @@ func (r *MarketRepo) GetUserTransactionHistory(uid models.UUID) ([]models.Transa
 }
 
 func (r *MarketRepo) AddTransaction(transaction *models.Transaction) error {
-	r.mux.RLock()
+	r.mux.Lock()
+	defer r.mux.Unlock()
 	if _, ok := r.transactions[transaction.TransactionID]; ok {
 		return models.ErrCouldNotAddTransaction
 	}
-	r.mux.RUnlock()
-
-	r.mux.Lock()
-	defer r.mux.Unlock()
 	r.transactions[transaction.TransactionID] = *transaction
 	return nil
 }

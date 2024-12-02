@@ -43,7 +43,7 @@ http:
 
     routers:
         admin-service:
-            rule: "PathPrefix(`/api/v1/admin`) && (Host(`localhost`) || Host(`reverse-proxy`))"
+            rule: "PathPrefix(`/api/v1/admin`)"
             entryPoints:
                 - websec
             service: admin-service
@@ -54,7 +54,7 @@ http:
                 - "service-health-check"
 
         auth-service:
-            rule: "(PathPrefix(`/api/v1/auth`) || PathPrefix(`/oauth`)) && (Host(`localhost`) || Host(`reverse-proxy`))"
+            rule: "(PathPrefix(`/api/v1/auth`) || PathPrefix(`/oauth`))"
             entryPoints:
                 - websec
             service: auth-service
@@ -64,7 +64,7 @@ http:
                 - "service-health-check"
 
         user-service:
-            rule: "PathPrefix(`/api/v1/user`) && (Host(`localhost`) || Host(`reverse-proxy`))"
+            rule: "PathPrefix(`/api/v1/user`)"
             entryPoints:
                 - websec
             service: user-service
@@ -75,7 +75,7 @@ http:
                 - "service-health-check"
 
         gacha-service:
-            rule: "PathPrefix(`/api/v1/gacha`) && (Host(`localhost`) || Host(`reverse-proxy`))"
+            rule: "PathPrefix(`/api/v1/gacha`)"
             entryPoints:
                 - websec
             service: gacha-service
@@ -86,7 +86,7 @@ http:
                 - "service-health-check"
 
         market-service:
-            rule: "PathPrefix(`/api/v1/market`) && (Host(`localhost`) || Host(`reverse-proxy`))"
+            rule: "PathPrefix(`/api/v1/market`)"
             entryPoints:
                 - websec
             service: market-service
@@ -97,7 +97,7 @@ http:
                 - "service-health-check"
 
         static-service:
-            rule: "PathPrefix(`/static`) && (Host(`localhost`) || Host(`reverse-proxy`))"
+            rule: "PathPrefix(`/static`)"
             entryPoints:
                 - websec
             service: static-service

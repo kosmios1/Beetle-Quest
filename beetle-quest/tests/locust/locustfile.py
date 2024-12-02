@@ -538,7 +538,7 @@ class StagesShapeWithCustomUsers(LoadTestShape):
         {"duration": 10, "users": 10, "spawn_rate": 10, "user_classes": [AdminMSRequests]},
         {"duration": 30, "users": 50, "spawn_rate": 10, "user_classes": [UserMSRequests, GachaMSRequests]},
         {"duration": 60, "users": 100, "spawn_rate": 10, "user_classes": [MarketMSRequests]},
-        {"duration": 120, "users": 100, "spawn_rate": 10, "user_classes": [UserMSRequests, GachaMSRequests, MarketMSRequests]},
+        {"duration": 120, "users": 400, "spawn_rate": 100, "user_classes": [UserMSRequests, GachaMSRequests, MarketMSRequests]},
         {"duration": 60, "users": 100, "spawn_rate": 10, "user_classes": [MarketMSRequests]},
         {"duration": 30, "users": 50, "spawn_rate": 10, "user_classes": [UserMSRequests, GachaMSRequests]},
         {"duration": 10, "users": 10, "spawn_rate": 10, "user_classes": [AdminMSRequests]},

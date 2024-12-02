@@ -35,7 +35,8 @@ func (r *UserRepo) GetAll() ([]models.User, error) {
 }
 
 func (r *UserRepo) Create(user *models.User) error {
-	r.mux.RLock()
+	r.mux.Lock()
+	defer r.mux.Unlock()
 
 	for _, u := range r.users {
 		if user.Email == u.Email || user.Username == u.Username {
@@ -46,25 +47,19 @@ func (r *UserRepo) Create(user *models.User) error {
 	if _, ok := r.users[user.UserID]; ok {
 		return models.ErrInternalServerError
 	}
-	r.mux.RUnlock()
-
-	r.mux.Lock()
-	defer r.mux.Unlock()
 	r.users[user.UserID] = *user
 	return nil
 }
 
 func (r *UserRepo) Update(user *models.User) error {
-	r.mux.RLock()
+	r.mux.Lock()
+	defer r.mux.Unlock()
 	for _, u := range r.users {
 		if (u.Username == user.Username || u.Email == user.Email) && u.UserID != user.UserID {
 			return models.ErrUsernameOrEmailAlreadyExists
 		}
 	}
-	r.mux.RUnlock()
 
-	r.mux.Lock()
-	defer r.mux.Unlock()
 	if _, ok := r.users[user.UserID]; !ok {
 		return models.ErrUserNotFound
 	}

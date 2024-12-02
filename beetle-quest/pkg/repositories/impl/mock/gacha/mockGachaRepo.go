@@ -25,7 +25,8 @@ func NewGachaRepo() *GachaRepo {
 }
 
 func (r *GachaRepo) Create(gacha *models.Gacha) error {
-	r.mux.RLock()
+	r.mux.Lock()
+	defer r.mux.Unlock()
 
 	for _, g := range r.gachas {
 		if gacha.Name == g.Name {
@@ -36,27 +37,21 @@ func (r *GachaRepo) Create(gacha *models.Gacha) error {
 	if _, ok := r.gachas[gacha.GachaID]; ok {
 		return models.ErrInternalServerError
 	}
-	r.mux.RUnlock()
 
-	r.mux.Lock()
-	defer r.mux.Unlock()
 	r.gachas[gacha.GachaID] = *gacha
-
 	return nil
 }
 
 func (r *GachaRepo) Update(gacha *models.Gacha) error {
-	r.mux.RLock()
+	r.mux.Lock()
+	defer r.mux.Unlock()
 
 	for _, g := range r.gachas {
 		if gacha.Name == g.Name {
 			return models.ErrGachaAlreadyExists
 		}
 	}
-	r.mux.RUnlock()
 
-	r.mux.Lock()
-	defer r.mux.Unlock()
 	if _, ok := r.gachas[gacha.GachaID]; !ok {
 		return models.ErrGachaNotFound
 	}
@@ -67,6 +62,7 @@ func (r *GachaRepo) Update(gacha *models.Gacha) error {
 func (r *GachaRepo) Delete(gacha *models.Gacha) error {
 	r.mux.Lock()
 	defer r.mux.Unlock()
+
 	if _, ok := r.gachas[gacha.GachaID]; !ok {
 		return models.ErrGachaNotFound
 	}
@@ -95,7 +91,8 @@ func (r *GachaRepo) FindByID(gid models.UUID) (*models.Gacha, error) {
 }
 
 func (r *GachaRepo) AddGachaToUser(uid, gid models.UUID) error {
-	r.mux.RLock()
+	r.mux.Lock()
+	defer r.mux.Unlock()
 	// if _, ok := r.userGachas[uid]; !ok {
 	// 	return models.ErrInternalServerError
 	// }
@@ -106,10 +103,6 @@ func (r *GachaRepo) AddGachaToUser(uid, gid models.UUID) error {
 			return models.ErrUserAlreadyHasGacha
 		}
 	}
-	r.mux.RUnlock()
-
-	r.mux.Lock()
-	defer r.mux.Unlock()
 
 	if _, ok := r.userGachas[uid]; !ok {
 		r.userGachas[uid] = make([]models.UUID, 0)
@@ -119,7 +112,9 @@ func (r *GachaRepo) AddGachaToUser(uid, gid models.UUID) error {
 }
 
 func (r *GachaRepo) RemoveGachaFromUser(uid, gid models.UUID) error {
-	r.mux.RLock()
+	r.mux.Lock()
+	defer r.mux.Unlock()
+
 	if _, ok := r.userGachas[uid]; !ok {
 		return models.ErrRetalationGachaUserNotFound
 	}
@@ -134,14 +129,11 @@ func (r *GachaRepo) RemoveGachaFromUser(uid, gid models.UUID) error {
 			break
 		}
 	}
-	r.mux.RUnlock()
 
 	if !own {
 		return models.ErrRetalationGachaUserNotFound
 	}
 
-	r.mux.Lock()
-	defer r.mux.Unlock()
 	r.userGachas[uid] = append(r.userGachas[uid][:gachaPos], r.userGachas[uid][gachaPos+1:]...)
 	return nil
 }
@@ -197,9 +189,12 @@ func populateMockRepo(repo *GachaRepo) {
 		}
 	}
 
-	bobUID := utils.PanicIfError[models.UUID](utils.ParseUUID("744a2f4d-a693-4352-916e-64f4ef94b709"))
-	repo.userGachas[bobUID] = make([]models.UUID, 0)
-	repo.userGachas[bobUID] = append(repo.userGachas[bobUID], utils.PanicIfError[models.UUID](utils.ParseUUID("96f8ced4-0305-43ad-9e52-779013fa8502")))
+	bobUUID := utils.PanicIfError[models.UUID](utils.ParseUUID("744a2f4d-a693-4352-916e-64f4ef94b709"))
+	gachaUUID := utils.PanicIfError[models.UUID](utils.ParseUUID("96f8ced4-0305-43ad-9e52-779013fa8502"))
+	// fmt.Printf("%+v %+v\n", bobUUID[:], gachaUUID[:])
+
+	repo.userGachas[bobUUID] = make([]models.UUID, 0)
+	repo.userGachas[bobUUID] = append(repo.userGachas[bobUUID], gachaUUID)
 
 	// TODO: populate the userGachas map
 }

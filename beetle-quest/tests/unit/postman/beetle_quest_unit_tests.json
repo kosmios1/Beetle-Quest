@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "f655693f-71a6-4de6-b819-025d986de6fb",
+		"_postman_id": "273c051d-617f-494d-ac85-cf5c4bc293c5",
 		"name": "Beetle-Quest Unit",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "39361032"
@@ -785,7 +785,550 @@
 				},
 				{
 					"name": "internal",
-					"item": []
+					"item": [
+						{
+							"name": "Create gacha",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Test for status code",
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"// Test for response time",
+											"pm.test(\"Response time is less than 500ms\", function () {",
+											"    pm.expect(pm.response.responseTime).to.be.below(500);",
+											"});",
+											"",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// Generate a random UUID for gacha_id",
+											"const { v4: uuidv4 } = require('uuid');",
+											"",
+											"const uuid = uuidv4();",
+											"const byteArray = uuid.replace(/-/g, '').match(/.{1,2}/g).map(hex => parseInt(hex, 16));",
+											"pm.environment.set('createGachaId', JSON.stringify(byteArray));",
+											"",
+											"// Generate a random gacha name",
+											"const adjectives = ['Lucky', 'Mystic', 'Radiant', 'Golden', 'Silver', 'Crimson', 'Azure', 'Cosmic', 'Legendary', 'Epic'];",
+											"const nouns = ['Dragon', 'Phoenix', 'Knight', 'Wizard', 'Warrior', 'Star', 'Gem', 'Guardian', 'Spirit', 'Hero'];",
+											"",
+											"const randomAdjective = adjectives[Math.floor(Math.random() * adjectives.length)];",
+											"const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];",
+											"pm.environment.set('createGachaName', `\"${randomAdjective} ${randomNoun}\"`);",
+											"",
+											"// Generate a random price between 100 and 1000",
+											"const randomPrice = Math.floor(Math.random() * 901) + 100;",
+											"pm.environment.set('createGachaPrice', randomPrice);",
+											"",
+											"// Generate a random image name",
+											"const imagePrefix = ['item', 'gacha', 'character', 'weapon', 'artifact'];",
+											"const randomPrefix = imagePrefix[Math.floor(Math.random() * imagePrefix.length)];",
+											"const randomId = Math.floor(Math.random() * 1000).toString().padStart(3, '0');",
+											"pm.environment.set('createGachaImageName', `${randomPrefix}_${randomId}`);",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"gacha_id\": {{createGachaId}},\n    \"name\": {{createGachaName}},\n    \"rarity\": 1,\n    \"price\": {{createGachaPrice}},\n    \"image_path\": \"/images/gacha/{{createGachaImageName}}.png\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/internal/gacha/create",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"internal",
+										"gacha",
+										"create"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update gacha",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Test for status code",
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"// Test for response time",
+											"pm.test(\"Response time is less than 500ms\", function () {",
+											"    pm.expect(pm.response.responseTime).to.be.below(500);",
+											"});",
+											"",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const adjectives = ['Lucky', 'Mystic', 'Radiant', 'Golden', 'Silver', 'Crimson', 'Azure', 'Cosmic', 'Legendary', 'Epic'];",
+											"const nouns = ['Dragon', 'Phoenix', 'Knight', 'Wizard', 'Warrior', 'Star', 'Gem', 'Guardian', 'Spirit', 'Hero'];",
+											"",
+											"const randomAdjective = adjectives[Math.floor(Math.random() * adjectives.length)];",
+											"const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];",
+											"pm.environment.set('createGachaName', `\"${randomAdjective} ${randomNoun}\"`);"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"gacha_id\": {{createGachaId}},\n    \"name\": {{createGachaName}},\n    \"rarity\": 1,\n    \"price\": {{createGachaPrice}},\n    \"image_path\": \"/images/gacha/{{createGachaImageName}}.png\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/internal/gacha/update",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"internal",
+										"gacha",
+										"update"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete gacha",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Test for status code",
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"// Test for response time",
+											"pm.test(\"Response time is less than 500ms\", function () {",
+											"    pm.expect(pm.response.responseTime).to.be.below(500);",
+											"});",
+											"",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const adjectives = ['Lucky', 'Mystic', 'Radiant', 'Golden', 'Silver', 'Crimson', 'Azure', 'Cosmic', 'Legendary', 'Epic'];",
+											"const nouns = ['Dragon', 'Phoenix', 'Knight', 'Wizard', 'Warrior', 'Star', 'Gem', 'Guardian', 'Spirit', 'Hero'];",
+											"",
+											"const randomAdjective = adjectives[Math.floor(Math.random() * adjectives.length)];",
+											"const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];",
+											"pm.environment.set('createGachaName', `\"${randomAdjective} ${randomNoun}\"`);"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"gacha_id\": {{createGachaId}},\n    \"name\": {{createGachaName}},\n    \"rarity\": 1,\n    \"price\": {{createGachaPrice}},\n    \"image_path\": \"/images/gacha/{{createGachaImageName}}.png\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/internal/gacha/delete",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"internal",
+										"gacha",
+										"delete"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get user gachas",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Test 1: Verify the response status code is 200",
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"// Test 2: Verify the response body contains the GachaList array",
+											"pm.test(\"Response body contains GachaList\", function () {",
+											"    pm.expect(pm.response.json()).to.have.property('GachaList');",
+											"    pm.expect(pm.response.json().GachaList).to.be.an('array');",
+											"});",
+											"",
+											"// Test 3: Verify the response GachaList array contains expected fields",
+											"pm.test(\"GachaList array contains expected fields\", function () {",
+											"    var gachaList = pm.response.json().GachaList;",
+											"    pm.expect(gachaList).to.be.an('array').that.is.not.empty;",
+											"    pm.expect(gachaList[0]).to.have.property('gacha_id').that.is.an('array');",
+											"    pm.expect(gachaList[0]).to.have.property('name').that.is.a('string');",
+											"    pm.expect(gachaList[0]).to.have.property('rarity').that.is.a('number');",
+											"    pm.expect(gachaList[0]).to.have.property('price').that.is.a('number');",
+											"    pm.expect(gachaList[0]).to.have.property('image_path').that.is.a('string');",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"user_id\": {{userIdByteArray}}\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/internal/gacha/get_user_gachas",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"internal",
+										"gacha",
+										"get_user_gachas"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Remove gacha from user",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Response time is less than 200ms\", function () {",
+											"    pm.expect(pm.response.responseTime).to.be.lessThan(200);",
+											"});",
+											"",
+											"pm.test(\"Content-Length header is present\", function () {",
+											"    pm.response.to.have.header(\"Content-Length\");",
+											"});",
+											"",
+											"pm.test(\"Date header is present\", function () {",
+											"    pm.response.to.have.header(\"Date\");",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"user_id\": {{userIdByteArray}},\n    \"gacha_id\": {{gachaIdByteArray}}\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/internal/gacha/remove_gacha_from_user",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"internal",
+										"gacha",
+										"remove_gacha_from_user"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Add gacha to user",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Response time is less than 200ms\", function () {",
+											"    pm.expect(pm.response.responseTime).to.be.lessThan(200);",
+											"});",
+											"",
+											"pm.test(\"Response headers contain Date and Content-Length\", function () {",
+											"    pm.response.to.have.header(\"Date\");",
+											"    pm.response.to.have.header(\"Content-Length\");",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"user_id\": {{userIdByteArray}},\n    \"gacha_id\": {{gachaIdByteArray}}\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/internal/gacha/add_gacha_to_user",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"internal",
+										"gacha",
+										"add_gacha_to_user"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Remove user gachas",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Test 1: Verify the status code is 200",
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"// Test 2: Verify the response time is less than 200ms",
+											"pm.test(\"Response time is less than 200ms\", function () {",
+											"    pm.expect(pm.response.responseTime).to.be.lessThan(200);",
+											"});",
+											"",
+											"// Test 3: Verify the response body is empty",
+											"pm.test(\"Response body is empty\", function () {",
+											"    pm.expect(pm.response.text()).to.be.empty;",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"user_id\": {{userIdByteArray}}\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/internal/gacha/remove_user_gachas",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"internal",
+										"gacha",
+										"remove_user_gachas"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Find By ID",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Verify gacha_id values\", function () {",
+											"    pm.response.to.have.jsonBody(\"gacha_id\", [246, 151, 81, 81, 85, 84, 65, 96, 179, 205, 45, 90, 171, 84, 140, 207]);",
+											"});",
+											"",
+											"pm.test(\"Verify name is in lowercase\", function () {",
+											"    pm.expect(pm.response.json().name.toLowerCase()).to.equal(\"tank mole cricket\");",
+											"});",
+											"",
+											"pm.test(\"Verify rarity value is 0\", function () {",
+											"    pm.expect(pm.response.json().rarity).to.equal(0);",
+											"});",
+											"",
+											"pm.test(\"Verify price is 3000\", function () {",
+											"    pm.expect(pm.response.json().price).to.equal(3000);",
+											"});",
+											"",
+											"pm.test(\"Verify image path is correct\", function () {",
+											"    pm.expect(pm.response.json().image_path).to.equal(\"/static/images/tank_mole-cricket_common.webp\");",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"gacha_id\": \"f6975151-5554-4160-b3cd-2d5aab548ccf\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/internal/gacha/find_by_id",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"internal",
+										"gacha",
+										"find_by_id"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get all",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Test for status code",
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"// Test for response body properties",
+											"pm.test(\"Response body has GachaList property\", function () {",
+											"    pm.expect(pm.response.json()).to.have.property('GachaList');",
+											"});",
+											"",
+											"pm.test(\"GachaList contains gacha_id, name, rarity, price, and image_path properties\", function () {",
+											"    pm.expect(pm.response.json().GachaList[0]).to.have.property('gacha_id');",
+											"    pm.expect(pm.response.json().GachaList[0]).to.have.property('name');",
+											"    pm.expect(pm.response.json().GachaList[0]).to.have.property('rarity');",
+											"    pm.expect(pm.response.json().GachaList[0]).to.have.property('price');",
+											"    pm.expect(pm.response.json().GachaList[0]).to.have.property('image_path');",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/internal/gacha/get_all",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"internal",
+										"gacha",
+										"get_all"
+									]
+								}
+							},
+							"response": []
+						}
+					]
 				}
 			]
 		}
@@ -860,7 +1403,7 @@
 	"variable": [
 		{
 			"key": "baseUrl",
-			"value": "https://localhost:8080/api/v1",
+			"value": "http://localhost:8080/api/v1",
 			"type": "default"
 		},
 		{
@@ -869,9 +1412,19 @@
 			"type": "default"
 		},
 		{
+			"key": "gachaIdByteArray",
+			"value": "[150, 248, 206, 212, 3, 5, 67, 173, 158, 82, 119, 144, 19, 250, 133, 2]",
+			"type": "string"
+		},
+		{
 			"key": "userId",
 			"value": "744a2f4d-a693-4352-916e-64f4ef94b709",
 			"type": "default"
+		},
+		{
+			"key": "userIdByteArray",
+			"value": "[116, 74, 47, 77, 166, 147, 67, 82, 145, 110, 100, 244, 239, 148, 183, 9]",
+			"type": "string"
 		}
 	]
 }
