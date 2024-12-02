@@ -40,9 +40,8 @@ func (r *SessionRepo) RevokeToken(token string) error {
 func (r *SessionRepo) FindToken(token string) (string, error) {
 	r.mux.RLock()
 	defer r.mux.RUnlock()
-	if _, ok := r.tokens[token]; !ok {
-		r.tokens[token] = token
-		return token, nil
+	if tok, ok := r.tokens[token]; ok {
+		return tok, nil
 	}
 	return "", models.ErrInternalServerError
 }

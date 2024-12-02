@@ -1,0 +1,863 @@
+{
+	"info": {
+		"_postman_id": "273c051d-617f-494d-ac85-cf5c4bc293c5",
+		"name": "Auth Service Unit Tests",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "39361032"
+	},
+	"item": [
+		{
+			"name": "public",
+			"item": [
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 302\", function () {",
+									"    pm.response.to.have.status(302);",
+									"});",
+									"",
+									"pm.test(\"Response time is less than 1000ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(1000);",
+									"});",
+									"",
+									"pm.test(\"Location header is present\", function () {",
+									"    pm.response.to.have.header(\"Location\");",
+									"});",
+									"",
+									"pm.test(\"Set-Cookie header is present\", function () {",
+									"    pm.response.to.have.header(\"Set-Cookie\");",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"Alice\",\n    \"password\": \"password\",\n    \"redirect\": \"\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "oauth authorization",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 302\", function () {",
+									"    pm.response.to.have.status(302);",
+									"});",
+									"",
+									"pm.test(\"Retrieve 'code' query parameter from location header\", function () {",
+									"    var locationHeader = pm.response.headers.get('Location');",
+									"    pm.expect(locationHeader).to.include('code=');",
+									"",
+									"    var codeValue = locationHeader.split('code=')[1].split('&')[0];",
+									"    pm.collectionVariables.set(\"oauthCode\", codeValue);",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"followRedirects": false
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/oauth/authorize?response_type=code&client_id=beetle-quest&redirect_uri={{oauthCallback}}&scope=user, market, gacha&state={{state}}&code_challenge={{codeChallenge}}&code_challenge_method=S256",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"oauth",
+								"authorize"
+							],
+							"query": [
+								{
+									"key": "response_type",
+									"value": "code"
+								},
+								{
+									"key": "client_id",
+									"value": "beetle-quest"
+								},
+								{
+									"key": "redirect_uri",
+									"value": "{{oauthCallback}}"
+								},
+								{
+									"key": "scope",
+									"value": "user, market, gacha"
+								},
+								{
+									"key": "state",
+									"value": "{{state}}"
+								},
+								{
+									"key": "code_challenge",
+									"value": "{{codeChallenge}}"
+								},
+								{
+									"key": "code_challenge_method",
+									"value": "S256"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "oauth token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Access token should exist\", function () {",
+									"    pm.expect(pm.response.json()).to.have.property('access_token');",
+									"",
+									"    let access_token = pm.response.json()[\"access_token\"];",
+									"    pm.collectionVariables.set(\"accessToken\", access_token);",
+									"});",
+									"",
+									"pm.test(\"Token type should be bearer\", function () {",
+									"    pm.expect(pm.response.json().token_type).to.equal('Bearer');",
+									"});",
+									"",
+									"pm.test(\"Scope should include user, market, and gacha\", function () {",
+									"    pm.expect(pm.response.json().scope).to.include('user', 'market', 'gacha');",
+									"",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "grant_type",
+									"value": "authorization_code",
+									"type": "text"
+								},
+								{
+									"key": "code",
+									"value": "{{oauthCode}}",
+									"type": "text"
+								},
+								{
+									"key": "redirect_uri",
+									"value": "{{oauthCallback}}",
+									"type": "text"
+								},
+								{
+									"key": "client_id",
+									"value": "beetle-quest",
+									"type": "text"
+								},
+								{
+									"key": "code_verifier",
+									"value": "{{codeVerifier}}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{host}}/oauth/token",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"oauth",
+								"token"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Authentication Page",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response body contains login form\", function () {",
+									"    pm.expect(pm.response.text()).to.include('hx-post=\"/api/v1/auth/login\"');",
+									"    pm.expect(pm.response.text()).to.include('hx-post=\"/api/v1/auth/register\"');",
+									"    pm.expect(pm.response.text()).to.include('hx-post=\"/api/v1/auth/admin/login\"');",
+									"});",
+									"",
+									"pm.test(\"Response body contains Beetle Quest title\", function () {",
+									"    pm.expect(pm.response.text()).to.include('<title>Beetle Quest</title>');",
+									"});",
+									"",
+									"pm.test(\"Response time is less than 500ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(500);",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/auth/authPage",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"authPage"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Authorize Page",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Check if response contains OAuth2 Authorization with PKCE\", function () {",
+									"    pm.expect(pm.response.text()).to.include(\"OAuth2 Authorization with PKCE\");",
+									"});",
+									"",
+									"pm.test(\"Check if authorizationForm is present in the response\", function () {",
+									"    pm.expect(pm.response.text()).to.include(\"authorizationForm\");",
+									"});",
+									"",
+									"pm.test(\"Check if authorizationForm contains Step 1: Authorize\", function () {",
+									"    pm.expect(pm.response.text()).to.include(\"Step 1: Authorize\");",
+									"});",
+									"",
+									"pm.test(\"Check if authorizationForm contains Select the scopes you want to request\", function () {",
+									"    pm.expect(pm.response.text()).to.include(\"Select the scopes you want to request\");",
+									"});",
+									"",
+									"pm.test(\"Check if authorizationForm contains Authorize button\", function () {",
+									"    pm.expect(pm.response.text()).to.include(\"Authorize</button>\");",
+									"});",
+									"",
+									"pm.test(\"Check if authorizationForm contains User service\", function () {",
+									"    pm.expect(pm.response.text()).to.include(\"User service\");",
+									"});",
+									"",
+									"pm.test(\"Check if authorizationForm contains Gacha service\", function () {",
+									"    pm.expect(pm.response.text()).to.include(\"Gacha service\");",
+									"});",
+									"",
+									"pm.test(\"Check if authorizationForm contains Market service\", function () {",
+									"    pm.expect(pm.response.text()).to.include(\"Market service\");",
+									"});",
+									"",
+									"pm.test(\"Check if authorizationForm contains Admin service\", function () {",
+									"    pm.expect(pm.response.text()).to.include(\"Admin service\");",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/auth/authorizePage",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"authorizePage"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Token page",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Verify form ID is 'tokenForm'\", function () {",
+									"    pm.expect(pm.response.text()).to.include('<form id=\"tokenForm\"');",
+									"});",
+									"",
+									"pm.test(\"Verify the presence of 'Step 2: Exchange Code for Token'\", function () {",
+									"    pm.expect(pm.response.text()).to.include('Step 2: Exchange Code for Token');",
+									"});",
+									"",
+									"pm.test(\"Verify the presence of 'Click the button below to exchange the authorization code for an access token.'\", function () {",
+									"    pm.expect(pm.response.text()).to.include('Click the button below to exchange the authorization code for an access token.');",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/auth/tokenPage",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"tokenPage"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Register",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Response body contains 'token' property\", function () {",
+									"    pm.expect(pm.response.text()).to.contain('User registered successfully!')",
+									"});",
+									"",
+									"pm.test(\"Response time is less than 200ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(200);",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"let userName = pm.variables.replaceIn(\"{{$randomUserName}}\")",
+									"",
+									"pm.collectionVariables.set(\"newRandomUsername\", userName)",
+									"pm.collectionVariables.set(\"newRandomEmail\", `${userName}@test.it`)",
+									"pm.collectionVariables.set(\"newRandomPassword\", pm.variables.replaceIn(\"{{$randomUserName}}\"))"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"{{newRandomUsername}}\",\n\t\"email\": \"{{newRandomEmail}}\",\n\t\"password\": \"{{newRandomPassword}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Check Session",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test for successful response status",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Test for the presence of specific elements in the response body",
+									"pm.test(\"Response body contains specific elements\", function () {",
+									"    pm.expect(pm.response.text()).to.include('Beetle Quest');",
+									"    pm.expect(pm.response.text()).to.include('hx-get=\"/api/v1/user/account');",
+									"    pm.expect(pm.response.text()).to.include('hx-get=\"/api/v1/market/auction/list');",
+									"    pm.expect(pm.response.text()).to.include('hx-get=\"/api/v1/gacha/list');",
+									"    pm.expect(pm.response.text()).to.include('hx-get=\"/api/v1/auth/logout');",
+									"});",
+									"",
+									"// Test for the presence of required headers in the response",
+									"pm.test(\"Response contains required headers\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\");",
+									"    pm.response.to.have.header(\"Date\");",
+									"    pm.response.to.have.header(\"Content-Length\");",
+									"});",
+									"",
+									"// Test for the response time",
+									"pm.test(\"Response time is less than 500ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(500);",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/auth/check_session",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"check_session"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Traefik verify",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test for successful status code",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Test for response time",
+									"pm.test(\"Response time is less than 200ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(200);",
+									"});",
+									"",
+									"// Test for response headers",
+									"pm.test(\"Content-Length is present in response headers\", function () {",
+									"    pm.response.to.have.header(\"Content-Length\");",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/auth/traefik/verify",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"traefik",
+								"verify"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 302\", function () {",
+									"    pm.response.to.have.status(302);",
+									"});",
+									"",
+									"pm.test(\"Response time is less than 100ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(100);",
+									"});",
+									"",
+									"pm.test(\"Response body contains 'Found'\", function () {",
+									"    pm.expect(pm.response.text()).to.include('Found');",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/auth/logout",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"logout"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "admin",
+			"item": [
+				{
+					"name": "Admin Login",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// BASE 32 RFC 4648 compliant",
+									"const alphabet = \"ABCDEFGHIJKLMNOPQRSTUVWXYZ234567\";",
+									"const secret = pm.collectionVariables.get(\"otpSecret\");",
+									"",
+									"require('crypto-js').enc.u8array = {",
+									"  /**",
+									"   * Converts a word array to a Uint8Array.",
+									"   *",
+									"   * @param {WordArray} wordArray The word array.",
+									"   *",
+									"   * @return {Uint8Array} The Uint8Array.",
+									"   *",
+									"   * @static",
+									"   *",
+									"   * @example",
+									"   *",
+									"   *     var u8arr = CryptoJS.enc.u8array.stringify(wordArray);",
+									"   */",
+									"  stringify: function (wordArray) {",
+									"    // Shortcuts",
+									"    var words = wordArray.words;",
+									"    var sigBytes = wordArray.sigBytes;",
+									"",
+									"    // Convert",
+									"    var u8 = new Uint8Array(sigBytes);",
+									"    for (var i = 0; i < sigBytes; i++) {",
+									"      var byte = (words[i >>> 2] >>> (24 - (i % 4) * 8)) & 0xff;",
+									"      u8[i] = byte;",
+									"    }",
+									"",
+									"    return u8;",
+									"  },",
+									"",
+									"  /**",
+									"   * Converts a Uint8Array to a word array.",
+									"   *",
+									"   * @param {string} u8Str The Uint8Array.",
+									"   *",
+									"   * @return {WordArray} The word array.",
+									"   *",
+									"   * @static",
+									"   *",
+									"   * @example",
+									"   *",
+									"   *     var wordArray = CryptoJS.enc.u8array.parse(u8arr);",
+									"   */",
+									"  parse: function (u8arr) {",
+									"    // Shortcut",
+									"    var len = u8arr.length;",
+									"",
+									"    // Convert",
+									"    var words = [];",
+									"    for (var i = 0; i < len; i++) {",
+									"      words[i >>> 2] |= (u8arr[i] & 0xff) << (24 - (i % 4) * 8);",
+									"    }",
+									"",
+									"    return require('crypto-js').lib.WordArray.create(words, len);",
+									"  },",
+									"};",
+									"",
+									"function readChar (char) {",
+									"  var idx = alphabet.indexOf(char)",
+									"  if (idx === -1) {",
+									"    throw new Error('Invalid character found: ' + char)",
+									"  }",
+									"  return idx",
+									"}",
+									"",
+									"function decode(input) {",
+									"  let length = input.length;",
+									"  const leftover = (length * 5) % 8;",
+									"  const offset = leftover === 0 ? 0 : 8 - leftover;",
+									"  let bits = 0, value = 0, index = 0;",
+									"  var output = new Uint8Array(Math.ceil((length * 5) / 8));",
+									"  for (var i = 0; i < length; i++) {",
+									"    value = (value << 5) | readChar(input[i]);",
+									"    bits += 5;",
+									"    if (bits >= 8) {",
+									"      output[index++] = (value >>> (bits + offset - 8)) & 255;",
+									"      bits -= 8;",
+									"    }",
+									"  }",
+									"  if (bits > 0) {",
+									"    output[index] = (value << (bits + offset - 8)) & 255;",
+									"  }",
+									"  if (leftover !== 0) {",
+									"    output = output.slice(1);",
+									"  }",
+									"  return output;",
+									"}",
+									"",
+									"const truncate = (digest) => {",
+									"  const offset = digest[19] & 0xf; // last 4 bits",
+									"",
+									"  // take 4 bytes starting at the specified byte offset,",
+									"  // but chop off the first bit so we have only 31 bits",
+									"  const v =",
+									"    ((digest[offset] & 0x7f) << 24) + // 0x7F = 01111111",
+									"    (digest[offset + 1] << 16) +",
+									"    (digest[offset + 2] << 8) +",
+									"    digest[offset + 3];",
+									"",
+									"  return (v % 10**6).toString(10).padStart(6, \"0\");",
+									"};",
+									"",
+									"const cryptoJSTotp = (interval, secret) => {",
+									"  let digest = require('crypto-js').HmacSHA1(require('crypto-js').enc.Hex.parse(interval), require('crypto-js').enc.u8array.parse(decode(secret))).toString(require('crypto-js').enc.u8array);",
+									"  return truncate(digest);",
+									"};",
+									"",
+									"// current time, in seconds since the Unix epoch",
+									"const time = Math.floor(new Date().getTime() / 1000);",
+									"",
+									"// how many 30-second intervals AND pad to 8 bytes = 16 hex characters",
+									"const interval = Math.floor(time / 30)",
+									"  .toString(16)",
+									"  .padStart(16, \"0\");",
+									"",
+									"const otp = cryptoJSTotp(interval, secret);",
+									"pm.collectionVariables.set(\"otpCode\", otp);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 302\", function () {",
+									"    pm.response.to.have.status(302);",
+									"});",
+									"",
+									"pm.test(\"Response time is less than 1000ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(1000);",
+									"});",
+									"",
+									"pm.test(\"Location header is present\", function () {",
+									"    pm.response.to.have.header(\"Location\");",
+									"});",
+									"",
+									"pm.test(\"Set-Cookie header is present\", function () {",
+									"    pm.response.to.have.header(\"Set-Cookie\");",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"admin_id\": \"09087f45-5209-4efa-85bd-761562a6df53\",\n    \"password\": \"admin\",\n    \"otp_code\": \"{{otpCode}}\",\n    \"redirect\": \"\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/admin/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"admin",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "host",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080/api/v1",
+			"type": "default"
+		},
+		{
+			"key": "state",
+			"value": "1010010",
+			"type": "default"
+		},
+		{
+			"key": "oauthCallback",
+			"value": "/fake/callback",
+			"type": "default"
+		},
+		{
+			"key": "codeVerifier",
+			"value": "8f4a95a8a9ebdbecb0781bb24580b64eb02ed3d4d025182c93d19a97",
+			"type": "string"
+		},
+		{
+			"key": "codeChallenge",
+			"value": "9Qcei7HNb5d1lxXWmxR-t9WboKImV_cJjcoQoxVCPJY",
+			"type": "default"
+		},
+		{
+			"key": "oauthCode",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "accessToken",
+			"value": ""
+		},
+		{
+			"key": "newRandomUsername",
+			"value": ""
+		},
+		{
+			"key": "newRandomEmail",
+			"value": ""
+		},
+		{
+			"key": "newRandomPassword",
+			"value": ""
+		},
+		{
+			"key": "otpCode",
+			"value": ""
+		},
+		{
+			"key": "otpSecret",
+			"value": "G2YTWH764PX5WZORXCBK2C2F2JHV74KD",
+			"type": "string"
+		}
+	]
+}

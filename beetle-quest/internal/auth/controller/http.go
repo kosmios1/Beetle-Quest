@@ -166,15 +166,14 @@ func (c *AuthController) Login(ctx *gin.Context) {
 
 func (c *AuthController) Logout(ctx *gin.Context) {
 	token, err := ctx.Cookie("identity_token")
-	if err != nil {
-		ctx.Redirect(http.StatusFound, "/static/")
-		return
-	}
-
-	if ok := c.srv.RevokeToken(token); !ok {
-		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": models.ErrInternalServerError})
-		ctx.Abort()
-		return
+	if err == nil {
+		if ok := c.srv.RevokeToken(token); !ok {
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": models.ErrInternalServerError})
+			ctx.Abort()
+			return
+		}
+	} else {
+		// NOTE: We do not return, we still want to delete the access token
 	}
 
 	authHeader := ctx.GetHeader("Authorization")
