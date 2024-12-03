@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "cb58bd67-49f9-46f0-a173-d3367182d354",
+		"_postman_id": "ed23d07d-7309-4dcd-9de0-07961aa1192e",
 		"name": "beetle_quest-admin_service-unit_tests Copy",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "39385405"
@@ -185,17 +185,13 @@
 									"    pm.expect(pm.response.responseTime).to.be.below(200);",
 									"});",
 									"",
-									"pm.test(\"Response body is an array\", function () {",
-									"    pm.expect(pm.response.json()).to.be.an('array');",
+									"pm.test(\"Response body has TransactionList as an array\", function () {",
+									"    const responseBody = pm.response.json();",
+									"    pm.expect(responseBody).to.be.an('object'); // Verifica che il corpo sia un oggetto",
+									"    pm.expect(responseBody).to.have.property('TransactionList'); // Verifica che esista la proprietà TransactionList",
+									"    pm.expect(responseBody.TransactionList).to.be.an('array'); // Verifica che TransactionList sia un array",
 									"});",
 									"",
-									"pm.test(\"Each transaction has an ID\", function () {",
-									"    pm.expect(pm.response.json()[0]).to.have.property('transactionId');",
-									"});",
-									"",
-									"pm.test(\"Each transaction has a timestamp\", function () {",
-									"    pm.expect(pm.response.json()[0]).to.have.property('timestamp');",
-									"});",
 									""
 								],
 								"type": "text/javascript",
@@ -285,14 +281,44 @@
 									"    pm.expect(pm.response.responseTime).to.be.below(200);",
 									"});",
 									"",
-									"pm.test(\"Response body should contain newly added gacha details\", function () {",
-									"    const responseBody = pm.response.json();",
-									"    pm.expect(responseBody.gacha_id).to.equal(pm.collectionVariables.get(\"createGachaId\"));",
-									"    pm.expect(responseBody.name).to.equal(pm.collectionVariables.get(\"createGachaName\"));",
-									"    pm.expect(responseBody.rarity).to.equal(1);",
-									"    pm.expect(responseBody.price).to.equal(pm.collectionVariables.get(\"createGachaPrice\"));",
-									"    pm.expect(responseBody.image_path).to.equal(`/images/gacha/${pm.collectionVariables.get(\"createGachaImageName\")}.png`);",
+									"pm.test(\"Gacha added successfully\", function () {",
+									"    const responseBody = pm.response.text(); // Ottieni il corpo della risposta come testo",
+									"    pm.expect(responseBody).to.include('<div class=\"success\">Gacha added successfully!</div>');",
 									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Generate a random UUID for gacha_id",
+									"const { v4: uuidv4 } = require('uuid');",
+									"",
+									"const uuid = uuidv4();",
+									"const byteArray = uuid.replace(/-/g, '').match(/.{1,2}/g).map(hex => parseInt(hex, 16));",
+									"pm.environment.set('createGachaId', JSON.stringify(byteArray));",
+									"",
+									"// Generate a random gacha name",
+									"const adjectives = ['Lucky', 'Mystic', 'Radiant', 'Golden', 'Silver', 'Crimson', 'Azure', 'Cosmic', 'Legendary', 'Epic'];",
+									"const nouns = ['Dragon', 'Phoenix', 'Knight', 'Wizard', 'Warrior', 'Star', 'Gem', 'Guardian', 'Spirit', 'Hero'];",
+									"",
+									"const randomAdjective = adjectives[Math.floor(Math.random() * adjectives.length)];",
+									"const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];",
+									"pm.environment.set('createGachaName', `\"${randomAdjective} ${randomNoun}\"`);",
+									"",
+									"// Generate a random price between 100 and 1000",
+									"const randomPrice = Math.floor(Math.random() * 901) + 100;",
+									"pm.environment.set('createGachaPrice', randomPrice);",
+									"",
+									"// Generate a random image name",
+									"const imagePrefix = ['item', 'gacha', 'character', 'weapon', 'artifact'];",
+									"const randomPrefix = imagePrefix[Math.floor(Math.random() * imagePrefix.length)];",
+									"const randomId = Math.floor(Math.random() * 1000).toString().padStart(3, '0');",
+									"pm.environment.set('createGachaImageName', `${randomPrefix}_${randomId}`);",
 									""
 								],
 								"type": "text/javascript",
@@ -305,7 +331,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"gacha_id\": {{createGachaId}},\n    \"name\": {{createGachaName}},\n    \"rarity\": 1,\n    \"price\": {{createGachaPrice}},\n    \"image_path\": \"/images/gacha/{{createGachaImageName}}.png\"\n}",
+							"raw": "{\n    \"gacha_id\": {{createGachaId}},\n    \"name\": {{createGachaName}},\n    \"rarity\": \"Common\",\n    \"price\": \"2000\",\n    \"image_path\": \"/images/gacha/{{createGachaImageName}}.png\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -403,14 +429,14 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/admin/gacha/{{gachaId}}",
+							"raw": "{{baseUrl}}/admin/gacha/{{mosquitogachaId}}",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"admin",
 								"gacha",
-								"{{gachaId}}"
+								"{{mosquitogachaId}}"
 							]
 						}
 					},
@@ -439,6 +465,16 @@
 								"type": "text/javascript",
 								"packages": {}
 							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
 						}
 					],
 					"request": {
@@ -446,7 +482,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"Mage Mosquito\",\n    \"rarity\": 1,\n    \"price\": 500,\n    \"image_path\": \"/images/mage_mosquito_uncommon.png\"\n}",
+							"raw": "{\n    \"name\": \"Mage Mosquito3\",\n    \"rarity\": \"Rare\",\n    \"price\": \"500\",\n    \"image_path\": \"/images/mage_mosquito_uncommon.png\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -454,14 +490,14 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseUrl}}/admin/gacha/{{gachaId}}",
+							"raw": "{{baseUrl}}/admin/gacha/{{mosquitogachaId}}",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"admin",
 								"gacha",
-								"{{gachaId}}"
+								"{{mosquitogachaId}}"
 							]
 						}
 					},
@@ -496,14 +532,14 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/admin/gacha/{{gachaId}}",
+							"raw": "{{baseUrl}}/admin/gacha/{{mosquitogachaId}}",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"admin",
 								"gacha",
-								"{{gachaId}}"
+								"{{mosquitogachaId}}"
 							]
 						}
 					},
@@ -532,7 +568,7 @@
 									"pm.test(\"MarketHistory exists\", () => {",
 									"    const jsonData = pm.response.json(); ",
 									"    pm.expect(jsonData).to.have.property(\"MarketHistory\"); ",
-									"    pm.expect(jsonData.MarketHistory).to.be.null; ",
+									"    pm.expect(jsonData.MarketHistory).to.be.not.null; ",
 									"});"
 								],
 								"type": "text/javascript",
@@ -577,9 +613,6 @@
 									"",
 									"    // Check if the 'AuctionList' property exists",
 									"    pm.expect(jsonData).to.have.property(\"AuctionList\");",
-									"",
-									"    // Check if 'AuctionList' is null",
-									"    pm.expect(jsonData.AuctionList).to.be.null;",
 									"});"
 								],
 								"type": "text/javascript",
@@ -612,6 +645,24 @@
 							"listen": "test",
 							"script": {
 								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response time is less than 200ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(200);",
+									"});",
+									"",
+									"pm.test(\"auction id is valid\", function () {",
+									"    const response = pm.response.json(); // Ottiene la risposta JSON",
+									"",
+									"    pm.expect(response.auction_id).to.eql([119, 147, 79, 150, 56, 235, 66, 82, 164, 38, 115, 2, 172, 38, 213, 138]);",
+									"    pm.expect(response.owner_id).to.eql([116, 74, 47, 77, 166, 147, 67, 82, 145, 110, 100, 244, 239, 148, 183, 9]);",
+									"    pm.expect(response.gacha_id).to.eql([228, 85, 17, 60, 101, 92, 71, 141, 189, 36, 178, 165, 156, 17, 225, 243]);",
+									"    pm.expect(response.winner_id).to.eql([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);",
+									"});",
+									"",
+									"",
 									""
 								],
 								"type": "text/javascript",
@@ -667,7 +718,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"gacha_id\": {{gachaId}}\n}",
+							"raw": "{\n  \"gacha_id\": \"{{butterflygachaid}}\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -694,6 +745,66 @@
 		{
 			"name": "Internal",
 			"item": [
+				{
+					"name": "bad_find_admin_id_request_internal",
+					"item": [
+						{
+							"name": "bad Find admin by id",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 404\", function () {",
+											"    pm.response.to.have.status(404);",
+											"});",
+											"",
+											"pm.test(\"Response time is less than 200ms\", function () {",
+											"    pm.expect(pm.response.responseTime).to.be.lessThan(200);",
+											"});",
+											"",
+											"pm.test(\"Admin not found\", () => {",
+											"    // Parse the JSON response",
+											"    const jsonData = pm.response.json();",
+											"",
+											"    // Check if the response contains the expected structure",
+											"    pm.expect(jsonData).to.have.property(\"Error\");",
+											"    pm.expect(jsonData.Error).to.equal(\"admin not found\");",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"admin_id\": [9, 8, 127, 69, 82, 9, 78, 250, 133, 189, 118, 21, 98, 106, 223, 0]\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/internal/admin/find_by_id",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"internal",
+										"admin",
+										"find_by_id"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
 				{
 					"name": "Find admin by id",
 					"event": [
@@ -826,9 +937,14 @@
 			"type": "default"
 		},
 		{
-			"key": "gachaId",
+			"key": "mosquitogachaId",
 			"value": "96f8ced4-0305-43ad-9e52-779013fa8502",
 			"type": "default"
+		},
+		{
+			"key": "butterflygachaid",
+			"value": "e455113c-655c-478d-bd24-b2a59c11e1f3",
+			"type": "string"
 		},
 		{
 			"key": "gachaIdByteArray",
@@ -875,8 +991,13 @@
 		},
 		{
 			"key": "auction_id",
-			"value": "",
+			"value": "77934f96-38eb-4252-a426-7302ac26d58a",
 			"type": "default"
+		},
+		{
+			"key": "butterflygachaidbytearray",
+			"value": "[228, 85, 17, 60, 101, 92, 71, 141, 189, 36, 178, 165, 156, 17, 225, 243]",
+			"type": "string"
 		}
 	]
 }

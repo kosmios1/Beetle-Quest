@@ -88,6 +88,71 @@ Moreover, to achieve more effective control over the system, we have introduced 
 
 We have also used a reverse proxy called *_Traefik_*, which acts as an intermediary between external users and the system's internal services. In this architecture, Traefik functions as an access gateway, managing and routing requests to the appropriate microservices, ensuring efficient and centralized traffic handling.
 
+
+= User Stories
+/*TO DO  
+For each user story of the player put the endpoint(s) to realize it and the microservice(s) involved. Use a table or a bullet list.*/
+
+
+= Market rules
+/*TO DO 
+Give a general description of the decision you took for the market.
+Try to answer questions like:
+• What happens to the currency of a player when someone else bids
+higher?
+• What happens if I bid at the last second of the auction?
+• Can I bid for an auction in which I am the highest bidder?*/
+
+
+= Testing
+/*TO DO 
+Write here any particular fact about the testing.
+For example:
+• I tested in isolation the DBManager_x together with the DB_x
+• I used a third-party service that interacts with Service_y and I put them
+together in the isolation test because mock it is hard for reason z.*/
+
+
+= Secuirty
+
+== Secuirty - Data
+/*TO DO
+• Select one input that you had to sanitize, describe what it represent,
+which microservice(t) use it and how you sanitize it.
+• List the data you encrypted at rest, describe what they represent, which
+database stores them and where you en/decrypt them.*/
+
+
+== Secuirty - Authentication and Authorization
+/*TO DO Describe the scenario you selected (centralized vs distributed) by indicating
+the basic steps to validate a token and how the keys to sign the token are
+used and stored.
+Try to describe it as schematic as possible (support it with lists, tables or
+figures)
+Put the payload format of your Access Token (bullet list, table or image)*/
+
+
+== Security - Analyses
+/* TO DO 
+Put the screenshot of:
+• The report of the static analysis tool you used (e.g. Bandit’s final table).
+• The dashboard of docker scout with your (developed) images, where the
+vulnerabilities are indicated.
+If your language does not have static analysis tools available, specify it here.
+Otherwise, put the command(s) you used to reach the results in the
+screenshot.
+Put also the name of the docker hub repository with the images.
+Note: there is no need for docker scout for images of third-party software.*/
+
+
+= Additional features
+/* TO DO 
+Describe here any additional feature you implemented.
+• What is this feature?
+• Why is it useful?
+• How is it implemented?
+*/
+
 = Interesting Flows
 
 Now we proceed analysing a few use case scenarios, to show the flow on the backend.
@@ -153,3 +218,8 @@ To bid an auction a user has to send a `POST` request to the API Gateway at\ `/m
   - Now the `market` service will check with the `user` service if the user has the amount of `BugsCoins` he wants to bid.
   - If the check passes the `market` service will comunicate the `user` service to remove the amount from the bidder, and store the bid in the `market DB`.
   - If no error appears it returns a success message to the API Gateway.
+rite here any particular fact about the testing.
+For example:
+• I tested in isolation the DBManager_x together with the DB_x
+• I used a third-party service that interacts with Service_y and I put them
+together in the isolation test because mock it is hard for reason z.

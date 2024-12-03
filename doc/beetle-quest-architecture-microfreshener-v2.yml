@@ -12,6 +12,7 @@ topology_template:
       - interaction: market-service
       - interaction: auth-service
       - interaction: admin-service
+      - interaction: static-service
     user-service:
       type: micro.nodes.Service
       requirements:
@@ -48,6 +49,12 @@ topology_template:
       - interaction:
           node: session-db
           relationship: td
+      - interaction:
+          node: user-service
+          relationship: cd
+      - interaction:
+          node: admin-service
+          relationship: cd
     market-service:
       type: micro.nodes.Service
       requirements:
@@ -68,6 +75,8 @@ topology_template:
       type: micro.nodes.Datastore
     gacha-db:
       type: micro.nodes.Datastore
+    static-service:
+      type: micro.nodes.Service
   groups:
     Edge:
       type: micro.groups.Edge
