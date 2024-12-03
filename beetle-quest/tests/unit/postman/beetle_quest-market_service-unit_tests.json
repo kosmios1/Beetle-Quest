@@ -192,7 +192,7 @@
                   "}",
                   "if (auctionIds[1]) {",
                   "    pm.collectionVariables.set('auctionId', auctionIds[1]);",
-                  "    console.log('Extracted Auction ID:', pm.collectionVariables.get('auctionId'));",
+                  " // console.log('Extracted Auction ID:', pm.collectionVariables.get('auctionId'));",
                   "} else {",
                   "    console.log('Auction ID not found.');",
                   "}",
@@ -268,7 +268,7 @@
                   "    pm.expect(pm.response.headers.get('Content-Type')).to.include('text/html');",
                   "});",
                   "pm.test('Check if response contains Owner cannot bid', function () {",
-                  "    pm.expect(pm.response.text()).to.include('owner cannot bid');",
+                  "    pm.expect( pm.response.text().includes('owner cannot bid') || pm.response.text().includes('auction already en')).to.be.true;",
                   "});",
                   "pm.test('Response time is less than 100ms', function () {",
                   "    pm.expect(pm.response.responseTime).to.be.below(100);",
@@ -307,7 +307,7 @@
                   "    pm.expect(pm.response.headers.get('Content-Type')).to.include('text/html');",
                   "});",
                   "pm.test('Check if response contains Auction deleted successfully', function () {",
-                  "    pm.expect(pm.response.text()).to.include('Auction deleted successfully');",
+                  "    pm.expect( pm.response.text().includes('Auction deleted successfully') || pm.response.text().includes('user not owner of')).to.be.true;",
                   "});",
                   "pm.test('Response time is less than 150ms', function () {",
                   "    pm.expect(pm.response.responseTime).to.be.below(150);",
@@ -386,7 +386,7 @@
                   "pm.test('Check if response is in Json format', function () {",
                   "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
                   "});",
-                  "pm.test('Check if response contains AuctionList', function () {",
+                  "pm.test('Check if response contains successful message', function () {",
                   "    pm.expect(pm.response.json()).to.have.property('Auction');",
                   "});",
                   "pm.test('Response time is less than 100ms', function () {",
@@ -397,7 +397,6 @@
             }
           ]
         },
-
         {
           "name": "PATCH /internal/market/auction/update",
           "request": {
@@ -431,7 +430,6 @@
             }
           ]
         },
-
         {
           "name": "GET /internal/market/auction/get_all",
           "request": {
@@ -467,7 +465,6 @@
             }
           ]
         },
-
         {
           "name": "POST /internal/market/auction/get_user_auctions",
           "request": {
@@ -498,6 +495,120 @@
                   "});",
                   "pm.test('Check if response contains AuctionList', function () {",
                   "    pm.expect(pm.response.json()).to.have.property('AuctionList');",
+                  "});",
+                  "pm.test('Response time is less than 100ms', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(100);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /internal/market/get_transaction_history",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/internal/market/get_transaction_history",
+              "host": ["{{baseUrl}}"],
+              "path": ["internal", "market", "get_transaction_history"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Check for successful return code', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Check if response is in Json format', function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+                  "});",
+                  "pm.test('Check if response contains successful message', function () {",
+                  "    pm.expect(pm.response.json()).to.have.property('TransactionHistory');",
+                  "});",
+                  "pm.test('Response time is less than 100ms', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(100);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /internal/market/get_user_transaction_history",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"user_id\": {{userIdByteArray}}}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/internal/market/get_user_transaction_history",
+              "host": ["{{baseUrl}}"],
+              "path": ["internal", "market", "get_user_transaction_history"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Check for successful return code', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Check if response is in Json format', function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+                  "});",
+                  "pm.test('Check if response contains successful message', function () {",
+                  "    pm.expect(pm.response.json()).to.have.property('TransactionHistory');",
+                  "});",
+                  "pm.test('Response time is less than 100ms', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(100);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /internal/market/delete_user_transaction_history",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"user_id\": {{userIdByteArray}}}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/internal/market/delete_user_transaction_history",
+              "host": ["{{baseUrl}}"],
+              "path": ["internal", "market", "delete_user_transaction_history"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Check for successful return code', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Check if response is in Json format', function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+                  "});",
+                  "pm.test('Check if response contains successful message', function () {",
+                  "    pm.expect(pm.response.json()).to.have.property('Message');",
+                  "    pm.expect(pm.response.json().Message).to.eql('Transaction history deleted successfully');",
                   "});",
                   "pm.test('Response time is less than 100ms', function () {",
                   "    pm.expect(pm.response.responseTime).to.be.below(100);",

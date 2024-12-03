@@ -191,4 +191,22 @@ func populateMockRepo(repo *MarketRepo) {
 		}
 	}
 
+	mockTransactions := []models.Transaction{
+	  {
+			TransactionID:   utils.PanicIfError[models.UUID](utils.ParseUUID("a1c6f276-a8e0-421f-8b35-4f50e145922f")),
+			TransactionType: models.Deposit,
+			UserID:          utils.PanicIfError[models.UUID](utils.ParseUUID("744a2f4d-a693-4352-916e-64f4ef94b709")),
+			Amount:          10,
+			DateTime:        time.Now(),
+			EventType:       models.GameEv,
+			EventID:         utils.PanicIfError[models.UUID](utils.ParseUUID("15e631fb-b214-4c57-aca8-075420debacb")),
+		},
+	}
+
+	for _, transaction := range mockTransactions {
+		if err := repo.AddTransaction(&transaction); err != nil {
+			log.Fatal("[FATAL] Could not add transaction in mock repo!")
+		}
+	}
+
 }
