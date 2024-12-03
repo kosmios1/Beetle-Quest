@@ -95,7 +95,7 @@ func NewAuthController(srv *service.AuthService) *AuthController {
 			status = statusCode[0]
 		}
 
-		{
+		if _, ok := data["access_token"]; ok {
 			accessTokenClaims, err := utils.VerifyJWTToken(data["access_token"].(string), jwtSecretKey)
 			if err != nil {
 				return err
