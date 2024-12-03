@@ -191,10 +191,12 @@ func populateMockRepo(repo *GachaRepo) {
 
 	bobUUID := utils.PanicIfError[models.UUID](utils.ParseUUID("744a2f4d-a693-4352-916e-64f4ef94b709"))
 	gachaUUID := utils.PanicIfError[models.UUID](utils.ParseUUID("96f8ced4-0305-43ad-9e52-779013fa8502"))
+	gacha2UUID := utils.PanicIfError[models.UUID](utils.ParseUUID("e455113c-655c-478d-bd24-b2a59c11e1f3"))
 	// fmt.Printf("%+v %+v\n", bobUUID[:], gachaUUID[:])
 
 	repo.userGachas[bobUUID] = make([]models.UUID, 0)
 	repo.userGachas[bobUUID] = append(repo.userGachas[bobUUID], gachaUUID)
+	repo.userGachas[bobUUID] = append(repo.userGachas[bobUUID], gacha2UUID)
 
 	// TODO: populate the userGachas map
 }

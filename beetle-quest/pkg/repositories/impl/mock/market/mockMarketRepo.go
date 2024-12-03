@@ -2,7 +2,10 @@ package repository
 
 import (
 	"beetle-quest/pkg/models"
+	"beetle-quest/pkg/utils"
 	"sync"
+	"time"
+	"log"
 )
 
 type MarketRepo struct {
@@ -44,8 +47,8 @@ func (r *MarketRepo) Create(auction *models.Auction) error {
 func (r *MarketRepo) Update(auction *models.Auction) error {
 	r.mux.Lock()
 	defer r.mux.Unlock()
-	if _, ok := r.auctions[auction.GachaID]; !ok {
-		return models.ErrGachaNotFound
+	if _, ok := r.auctions[auction.AuctionID]; !ok {
+		return models.ErrAuctionNotFound
 	}
 	r.auctions[auction.AuctionID] = *auction
 	return nil
@@ -58,10 +61,10 @@ func (r *MarketRepo) Delete(auction *models.Auction) error {
 		return models.ErrUserNotFound
 	}
 	delete(r.auctions, auction.AuctionID)
-	if _, ok:= r.auctionBids[auction.AuctionID]; !ok {
-	  return
-	}
-	delete(r.auctionBids, auction.AuctionID)
+	if _, ok := r.auctionBids[auction.AuctionID]; ok {
+        delete(r.auctionBids, auction.AuctionID)
+  }
+  return nil
 }
 
 func (r *MarketRepo) GetAll() ([]models.Auction, error) {
@@ -165,5 +168,22 @@ func (r *MarketRepo) AddTransaction(transaction *models.Transaction) error {
 // Utils ================================================================================================================
 
 func populateMockRepo(repo *MarketRepo) {
-	// TODO: Polulate auctions, auctionBids, and transactions repo
+  mockAuctions := []models.Auction{
+    {
+   		AuctionID: utils.PanicIfError[models.UUID](utils.ParseUUID("77934f96-38eb-4252-a426-7302ac26d58a")),
+      OwnerID:   utils.PanicIfError[models.UUID](utils.ParseUUID("744a2f4d-a693-4352-916e-64f4ef94b709")),
+			GachaID:   utils.PanicIfError[models.UUID](utils.ParseUUID("e455113c-655c-478d-bd24-b2a59c11e1f3")),
+			StartTime: time.Now(),
+			EndTime:   time.Now().Add(1 * time.Hour),
+			WinnerID:  utils.PanicIfError[models.UUID](utils.ParseUUID("00000000-0000-0000-0000-000000000000")),
+    },
+  }
+
+	for _, auction := range mockAuctions {
+	  if err := repo.Create(&auction); err != nil {
+	  	log.Fatal("[FATAL] Could not create auction in mock repo!")
+	  }
+	}
+
+
 }
