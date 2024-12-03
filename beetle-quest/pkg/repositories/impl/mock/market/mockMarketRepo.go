@@ -3,9 +3,9 @@ package repository
 import (
 	"beetle-quest/pkg/models"
 	"beetle-quest/pkg/utils"
+	"log"
 	"sync"
 	"time"
-	"log"
 )
 
 type MarketRepo struct {
@@ -14,17 +14,23 @@ type MarketRepo struct {
 	auctions    map[models.UUID]models.Auction
 	auctionBids map[models.UUID][]models.Bid
 
-	transactions map[models.UUID]models.Transaction
+	transactions map[models.UUID][]models.Transaction
 }
 
 func NewMarketRepo() *MarketRepo {
 	repo := &MarketRepo{
 		// NOTE: we should use more than one mutex but for the sake of simplicity,
 		// being a mock repo, we will use only one
-		mux:          sync.RWMutex{},
-		auctions:     make(map[models.UUID]models.Auction),
-		auctionBids:  make(map[models.UUID][]models.Bid),
-		transactions: make(map[models.UUID]models.Transaction),
+		mux: sync.RWMutex{},
+
+		// map[auctionId] -> auction
+		auctions: make(map[models.UUID]models.Auction),
+
+		// map[auctionId] -> []bids
+		auctionBids: make(map[models.UUID][]models.Bid),
+
+		// map[userId] -> []transactions
+		transactions: make(map[models.UUID][]models.Transaction),
 	}
 
 	populateMockRepo(repo)
@@ -40,7 +46,7 @@ func (r *MarketRepo) Create(auction *models.Auction) error {
 	}
 
 	r.auctions[auction.AuctionID] = *auction
-	r.auctionBids[auction.AuctionID] = make([]models.Bid,0)
+	r.auctionBids[auction.AuctionID] = make([]models.Bid, 0)
 	return nil
 }
 
@@ -62,9 +68,9 @@ func (r *MarketRepo) Delete(auction *models.Auction) error {
 	}
 	delete(r.auctions, auction.AuctionID)
 	if _, ok := r.auctionBids[auction.AuctionID]; ok {
-        delete(r.auctionBids, auction.AuctionID)
-  }
-  return nil
+		delete(r.auctionBids, auction.AuctionID)
+	}
+	return nil
 }
 
 func (r *MarketRepo) GetAll() ([]models.Auction, error) {
@@ -126,7 +132,7 @@ func (r *MarketRepo) GetAllTransactions() ([]models.Transaction, error) {
 	defer r.mux.RUnlock()
 	var outTransactions []models.Transaction
 	for _, t := range r.transactions {
-		outTransactions = append(outTransactions, t)
+		outTransactions = append(outTransactions, t...)
 	}
 	return outTransactions, nil
 }
@@ -134,10 +140,8 @@ func (r *MarketRepo) GetAllTransactions() ([]models.Transaction, error) {
 func (r *MarketRepo) DeleteUserTransactionHistory(uid models.UUID) error {
 	r.mux.Lock()
 	defer r.mux.Unlock()
-	for tid, t := range r.transactions {
-		if t.UserID == uid {
-			delete(r.transactions, tid)
-		}
+	if _, ok := r.transactions[uid]; ok {
+		delete(r.transactions, uid)
 	}
 	return nil
 }
@@ -145,45 +149,46 @@ func (r *MarketRepo) DeleteUserTransactionHistory(uid models.UUID) error {
 func (r *MarketRepo) GetUserTransactionHistory(uid models.UUID) ([]models.Transaction, error) {
 	r.mux.RLock()
 	defer r.mux.RUnlock()
-
-	var outTransactions []models.Transaction
-	for _, t := range r.transactions {
-		if t.UserID == uid {
-			outTransactions = append(outTransactions, t)
-		}
+	if transactions, ok := r.transactions[uid]; ok {
+		return transactions, nil
 	}
-	return outTransactions, nil
+	return []models.Transaction{}, nil
 }
 
 func (r *MarketRepo) AddTransaction(transaction *models.Transaction) error {
 	r.mux.Lock()
 	defer r.mux.Unlock()
-	if _, ok := r.transactions[transaction.TransactionID]; ok {
-		return models.ErrCouldNotAddTransaction
+	if _, ok := r.transactions[transaction.UserID]; ok {
+		for _, t := range r.transactions[transaction.UserID] {
+			if t.TransactionID == transaction.TransactionID {
+				return models.ErrCouldNotAddTransaction
+			}
+		}
+	} else {
+		r.transactions[transaction.UserID] = make([]models.Transaction, 0)
 	}
-	r.transactions[transaction.TransactionID] = *transaction
+	r.transactions[transaction.UserID] = append(r.transactions[transaction.UserID], *transaction)
 	return nil
 }
 
 // Utils ================================================================================================================
 
 func populateMockRepo(repo *MarketRepo) {
-  mockAuctions := []models.Auction{
-    {
-   		AuctionID: utils.PanicIfError[models.UUID](utils.ParseUUID("77934f96-38eb-4252-a426-7302ac26d58a")),
-      OwnerID:   utils.PanicIfError[models.UUID](utils.ParseUUID("744a2f4d-a693-4352-916e-64f4ef94b709")),
+	mockAuctions := []models.Auction{
+		{
+			AuctionID: utils.PanicIfError[models.UUID](utils.ParseUUID("77934f96-38eb-4252-a426-7302ac26d58a")),
+			OwnerID:   utils.PanicIfError[models.UUID](utils.ParseUUID("744a2f4d-a693-4352-916e-64f4ef94b709")),
 			GachaID:   utils.PanicIfError[models.UUID](utils.ParseUUID("e455113c-655c-478d-bd24-b2a59c11e1f3")),
 			StartTime: time.Now(),
 			EndTime:   time.Now().Add(1 * time.Hour),
 			WinnerID:  utils.PanicIfError[models.UUID](utils.ParseUUID("00000000-0000-0000-0000-000000000000")),
-    },
-  }
-
-	for _, auction := range mockAuctions {
-	  if err := repo.Create(&auction); err != nil {
-	  	log.Fatal("[FATAL] Could not create auction in mock repo!")
-	  }
+		},
 	}
 
+	for _, auction := range mockAuctions {
+		if err := repo.Create(&auction); err != nil {
+			log.Fatal("[FATAL] Could not create auction in mock repo!")
+		}
+	}
 
 }
