@@ -41,6 +41,21 @@ http:
                 FallbackDuration: 1s
                 RecoveryDuration: 3s
 
+        # cors:
+        #     headers:
+        #         accessControlAllowCredentials: true
+        #         accesscontrolalloworiginlist:
+        #             - "https://oauth.pstmn.io"
+        #         accesscontrolallowmethods: "*"
+        #         accesscontrolallowheaders: "*"
+        #         accessControlExposeHeaders: "*"
+        #         accesscontrolmaxage: 100
+        #         addvaryheader: true;
+        #         customRequestHeaders:
+        #             Access-Control-Allow-Origin: "https://oauth.pstmn.io"
+        #         customResponseHeaders:
+        #             Access-Control-Allow-Origin: "https://oauth.pstmn.io"
+
     routers:
         admin-service:
             rule: "PathPrefix(`/api/v1/admin`)"
@@ -50,6 +65,7 @@ http:
             priority: 1
             tls: true
             middlewares:
+                # - "cors"
                 - "traefik-auth"
                 - "service-health-check"
 
@@ -61,6 +77,7 @@ http:
             priority: 1
             tls: true
             middlewares:
+                # - "cors"
                 - "service-health-check"
 
         user-service:
@@ -71,6 +88,7 @@ http:
             priority: 1
             tls: true
             middlewares:
+                # - "cors"
                 - "traefik-auth"
                 - "service-health-check"
 
@@ -82,6 +100,7 @@ http:
             priority: 1
             tls: true
             middlewares:
+                # - "cors"
                 - "traefik-auth"
                 - "service-health-check"
 
@@ -93,6 +112,7 @@ http:
             priority: 1
             tls: true
             middlewares:
+                # - "cors"
                 - "traefik-auth"
                 - "service-health-check"
 
@@ -104,40 +124,8 @@ http:
             priority: 1
             tls: true
             middlewares:
+                # - "cors"
                 - "service-health-check"
-
-        # New router for internal service paths
-        internal-user-service:
-            rule: "PathPrefix(`/api/v1/internal/user`) && Host(`reverse-proxy`)"
-            entryPoints:
-                - websec
-            service: user-service
-            priority: 1
-            tls: true
-
-        internal-gacha-service:
-            rule: "PathPrefix(`/api/v1/internal/gacha`) && Host(`reverse-proxy`)"
-            entryPoints:
-                - websec
-            service: gacha-service
-            priority: 1
-            tls: true
-
-        internal-market-service:
-            rule: "PathPrefix(`/api/v1/internal/market`) && Host(`reverse-proxy`)"
-            entryPoints:
-                - websec
-            service: market-service
-            priority: 1
-            tls: true
-
-        internal-admin-service:
-            rule: "PathPrefix(`/api/v1/internal/admin`) && Host(`reverse-proxy`)"
-            entryPoints:
-                - websec
-            service: admin-service
-            priority: 1
-            tls: true
 
     services:
         admin-service:

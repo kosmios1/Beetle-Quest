@@ -146,11 +146,8 @@ func getTlsConfig(isServerConfig bool) *tls.Config {
 		}
 	} else {
 		return &tls.Config{
-			// TODO: Without insecureSkipVerify = true this error occurs:
-			// failed to verify certificate: x509: certificate relies on legacy Common Name field, use SANs instead
-			InsecureSkipVerify: true,
-			RootCAs:            caCertPool,
-			Certificates:       []tls.Certificate{ownCert},
+			RootCAs:      caCertPool,
+			Certificates: []tls.Certificate{ownCert},
 		}
 	}
 }

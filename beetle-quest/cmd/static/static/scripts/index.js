@@ -104,7 +104,6 @@ window.submitTokenRequest = submitTokenRequest;
 window.processTokenRequestResponse = processTokenRequestResponse;
 
 function addAuthorzationHeader(event) {
-    console.log(event);
     let tok = localStorage.getItem("ACCESS_TOKEN");
     if (tok) {
         event.detail.headers = {

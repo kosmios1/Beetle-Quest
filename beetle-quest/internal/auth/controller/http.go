@@ -291,8 +291,8 @@ func (c *AuthController) OauthAuthorize(ctx *gin.Context) {
 	var form url.Values
 	if v, ok := store.Get("ReturnUri"); ok {
 		form = v.(url.Values)
+		ctx.Request.Form = form
 	}
-	ctx.Request.Form = form
 
 	store.Delete("ReturnUri")
 	_ = store.Save()
