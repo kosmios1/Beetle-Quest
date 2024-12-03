@@ -132,7 +132,7 @@ func (c *AuthController) AuthenticationPage(ctx *gin.Context) {
 }
 
 func (c *AuthController) AuthorizePage(ctx *gin.Context) {
-	store, err := session.Start(nil, ctx.Writer, ctx.Request)
+	store, err := session.Start(ctx.Request.Context(), ctx.Writer, ctx.Request)
 	if err != nil {
 		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 		ctx.Abort()
@@ -239,7 +239,13 @@ func (c *AuthController) Logout(ctx *gin.Context) {
 		return
 	}
 
-	ctx.SetCookie("identity_token", "", -1, "/", "", true, true)
+	if err := session.Destroy(ctx.Request.Context(), ctx.Writer, ctx.Request); err != nil {
+		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": models.ErrInternalServerError})
+		ctx.Abort()
+		return
+	}
+
+	ctx.SetCookie("go_session_id", "", -1, "/", "", true, true)
 	ctx.Redirect(http.StatusFound, "/static/")
 }
 
@@ -343,7 +349,7 @@ func (c *AuthController) authorizeScopeHandler(w http.ResponseWriter, r *http.Re
 	scopes := r.FormValue("scope")
 	for _, scope := range strings.Split(scopes, ", ") {
 		if scope == "admin" {
-			store, err := session.Start(nil, w, r)
+			store, err := session.Start(r.Context(), w, r)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return "", err

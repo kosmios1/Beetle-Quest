@@ -66,22 +66,6 @@ class AuthenticatedUser(FastHttpUser):
             response.raise_for_status()
             return
 
-        str_tok = None
-        for cookie in self.client.cookiejar:
-            if cookie.name == "identity_token":
-                str_tok = cookie.value
-                break
-
-        if str_tok == None:
-            print("Failed to retrive the token from the login response!")
-            sys.exit();
-
-        self.identity_token = parse_jwt(str_tok)
-        if self.identity_token == None:
-            print(f"Failed to parse the token {str_tok}")
-            sys.exit()
-        self.user_id = self.identity_token["sub"]
-
     def make_oauth_authorization_request(self):
         # Make oauth2 authorization request
         state = generate_random_string()
@@ -94,11 +78,11 @@ class AuthenticatedUser(FastHttpUser):
             "state": state,
             "code_challenge": codeChallenge,
             "code_challenge_method": "S256",
-        }, allow_redirects=True)
+        }, allow_redirects=False)
 
         try:
-            code = response.url.split("code=")[1].split("&")[0]
-            recv_state = response.url.split("state=")[1].split("&")[0]
+            code = response.headers["Location"].split("code=")[1].split("&")[0]
+            recv_state = response.headers["Location"].split("state=")[1].split("&")[0]
             if state != recv_state:
                 print(f"State mismatch: {state}")
                 sys.exit()
@@ -116,6 +100,18 @@ class AuthenticatedUser(FastHttpUser):
 
         self.access_token = response.json()["access_token"]
         self.client.auth_header = f"Bearer {self.access_token}"
+
+        self.identity_token = response.json()["id_token"]
+        if self.identity_token == None:
+            print(f"Failed to parse the token {self.identity_token}")
+            sys.exit()
+
+        id_token = parse_jwt(self.identity_token, algorithms="HS256")
+        if id_token == None:
+            print(f"Failed to parse the token {id_token}")
+            sys.exit()
+        self.user_id = id_token["sub"]
+
 
     def on_stop(self):
         response = self.client.get(f"{base_path}/auth/logout", allow_redirects=False)
@@ -315,20 +311,7 @@ class AuthenticatedAdmin(FastHttpUser):
             response.raise_for_status()
             return
 
-        str_tok = None
-        for cookie in self.client.cookiejar:
-            if cookie.name == "identity_token":
-                str_tok = cookie.value
-                break
 
-        if str_tok == None:
-            print("Failed to retrive the token from the login response!")
-            sys.exit();
-
-        self.identity_token = parse_jwt(str_tok)
-        if self.identity_token == None:
-            print(f"Failed to parse the token {str_tok}")
-            sys.exit()
 
     def make_oauth_authorization_request(self):
         state = generate_random_string()
@@ -341,11 +324,11 @@ class AuthenticatedAdmin(FastHttpUser):
             "state": state,
             "code_challenge": codeChallenge,
             "code_challenge_method": "S256",
-        }, allow_redirects=True)
+        }, allow_redirects=False)
 
         try:
-            code = response.url.split("code=")[1].split("&")[0]
-            recv_state = response.url.split("state=")[1].split("&")[0]
+            code = response.headers["Location"].split("code=")[1].split("&")[0]
+            recv_state = response.headers["Location"].split("state=")[1].split("&")[0]
             if state != recv_state:
                 print(f"State mismatch: {state}")
                 sys.exit()
@@ -363,6 +346,17 @@ class AuthenticatedAdmin(FastHttpUser):
 
         self.access_token = response.json()["access_token"]
         self.client.auth_header = f"Bearer {self.access_token}"
+
+        self.identity_token = response.json()["id_token"]
+        if self.identity_token == None:
+            print(f"Failed to parse the token { self.identity_token}")
+            sys.exit()
+
+        id_token = parse_jwt(self.identity_token, algorithms="HS256")
+        if id_token == None:
+            print(f"Failed to parse the token {id_token}")
+            sys.exit()
+        self.user_id = id_token["sub"]
 
     def on_stop(self):
         response = self.client.get(f"{base_path}/auth/logout")
@@ -533,29 +527,29 @@ class AdminMSRequests(AuthenticatedAdmin):
 # Test stages definition
 # ==============================================================================
 
-class StagesShapeWithCustomUsers(LoadTestShape):
-    stages = [
-        {"duration": 10, "users": 10, "spawn_rate": 10, "user_classes": [AdminMSRequests]},
-        {"duration": 30, "users": 50, "spawn_rate": 10, "user_classes": [UserMSRequests, GachaMSRequests]},
-        {"duration": 60, "users": 100, "spawn_rate": 10, "user_classes": [MarketMSRequests]},
-        {"duration": 120, "users": 400, "spawn_rate": 100, "user_classes": [UserMSRequests, GachaMSRequests, MarketMSRequests]},
-        {"duration": 60, "users": 100, "spawn_rate": 10, "user_classes": [MarketMSRequests]},
-        {"duration": 30, "users": 50, "spawn_rate": 10, "user_classes": [UserMSRequests, GachaMSRequests]},
-        {"duration": 10, "users": 10, "spawn_rate": 10, "user_classes": [AdminMSRequests]},
-    ]
+# class StagesShapeWithCustomUsers(LoadTestShape):
+#     stages = [
+#         {"duration": 10, "users": 10, "spawn_rate": 10, "user_classes": [AdminMSRequests]},
+#         {"duration": 30, "users": 50, "spawn_rate": 10, "user_classes": [UserMSRequests, GachaMSRequests]},
+#         {"duration": 60, "users": 100, "spawn_rate": 10, "user_classes": [MarketMSRequests]},
+#         {"duration": 120, "users": 400, "spawn_rate": 100, "user_classes": [UserMSRequests, GachaMSRequests, MarketMSRequests]},
+#         {"duration": 60, "users": 100, "spawn_rate": 10, "user_classes": [MarketMSRequests]},
+#         {"duration": 30, "users": 50, "spawn_rate": 10, "user_classes": [UserMSRequests, GachaMSRequests]},
+#         {"duration": 10, "users": 10, "spawn_rate": 10, "user_classes": [AdminMSRequests]},
+#     ]
 
-    def tick(self):
-        run_time = self.get_run_time()
+#     def tick(self):
+#         run_time = self.get_run_time()
 
-        for stage in self.stages:
-            if run_time < stage["duration"]:
-                try:
-                    tick_data = (stage["users"], stage["spawn_rate"], stage["user_classes"])
-                except:
-                    tick_data = (stage["users"], stage["spawn_rate"])
-                return tick_data
+#         for stage in self.stages:
+#             if run_time < stage["duration"]:
+#                 try:
+#                     tick_data = (stage["users"], stage["spawn_rate"], stage["user_classes"])
+#                 except:
+#                     tick_data = (stage["users"], stage["spawn_rate"])
+#                 return tick_data
 
-        return None
+#         return None
 
 # ==============================================================================
 # Utils

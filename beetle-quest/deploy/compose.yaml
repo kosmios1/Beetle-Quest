@@ -80,7 +80,6 @@ services:
         networks:
             - external
             - internal
-            - admin
         volumes:
             - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
             - ./traefik/rules.yml:/etc/traefik/rules.yml:ro
@@ -102,6 +101,7 @@ services:
                 <<: *services-go-build-flags
         networks:
             - admin
+            - internal
         volumes:
             - ./cacerts/cert.pem:/certs/caCert.pem:ro
             - ./cacerts/key.pem:/certs/caKey.pem:ro
