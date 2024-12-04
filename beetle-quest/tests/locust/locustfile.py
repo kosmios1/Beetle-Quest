@@ -12,6 +12,8 @@ import base64
 from datetime import datetime
 from http import HTTPStatus
 from locust import task, between, FastHttpUser, LoadTestShape
+from bs4 import BeautifulSoup
+
 
 base_path = "/api/v1"
 
@@ -130,6 +132,14 @@ class UserMSRequests(AuthenticatedUser):
             return
 
     @task
+    def get_userinfo(self):
+        response = self.client.get("/userinfo", allow_redirects=False)
+        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
+            response.raise_for_status()
+            return
+
+
+    @task
     def update_user(self):
         response = self.client.patch(f"{base_path}/user/account/{self.user_id}", json={
             "username": "",
@@ -141,7 +151,7 @@ class UserMSRequests(AuthenticatedUser):
             response.raise_for_status()
             return
 
-    # @task
+    @task
     def delete_user(self):
         response = self.client.delete(f"{base_path}/user/account/delete", json={
             "password": self.password,
@@ -192,6 +202,9 @@ class GachaMSRequests(AuthenticatedUser):
             return
 
 class MarketMSRequests(AuthenticatedUser):
+    own_auctions = []
+    own_gacha = []
+
     wait_time = between(1, 2)
     @task
     def buy_bugscoin(self):
@@ -208,6 +221,12 @@ class MarketMSRequests(AuthenticatedUser):
         if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
             response.raise_for_status()
             return
+        if response.text != None:
+            soup = BeautifulSoup(response.text, 'html.parser')
+            input_tag = soup.find('input', {'name': 'hidden_data'})
+            if input_tag:
+                hidden_data_value = input_tag["value"]
+                self.own_gacha.append(hidden_data_value)
 
     @task
     def buy_gacha(self):
@@ -218,21 +237,31 @@ class MarketMSRequests(AuthenticatedUser):
         if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
             response.raise_for_status()
             return
+        if response.text != None:
+            soup = BeautifulSoup(response.text, 'html.parser')
+            input_tag = soup.find('input', {'name': 'hidden_data'})
+            if input_tag:
+                hidden_data_value = input_tag["value"]
+                self.own_gacha.append(hidden_data_value)
 
     @task
     def create_auction(self):
-        if len(gacha_ids) == 0:
+        if len(self.own_gacha) == 0:
             return
-        randgachaid = random.choice(gacha_ids)
-
-        # TODO: Need to get list of owned gachas, otherwise useless test
+        randgachaid = random.choice(self.own_gacha)
         response = self.client.post(f"{base_path}/market/auction/", json={
             "gacha_id": randgachaid,
-            "end_time": datetime.fromtimestamp(time.time() - 25 * 3600 + 60).strftime("%Y-%m-%dT%H:%M"),
+            "end_time": datetime.fromtimestamp(time.time() + (5 * 60)).strftime("%Y-%m-%dT%H:%M"),
         }, allow_redirects=False)
         if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
             response.raise_for_status()
             return
+        if response.text != None:
+            soup = BeautifulSoup(response.text, 'html.parser')
+            input_tag = soup.find('input', {'name': 'hidden_data'})
+            if input_tag:
+                hidden_data_value = input_tag["value"]
+                self.own_auctions.append(hidden_data_value)
 
     @task
     def get_auction_list(self):
@@ -257,17 +286,17 @@ class MarketMSRequests(AuthenticatedUser):
             return
         randauctionid = random.choice(auction_ids)
         response = self.client.post(f"{base_path}/market/auction/{randauctionid}/bid", json={
-            "bid_amount": f"{random.randint(0, 10000000)}",
+            "bid_amount": f"{random.randint(0, 100000)}",
         }, allow_redirects=False)
         if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
             response.raise_for_status()
             return
 
-    # @task
+    @task
     def delete_auction(self):
         if len(auction_ids) == 0:
             return
-        randauctionid = random.choice(auction_ids)
+        randauctionid = random.choice(self.own_auctions)
         response = self.client.delete(f"{base_path}/market/auction/{randauctionid}", data={
             "password": self.password,
         }, allow_redirects=False)
@@ -484,7 +513,7 @@ class AdminMSRequests(AuthenticatedAdmin):
             response.raise_for_status()
             return
 
-    # @task
+    @task
     def delete_gacha(self):
         if len(gacha_ids) == 0:
             return
@@ -527,29 +556,28 @@ class AdminMSRequests(AuthenticatedAdmin):
 # Test stages definition
 # ==============================================================================
 
-# class StagesShapeWithCustomUsers(LoadTestShape):
-#     stages = [
-#         {"duration": 10, "users": 10, "spawn_rate": 10, "user_classes": [AdminMSRequests]},
-#         {"duration": 30, "users": 50, "spawn_rate": 10, "user_classes": [UserMSRequests, GachaMSRequests]},
-#         {"duration": 60, "users": 100, "spawn_rate": 10, "user_classes": [MarketMSRequests]},
-#         {"duration": 120, "users": 400, "spawn_rate": 100, "user_classes": [UserMSRequests, GachaMSRequests, MarketMSRequests]},
-#         {"duration": 60, "users": 100, "spawn_rate": 10, "user_classes": [MarketMSRequests]},
-#         {"duration": 30, "users": 50, "spawn_rate": 10, "user_classes": [UserMSRequests, GachaMSRequests]},
-#         {"duration": 10, "users": 10, "spawn_rate": 10, "user_classes": [AdminMSRequests]},
-#     ]
+class StagesShapeWithCustomUsers(LoadTestShape):
+    stages = [
+        {"duration": 10, "users": 10, "spawn_rate": 10, "user_classes": [AdminMSRequests]},
+        {"duration": 30, "users": 50, "spawn_rate": 10, "user_classes": [UserMSRequests, GachaMSRequests]},
+        {"duration": 60, "users": 100, "spawn_rate": 10, "user_classes": [MarketMSRequests]},
+        {"duration": 120, "users": 100, "spawn_rate": 100, "user_classes": [UserMSRequests, GachaMSRequests, MarketMSRequests]},
+        {"duration": 60, "users": 100, "spawn_rate": 10, "user_classes": [MarketMSRequests]},
+        {"duration": 30, "users": 50, "spawn_rate": 10, "user_classes": [UserMSRequests, GachaMSRequests]},
+        {"duration": 10, "users": 10, "spawn_rate": 10, "user_classes": [AdminMSRequests]},
+    ]
 
-#     def tick(self):
-#         run_time = self.get_run_time()
+    def tick(self):
+        run_time = self.get_run_time()
 
-#         for stage in self.stages:
-#             if run_time < stage["duration"]:
-#                 try:
-#                     tick_data = (stage["users"], stage["spawn_rate"], stage["user_classes"])
-#                 except:
-#                     tick_data = (stage["users"], stage["spawn_rate"])
-#                 return tick_data
-
-#         return None
+        for stage in self.stages:
+            if run_time < stage["duration"]:
+                try:
+                    tick_data = (stage["users"], stage["spawn_rate"], stage["user_classes"])
+                except:
+                    tick_data = (stage["users"], stage["spawn_rate"])
+                return tick_data
+        return None
 
 # ==============================================================================
 # Utils

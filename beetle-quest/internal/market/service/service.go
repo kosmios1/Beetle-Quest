@@ -76,24 +76,24 @@ func (s *MarketService) AddBugsCoin(userId string, amount int64) error {
 	return nil
 }
 
-func (s *MarketService) RollGacha(userId string) (string, error) {
+func (s *MarketService) RollGacha(userId string) (models.UUID, string, error) {
 	uid, err := utils.ParseUUID(userId)
 	if err != nil {
-		return "", models.ErrInternalServerError
+		return models.UUID{}, "", models.ErrInternalServerError
 	}
 
 	user, err := s.urepo.FindByID(uid)
 	if err != nil {
-		return "", err
+		return models.UUID{}, "", err
 	}
 
 	if user.Currency < 1000 {
-		return "", models.ErrNotEnoughMoneyToRollGacha
+		return models.UUID{}, "", models.ErrNotEnoughMoneyToRollGacha
 	}
 
 	gachas, err := s.grepo.GetAll()
 	if err != nil {
-		return "", err
+		return models.UUID{}, "", err
 	}
 
 	var selectedGacha *models.Gacha
@@ -131,7 +131,7 @@ func (s *MarketService) RollGacha(userId string) (string, error) {
 	if err := s.mrepo.AddTransaction(t); err != nil {
 		// The client doesn't need to know why the request
 		// failed, so we can just return a generic error.
-		return "", models.ErrInternalServerError
+		return models.UUID{}, "", models.ErrInternalServerError
 	}
 
 	user.Currency -= 1000
@@ -139,9 +139,9 @@ func (s *MarketService) RollGacha(userId string) (string, error) {
 		if err != models.ErrUserNotFound {
 			// Because the client should not know how we are updating the user in the backend
 			//  and an error like models.ErrUsernameOrEmailAlreadyExists should not be reported
-			return "", models.ErrInternalServerError
+			return models.UUID{}, "", models.ErrInternalServerError
 		}
-		return "", err
+		return models.UUID{}, "", err
 	}
 
 	gachas, err = s.grepo.GetUserGachas(uid)
@@ -151,14 +151,14 @@ func (s *MarketService) RollGacha(userId string) (string, error) {
 		if err != models.ErrUserNotFound {
 			// Because the client should not know how we are updating the user in the backend
 			//  and an error like models.ErrUsernameOrEmailAlreadyExists should not be reported
-			return "", models.ErrInternalServerError
+			return models.UUID{}, "", models.ErrInternalServerError
 		}
-		return "", err
+		return models.UUID{}, "", err
 	}
 
 	for _, gacha := range gachas {
 		if gacha.GachaID == gid {
-			return "Opps you already have this gacha!", nil
+			return models.UUID{}, "Opps you already have this gacha!", nil
 		}
 	}
 
@@ -168,48 +168,48 @@ func (s *MarketService) RollGacha(userId string) (string, error) {
 		if err != models.ErrUserNotFound {
 			// Because the client should not know how we are updating the user in the backend
 			//  and an error like models.ErrUsernameOrEmailAlreadyExists should not be reported
-			return "", models.ErrInternalServerError
+			return models.UUID{}, "", models.ErrInternalServerError
 		}
-		return "", err
+		return models.UUID{}, "", err
 	}
 
-	return "Gacha successfully obtained, check your inventory!", nil
+	return gid, "Gacha successfully obtained, check your inventory!", nil
 }
 
-func (s *MarketService) BuyGacha(userId string, gachaId string) error {
+func (s *MarketService) BuyGacha(userId string, gachaId string) (*models.Gacha, error) {
 	uid, err := utils.ParseUUID(userId)
 	if err != nil {
-		return models.ErrInternalServerError
+		return nil, models.ErrInternalServerError
 	}
 
 	gid, err := utils.ParseUUID(gachaId)
 	if err != nil {
-		return models.ErrInternalServerError
+		return nil, models.ErrInternalServerError
 	}
 
 	userGacha, err := s.grepo.GetUserGachas(uid)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	for _, gacha := range userGacha {
 		if gid == gacha.GachaID {
-			return models.ErrUserAlreadyHasGacha
+			return nil, models.ErrUserAlreadyHasGacha
 		}
 	}
 
 	user, err := s.urepo.FindByID(uid)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	gacha, err := s.grepo.FindByID(gid)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if user.Currency < gacha.Price {
-		return models.ErrNotEnoughMoneyToBuyGacha
+		return nil, models.ErrNotEnoughMoneyToBuyGacha
 	}
 
 	t := &models.Transaction{
@@ -225,7 +225,7 @@ func (s *MarketService) BuyGacha(userId string, gachaId string) error {
 	if err := s.mrepo.AddTransaction(t); err != nil {
 		// NOTE: The client doesn't need to know why the request
 		// failed, so we can just return a generic error.
-		return models.ErrInternalServerError
+		return nil, models.ErrInternalServerError
 	}
 
 	user.Currency -= gacha.Price
@@ -233,9 +233,9 @@ func (s *MarketService) BuyGacha(userId string, gachaId string) error {
 		if err != models.ErrUserNotFound {
 			// Because the client should not know how we are updating the user in the backend
 			//  and an error like models.ErrUsernameOrEmailAlreadyExists should not be reported
-			return models.ErrInternalServerError
+			return nil, models.ErrInternalServerError
 		}
-		return err
+		return nil, err
 	}
 
 	if err := s.grepo.AddGachaToUser(uid, gid); err != nil {
@@ -244,39 +244,39 @@ func (s *MarketService) BuyGacha(userId string, gachaId string) error {
 			if err != models.ErrUserNotFound {
 				// Because the client should not know how we are updating the user in the backend
 				//  and an error like models.ErrUsernameOrEmailAlreadyExists should not be reported
-				return models.ErrInternalServerError
+				return nil, models.ErrInternalServerError
 			}
 			// If the user is not found, we can't do anything
 		}
 		// No error should be returned to the client
 	}
-	return nil
+	return gacha, nil
 }
 
-func (s *MarketService) CreateAuction(userId, gachaId string, endTime time.Time) error {
+func (s *MarketService) CreateAuction(userId, gachaId string, endTime time.Time) (*models.Auction, error) {
 	uid, err := utils.ParseUUID(userId)
 	if err != nil {
-		return models.ErrInternalServerError
+		return nil, models.ErrInternalServerError
 	}
 
 	gid, err := utils.ParseUUID(gachaId)
 	if err != nil {
-		return models.ErrInternalServerError
+		return nil, models.ErrInternalServerError
 	}
 
 	user, err := s.urepo.FindByID(uid)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	gacha, err := s.grepo.FindByID(gid)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	gachas, err := s.grepo.GetUserGachas(uid)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	var found bool
@@ -288,23 +288,23 @@ func (s *MarketService) CreateAuction(userId, gachaId string, endTime time.Time)
 	}
 
 	if !found {
-		return models.ErrUserDoesNotOwnGacha
+		return nil, models.ErrUserDoesNotOwnGacha
 	}
 
 	auctions, err := s.mrepo.GetUserAuctions(uid)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	for _, a := range auctions {
 		if a.GachaID == gid {
-			return models.ErrGachaAlreadyAuctioned
+			return nil, models.ErrGachaAlreadyAuctioned
 		}
 	}
 
 	startTime := time.Now()
 	if endTime.Before(startTime) || endTime.After(startTime.Add(time.Hour*24)) {
-		return models.ErrInvalidEndTime
+		return nil, models.ErrInvalidEndTime
 	}
 
 	auction := &models.Auction{
@@ -317,14 +317,14 @@ func (s *MarketService) CreateAuction(userId, gachaId string, endTime time.Time)
 	}
 
 	if err = s.evrepo.AddEndAuctionEvent(auction); err != nil {
-		return models.ErrInternalServerError
+		return nil, models.ErrInternalServerError
 	}
 
 	if err := s.mrepo.Create(auction); err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return auction, nil
 }
 
 func (s *MarketService) DeleteAuction(userId, auctionId, password string) error {

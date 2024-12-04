@@ -71,7 +71,7 @@ func (c *MarketController) RollGacha(ctx *gin.Context) {
 		return
 	}
 
-	msg, err := c.srv.RollGacha(userId.(string))
+	gid, msg, err := c.srv.RollGacha(userId.(string))
 	if err != nil {
 		switch err {
 		case models.ErrInternalServerError:
@@ -90,7 +90,7 @@ func (c *MarketController) RollGacha(ctx *gin.Context) {
 		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 
-	ctx.HTML(http.StatusOK, "successMsg.tmpl", gin.H{"Message": msg})
+	ctx.HTML(http.StatusOK, "successMsg.tmpl", gin.H{"Message": msg, "HiddenData": gid})
 }
 
 func (c *MarketController) BuyGacha(ctx *gin.Context) {
@@ -108,7 +108,8 @@ func (c *MarketController) BuyGacha(ctx *gin.Context) {
 		return
 	}
 
-	if err := c.srv.BuyGacha(userId.(string), gachaId); err != nil {
+	gacha, err := c.srv.BuyGacha(userId.(string), gachaId)
+	if err != nil {
 		switch err {
 		case models.ErrGachaNotFound, models.ErrUserNotFound:
 			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err.Error()})
@@ -126,7 +127,7 @@ func (c *MarketController) BuyGacha(ctx *gin.Context) {
 		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 
-	ctx.HTML(http.StatusOK, "successMsg.tmpl", gin.H{"Message": "Gacha bought successfully"})
+	ctx.HTML(http.StatusOK, "successMsg.tmpl", gin.H{"Message": "Gacha bought successfully", "HiddenData": gacha.GachaID})
 }
 
 func (c *MarketController) CreateAuction(ctx *gin.Context) {
@@ -152,7 +153,8 @@ func (c *MarketController) CreateAuction(ctx *gin.Context) {
 		return
 	}
 
-	if err := c.srv.CreateAuction(uid.(string), data.GachaID, endTime); err != nil {
+	auction, err := c.srv.CreateAuction(uid.(string), data.GachaID, endTime)
+	if err != nil {
 		switch err {
 		case models.ErrGachaNotFound, models.ErrUserNotFound, models.ErrAuctionNotFound:
 			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err.Error()})
@@ -174,7 +176,7 @@ func (c *MarketController) CreateAuction(ctx *gin.Context) {
 		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 
-	ctx.HTML(http.StatusOK, "successMsg.tmpl", gin.H{"Message": "Auction created successfully"})
+	ctx.HTML(http.StatusOK, "successMsg.tmpl", gin.H{"Message": "Auction created successfully", "HiddenData": auction.AuctionID})
 }
 
 func (c *MarketController) AuctionList(ctx *gin.Context) {
