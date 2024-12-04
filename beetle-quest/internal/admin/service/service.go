@@ -127,15 +127,15 @@ func (s *AdminService) GetUserAuctionList(userId string) ([]models.Auction, erro
 
 // Gacha service functions =================================================
 
-func (s *AdminService) AddGacha(data *models.AdminAddGachaRequest) error {
+func (s *AdminService) AddGacha(data *models.AdminAddGachaRequest) (*models.Gacha, error) {
 	price, err := strconv.Atoi(data.Price)
 	if err != nil {
-		return models.ErrInternalServerError
+		return nil, models.ErrInternalServerError
 	}
 
 	rarity, err := models.RarityFromString(data.Rarity)
 	if err != nil {
-		return models.ErrInvalidRarityValue
+		return nil, models.ErrInvalidRarityValue
 	}
 
 	gacha := &models.Gacha{
@@ -146,7 +146,10 @@ func (s *AdminService) AddGacha(data *models.AdminAddGachaRequest) error {
 		ImagePath: data.ImagePath,
 	}
 
-	return s.grepo.Create(gacha)
+	if err := s.grepo.Create(gacha); err != nil {
+		return nil, err
+	}
+	return gacha, nil
 }
 
 func (s *AdminService) UpdateGacha(gachaId string, data *models.AdminUpdateGachaRequest) error {

@@ -167,7 +167,8 @@ func (c *AdminController) AddGacha(ctx *gin.Context) {
 		return
 	}
 
-	if err := c.srv.AddGacha(&data); err != nil {
+	gacha, err := c.srv.AddGacha(&data)
+	if err != nil {
 		switch err {
 		case models.ErrGachaAlreadyExists:
 			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
@@ -184,7 +185,7 @@ func (c *AdminController) AddGacha(ctx *gin.Context) {
 		}
 		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
-	ctx.HTML(http.StatusOK, "successMsg.tmpl", gin.H{"Message": "Gacha added successfully!"})
+	ctx.HTML(http.StatusOK, "successMsg.tmpl", gin.H{"Message": "Gacha added successfully!", "HiddenData": gacha.GachaID.String()})
 }
 
 func (cnt *AdminController) DeleteGacha(ctx *gin.Context) {

@@ -1,9 +1,9 @@
 {
 	"info": {
-		"_postman_id": "3c603c51-8438-47dc-9b08-ee9cad9d07e0",
+		"_postman_id": "2d119b88-1d7c-4688-ba18-71e7f431c3ab",
 		"name": "beetle_quest-user_service-unit_tests",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "39385405"
+		"_exporter_id": "39361032"
 	},
 	"item": [
 		{
@@ -168,6 +168,52 @@
 								"user",
 								"account",
 								"{{userId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "User info",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"pm.test(\"Response body contains JSON content\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('currency');",
+									"    pm.expect(jsonData).to.have.property(\"email\");",
+									"    pm.expect(jsonData).to.have.property(\"sub\");",
+									"    pm.expect(jsonData).to.have.property(\"username\");",
+									"});",
+									"pm.test(\"Content-Type is present\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\");",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.equal(\"application/json; charset=utf-8\");",
+									"});",
+									"",
+									"pm.test(\"Response time is less than 500ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(500);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{hostUrl}}/userinfo",
+							"host": [
+								"{{hostUrl}}"
+							],
+							"path": [
+								"userinfo"
 							]
 						}
 					},
@@ -663,6 +709,11 @@
 			"key": "baseUrl",
 			"value": "http://localhost:8080/api/v1",
 			"type": "default"
+		},
+		{
+			"key": "hostUrl",
+			"value": "http://localhost:8080",
+			"type": "string"
 		},
 		{
 			"key": "gachaId",

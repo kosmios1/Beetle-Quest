@@ -1,9 +1,9 @@
 {
 	"info": {
-		"_postman_id": "ed23d07d-7309-4dcd-9de0-07961aa1192e",
+		"_postman_id": "c3174dff-f60f-4f09-b104-795124395b34",
 		"name": "beetle_quest-admin_service-unit_tests Copy",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "39385405"
+		"_exporter_id": "39361032"
 	},
 	"item": [
 		{
@@ -283,7 +283,7 @@
 									"",
 									"pm.test(\"Gacha added successfully\", function () {",
 									"    const responseBody = pm.response.text(); // Ottieni il corpo della risposta come testo",
-									"    pm.expect(responseBody).to.include('<div class=\"success\">Gacha added successfully!</div>');",
+									"    pm.expect(responseBody).to.include('Gacha added successfully!');",
 									"});",
 									""
 								],

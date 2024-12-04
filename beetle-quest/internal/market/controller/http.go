@@ -90,7 +90,7 @@ func (c *MarketController) RollGacha(ctx *gin.Context) {
 		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 
-	ctx.HTML(http.StatusOK, "successMsg.tmpl", gin.H{"Message": msg, "HiddenData": gid})
+	ctx.HTML(http.StatusOK, "successMsg.tmpl", gin.H{"Message": msg, "HiddenData": gid.String()})
 }
 
 func (c *MarketController) BuyGacha(ctx *gin.Context) {
@@ -127,7 +127,7 @@ func (c *MarketController) BuyGacha(ctx *gin.Context) {
 		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 
-	ctx.HTML(http.StatusOK, "successMsg.tmpl", gin.H{"Message": "Gacha bought successfully", "HiddenData": gacha.GachaID})
+	ctx.HTML(http.StatusOK, "successMsg.tmpl", gin.H{"Message": "Gacha bought successfully", "HiddenData": gacha.GachaID.String()})
 }
 
 func (c *MarketController) CreateAuction(ctx *gin.Context) {
@@ -176,7 +176,7 @@ func (c *MarketController) CreateAuction(ctx *gin.Context) {
 		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 
-	ctx.HTML(http.StatusOK, "successMsg.tmpl", gin.H{"Message": "Auction created successfully", "HiddenData": auction.AuctionID})
+	ctx.HTML(http.StatusOK, "successMsg.tmpl", gin.H{"Message": "Auction created successfully", "HiddenData": auction.AuctionID.String()})
 }
 
 func (c *MarketController) AuctionList(ctx *gin.Context) {
