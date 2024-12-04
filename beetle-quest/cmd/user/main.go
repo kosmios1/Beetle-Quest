@@ -24,6 +24,8 @@ func main() {
 
 	cnt := entrypoint.NewUserController()
 
+	r.GET("/userinfo", middleware.CheckJWTAuthorizationToken(models.UserScope), cnt.UserInfo)
+
 	basePath := r.Group("/api/v1/user")
 	basePath.Use(middleware.CheckJWTAuthorizationToken(models.UserScope))
 	{

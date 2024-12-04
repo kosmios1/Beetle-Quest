@@ -3,6 +3,7 @@ package controller
 import (
 	"beetle-quest/internal/user/service"
 	"beetle-quest/pkg/models"
+	"beetle-quest/pkg/utils"
 	"log"
 	"net/http"
 
@@ -17,6 +18,36 @@ func NewUserController(service *service.UserService) *UserController {
 	return &UserController{
 		service,
 	}
+}
+
+func (c *UserController) UserInfo(ctx *gin.Context) {
+	id, exists := ctx.Get("user_id")
+	if !exists {
+		ctx.Status(http.StatusUnauthorized)
+		ctx.Abort()
+		return
+	}
+
+	uid, err := utils.ParseUUID(id.(string))
+	if !exists {
+		ctx.Status(http.StatusUnauthorized)
+		ctx.Abort()
+		return
+	}
+
+	user, err := c.srv.FindByID(uid)
+	if err != nil {
+		ctx.Status(http.StatusNotFound)
+		ctx.Abort()
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"sub":      user.UserID,
+		"username": user.Username,
+		"email":    user.Email,
+		"currency": user.Currency,
+	})
 }
 
 func (c *UserController) GetUserAccountDetails(ctx *gin.Context) {

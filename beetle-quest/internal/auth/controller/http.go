@@ -56,6 +56,7 @@ func NewAuthController(srv *service.AuthService) *AuthController {
 		AllowedResponseTypes: []oauth2.ResponseType{oauth2.Code},
 		AllowedGrantTypes: []oauth2.GrantType{
 			oauth2.AuthorizationCode,
+			oauth2.Refreshing,
 		},
 		AllowedCodeChallengeMethods: []oauth2.CodeChallengeMethod{
 			oauth2.CodeChallengeS256,

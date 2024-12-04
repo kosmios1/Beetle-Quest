@@ -66,12 +66,7 @@ paths:
             summary: Logout
             tags: [Auth]
             security:
-                - cookieAuth: []
-                - oauth2:
-                      - user
-                      - gacha
-                      - market
-                      - admin
+                - bearerAuth: []
             responses:
                 302:
                     description: Logout successfull.
@@ -83,11 +78,7 @@ paths:
             summary: Check session
             tags: [Auth]
             security:
-                - oauth2:
-                      - user
-                      - gacha
-                      - market
-                      - admin
+                - bearerAuth: []
             responses:
                 200:
                     description: Session is valid.
@@ -101,11 +92,7 @@ paths:
             summary: Traefik verify
             tags: [Auth]
             security:
-                - oauth2:
-                      - user
-                      - gacha
-                      - market
-                      - admin
+                - bearerAuth: []
             responses:
                 200:
                     description: Authorized.
@@ -138,9 +125,9 @@ paths:
         get:
             tags: [OAuth]
             security:
-                - cookieAuth: []
+                - authSession: []
             servers:
-                - url: https://localhost/
+                - url: https://localhost
             parameters:
                 - name: response_type
                   in: query
@@ -184,7 +171,7 @@ paths:
         post:
             tags: [OAuth]
             servers:
-                - url: https://localhost/
+                - url: https://localhost
             requestBody:
                 required: true
                 content:
@@ -199,7 +186,7 @@ paths:
     /static/{path}:
         get:
             servers:
-                - url: https://localhost/
+                - url: https://localhost
             summary: Get static file
             tags: [Static]
             parameters:
@@ -218,13 +205,39 @@ paths:
                     description: Internal server error.
 
     ### USERS ###
+    /userinfo:
+        get:
+            servers:
+                - url: https://localhost
+            summary: Get user info
+            tags: [Users]
+            security:
+                - bearerAuth: []
+            responses:
+                200:
+                    description: ""
+                    content:
+                        application/pdf:
+                            schema:
+                                type: object
+                                properties:
+                                    sub:
+                                        type: string
+                                    username:
+                                        type: string
+                                    email:
+                                        type: string
+                                    currency:
+                                        type: integer
+                404:
+                    description: ""
+
     /user/account/{user_id}:
         get:
             summary: Get user account
             tags: [Users]
             security:
-                - oauth2:
-                      - user
+                - bearerAuth: []
             parameters:
                 - name: user_id
                   in: path
@@ -243,8 +256,7 @@ paths:
             summary: Modify user account
             tags: [Users]
             security:
-                - oauth2:
-                      - user
+                - bearerAuth: []
             parameters:
                 - name: user_id
                   in: path
@@ -272,8 +284,7 @@ paths:
             summary: Delete user account
             tags: [Users]
             security:
-                - oauth2:
-                      - user
+                - bearerAuth: []
             parameters:
                 - name: user_id
                   in: path
@@ -307,8 +318,7 @@ paths:
             summary: Get system gacha list
             tags: [Gachas]
             security:
-                - oauth2:
-                      - gacha
+                - bearerAuth: []
             responses:
                 200:
                     description: System's gacha list.
@@ -322,8 +332,7 @@ paths:
             summary: Get gacha details
             tags: [Gachas]
             security:
-                - oauth2:
-                      - gacha
+                - bearerAuth: []
             parameters:
                 - name: gacha_id
                   in: path
@@ -344,8 +353,7 @@ paths:
             summary: Get user gacha list
             tags: [Gachas]
             security:
-                - oauth2:
-                      - gacha
+                - bearerAuth: []
             parameters:
                 - name: user_id
                   in: path
@@ -368,8 +376,7 @@ paths:
             summary: Get user gacha details
             tags: [Gachas]
             security:
-                - oauth2:
-                      - gacha
+                - bearerAuth: []
             parameters:
                 - name: gacha_id
                   in: path
@@ -399,8 +406,7 @@ paths:
             summary: Buy bugscoin
             tags: [Market]
             security:
-                - oauth2:
-                      - market
+                - bearerAuth: []
             requestBody:
                 description: Buy bugscoin details
                 required: true
@@ -423,8 +429,7 @@ paths:
             summary: Roll gacha
             tags: [Market]
             security:
-                - oauth2:
-                      - market
+                - bearerAuth: []
             responses:
                 200:
                     description: Gacha rolled successfully.
@@ -440,8 +445,7 @@ paths:
             summary: Buy gacha
             tags: [Market]
             security:
-                - oauth2:
-                      - market
+                - bearerAuth: []
             parameters:
                 - name: gacha_id
                   in: path
@@ -464,8 +468,7 @@ paths:
             summary: Create auction
             tags: [Market]
             security:
-                - oauth2:
-                      - market
+                - bearerAuth: []
             requestBody:
                 description: Create auction details
                 required: true
@@ -490,8 +493,7 @@ paths:
             summary: Get auction list
             tags: [Market]
             security:
-                - oauth2:
-                      - market
+                - bearerAuth: []
             responses:
                 200:
                     description: Auction list obtained successfully.
@@ -505,8 +507,7 @@ paths:
             summary: Get auction details
             tags: [Market]
             security:
-                - oauth2:
-                      - market
+                - bearerAuth: []
             parameters:
                 - name: auction_id
                   in: path
@@ -527,8 +528,7 @@ paths:
             summary: Delete auction
             tags: [Market]
             security:
-                - oauth2:
-                      - market
+                - bearerAuth: []
             parameters:
                 - name: auction_id
                   in: path
@@ -562,8 +562,7 @@ paths:
             summary: Bid auction
             tags: [Market]
             security:
-                - oauth2:
-                      - market
+                - bearerAuth: []
             parameters:
                 - name: auction_id
                   in: path
@@ -594,8 +593,7 @@ paths:
             summary: Get all users
             tags: [Admin]
             security:
-                - oauth2:
-                      - admin
+                - bearerAuth: []
             responses:
                 200:
                     description: All users obtained successfully.
@@ -607,8 +605,7 @@ paths:
             summary: Get user details
             tags: [Admin]
             security:
-                - oauth2:
-                      - admin
+                - bearerAuth: []
             parameters:
                 - name: user_id
                   in: path
@@ -629,8 +626,7 @@ paths:
             summary: Update user details
             tags: [Admin]
             security:
-                - oauth2:
-                      - admin
+                - bearerAuth: []
             parameters:
                 - name: user_id
                   in: path
@@ -662,8 +658,7 @@ paths:
             summary: Get user transaction history
             tags: [Admin]
             security:
-                - oauth2:
-                      - admin
+                - bearerAuth: []
             parameters:
                 - name: user_id
                   in: path
@@ -686,8 +681,7 @@ paths:
             summary: Get user auction list
             tags: [Admin]
             security:
-                - oauth2:
-                      - admin
+                - bearerAuth: []
             parameters:
                 - name: user_id
                   in: path
@@ -710,8 +704,7 @@ paths:
             summary: Add gacha
             tags: [Admin]
             security:
-                - oauth2:
-                      - admin
+                - bearerAuth: []
             requestBody:
                 description: Add gacha
                 required: true
@@ -732,8 +725,7 @@ paths:
             summary: Get all gachas
             tags: [Admin]
             security:
-                - oauth2:
-                      - admin
+                - bearerAuth: []
             responses:
                 200:
                     description: All gachas obtained successfully.
@@ -749,8 +741,7 @@ paths:
             summary: Get gacha details
             tags: [Admin]
             security:
-                - oauth2:
-                      - admin
+                - bearerAuth: []
             parameters:
                 - name: gacha_id
                   in: path
@@ -771,8 +762,7 @@ paths:
             summary: Update gacha details
             tags: [Admin]
             security:
-                - oauth2:
-                      - admin
+                - bearerAuth: []
             parameters:
                 - name: gacha_id
                   in: path
@@ -802,8 +792,7 @@ paths:
             summary: Delete gacha
             tags: [Admin]
             security:
-                - oauth2:
-                      - admin
+                - bearerAuth: []
             parameters:
                 - name: gacha_id
                   in: path
@@ -826,8 +815,7 @@ paths:
             summary: Get market's transaction history
             tags: [Admin]
             security:
-                - oauth2:
-                      - admin
+                - bearerAuth: []
             responses:
                 200:
                     description: Market history obtained successfully.
@@ -841,8 +829,7 @@ paths:
             summary: Get all auctions
             tags: [Admin]
             security:
-                - oauth2:
-                      - admin
+                - bearerAuth: []
             responses:
                 200:
                     description: All auctions obtained successfully.
@@ -856,8 +843,7 @@ paths:
             summary: Get auction details
             tags: [Admin]
             security:
-                - oauth2:
-                      - admin
+                - bearerAuth: []
             parameters:
                 - name: auction_id
                   in: path
@@ -878,8 +864,7 @@ paths:
             summary: Update auction details
             tags: [Admin]
             security:
-                - oauth2:
-                      - admin
+                - bearerAuth: []
             parameters:
                 - name: auction_id
                   in: path
@@ -900,21 +885,14 @@ paths:
 
 components:
     securitySchemes:
-        cookieAuth:
+        authSession:
             type: apiKey
             in: cookie
-            name: identity_token
-        oauth2:
-            type: oauth2
-            flows:
-                authorizationCode:
-                    authorizationUrl: https://localhost/api/v1/auth/oauth/authorize
-                    tokenUrl: https://localhost/api/v1/auth/oauth/token
-                    scopes:
-                        user: User scope
-                        gacha: Gacha scope
-                        market: Market scope
-                        admin: Admin scope
+            name: go_session_id
+        bearerAuth:
+            type: http
+            scheme: bearer
+            bearerFormat: JWT
 
     schemas:
         TokenReq:

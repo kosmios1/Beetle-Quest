@@ -41,21 +41,6 @@ http:
                 FallbackDuration: 1s
                 RecoveryDuration: 3s
 
-        # cors:
-        #     headers:
-        #         accessControlAllowCredentials: true
-        #         accesscontrolalloworiginlist:
-        #             - "https://oauth.pstmn.io"
-        #         accesscontrolallowmethods: "*"
-        #         accesscontrolallowheaders: "*"
-        #         accessControlExposeHeaders: "*"
-        #         accesscontrolmaxage: 100
-        #         addvaryheader: true;
-        #         customRequestHeaders:
-        #             Access-Control-Allow-Origin: "https://oauth.pstmn.io"
-        #         customResponseHeaders:
-        #             Access-Control-Allow-Origin: "https://oauth.pstmn.io"
-
     routers:
         admin-service:
             rule: "PathPrefix(`/api/v1/admin`)"
@@ -81,7 +66,7 @@ http:
                 - "service-health-check"
 
         user-service:
-            rule: "PathPrefix(`/api/v1/user`)"
+            rule: "PathPrefix(`/api/v1/user`) || Path(`/userinfo`)"
             entryPoints:
                 - websec
             service: user-service
