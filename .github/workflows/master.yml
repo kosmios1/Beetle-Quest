@@ -39,7 +39,7 @@ jobs:
       - name: Execute postman's tests
         run: |
           cd ./beetle-quest/tests/postman/
-          set -o pipefail && docker run --rm --net beetle-quest_internal -v ${{ github.workspace }}/beetle-quest/tests/postman/collection.json:/collection.json postman/newman run /collection.json --bail --insecure --color on 2>&1 | tee postman_output.txt
+          set -o pipefail && docker run --rm --net beetle-quest_internal -v ${{ github.workspace }}/beetle-quest/tests/postman/collection.json:/collection.json postman/newman run /collection.json --bail --insecure --ignore-redirects --color on 2>&1 | tee postman_output.txt
 
       - name: Execute locust's tests
         run: |
