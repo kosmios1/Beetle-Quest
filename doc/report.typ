@@ -24,7 +24,7 @@
 = Introduction
 The goal of this project is to develop a web app and define its architecture for creating a web-based gacha game. So the users will be able to engage in all the standard activities found in a gacha game like: _`roll`, `buy coin`, `create auctions`, `bid`_.
 
-All these actions will be implemented through a _microservices_ architecture..
+All these actions will be implemented with *_Go_* language and through a _microservices_ architecture..
 
 
 = Microservices
@@ -68,11 +68,63 @@ It can fetch the list of users with their associated information, performs detai
 It can perform global actions on the gachas, like: add new one, modify/delete an existing one and get information on the system gachas. The service provides similar actions also on transactions and auctions.
 
 
+== Gacha Collection
+/* TO DO
+#align(center+horizon)[
+    #set text(size: 14.2pt)
+    #grid(
+    columns: (3fr, .3fr),
+    [
+    #grid(
+        columns: (1fr, 1fr, 1fr, 1fr, 1fr),
+        column-gutter: 0pt,
+        row-gutter: 5pt,
+        [*Common (C)*], [*Uncommon (U)*], [*Rare (R)*], [*Epic (E)*], [*Legendary (L)*],
+        image("../assets/images/png/warrior_cricket_common.png",      width: 60%),
+        image("../assets/images/png/warrior_centipede_uncommon.png",      width: 60%),
+        image("../assets/images/png/warrior_beetle_rare.png",      width: 60%),
+        image("../assets/images/png/mage_moth_epic.png",      width: 60%),
+        image("../assets/images/png/warrior_hercule_beetle_legendary.png",      width: 60%),
+        //
+        image("../assets/images/png/warrior_locust_common.png", width: 60%),
+        image("../assets/images/png/priest_cicada_uncommon.png",      width: 60%),
+        image("../assets/images/png/priest_moth_rare.png",      width: 60%),
+        image("../assets/images/png/mage_butterfly_epic.png",      width: 60%),
+        image("../assets/images/png/mage_butterfly_legendary.png",      width: 60%),
+        //
+        image("../assets/images/png/tank_mole-cricket_common.png", width: 60%),
+        image("../assets/images/png/mage_mosquito_uncommon.png",      width: 60%),
+        image("../assets/images/png/druid_butterfly_rare.png",      width: 60%),
+        image("../assets/images/png/warrior_dragonfly_epic.png",      width: 60%),
+        image("../assets/images/png/druid_butterfly_legendary.png",      width: 60%),
+        //
+        image("../assets/images/png/munich_grasshopper_common.png",      width: 60%),
+        image("../assets/images/png/druid_bee_uncommon.png",      width: 60%),
+        image("../assets/images/png/assassin_mosquito_rare.png",      width: 60%),
+        image("../assets/images/png/assassin_peacock_epic.png",      width: 60%),
+        image("../assets/images/png/demoniac_mosquito_legendary.png",      width: 60%),
+    )],
+    [#set align(horizon)
+    #figure(
+        // image("../assets/images/png/coin.png", width: 80%),
+        image("../assets/images/currency_cut.png", width: 80%),
+        caption: [Currency],
+        //caption-pos: top, // V 0.12
+        supplement: [],
+        numbering: none,
+    )
+    ]
+    )
+]
+*/
+
+
+
+
 = Architecture with MicroFreshner
 The microservices architecture defined for this project is the result of a process of analysis and detection of the smells present in the original monolithic prototype, carried out using MicroFreshner.
 
 #figure(
-  //TODO: static service in microfreshner
   image("beetle-quest-microfreshner-architecture-v2.png", width: 110%),
   caption: [
     BeetleQuest architecture
@@ -89,22 +141,144 @@ Moreover, to achieve more effective control over the system, we have introduced 
 We have also used a reverse proxy called *_Traefik_*, which acts as an intermediary between external users and the system's internal services. In this architecture, Traefik functions as an access gateway, managing and routing requests to the appropriate microservices, ensuring efficient and centralized traffic handling.
 
 
-= User Stories
-/*TO DO  
-For each user story of the player put the endpoint(s) to realize it and the microservice(s) involved. Use a table or a bullet list.*/
+== Descrive Why you coonnected two microservices ?
+/*For example: “Market is connected with Currency because it needs to check
+the currency of a user and notify the update of it due to the end of an
+auction or a higher bid”.*/
 
+= User Stories Player
+
+
+== Accounts
+- I want to be able to register to the system, so that I can access the game.
+
+- I want to be able to delete my account, so that I can remove my information to the game.  
+*_/user/account/{{userId}}(Gateway/user-service,user-db)_*
+
+- I want to be able to modify my account information, so that I can update my profile.
+*_/user/account/{{userId}}(Gateway/user-service,user-db)_*
+
+- I want to be able to login and logout, so that I can access and leave the game.
+
+- I want be safe from unauthorized access, so that my account access information is protected. 
+
+
+== Collections
+- I want to see my gacha collection, so that I can see what I have.
+*_/gacha/user/{{userId}}/list(Gateway/user-service,userd-db,gacha-service,gacha-db)_*
+
+- I want to see the info of a gacha in my collection, so that I can see the details of a gacha.
+*_/gacha/{{gachaId}}/user/{{userId}} (Gateway/user-service,user-db,gacha-service,gacha-db)_*
+
+- I want to see the system gacha collection, so that I can see what I can get.
+*_/gacha/list(Gateway/user-service,gacha-service,gacha-db)_*
+
+- I want to see the info of a gacha in the system collection, so that I can see the details of a gacha.
+*_/gacha/{{gachaId}}(Gateway/user-service,gacha-service,gacha-db)_*
+
+== Currency
+- I want to use in-game currency for roll a gacha, so that I can get a random gacha.
+*_market/gacha/roll(Gateway/user-service,market-service,market-db)_*
+
+- I want to buy in-game currency, so that I can get more gachas.
+*_/market/bugscoin/buy(Gateway/user-service,market-service,market-db)_*
+
+- I want to be safe about the in-game currency transactions, so that my money is protected.
+
+
+== Market
+- I want to see the auction market, so that i can evaluate if buy/sell a gacha.
+*_/market/auction/list(Gateway/user-service,market-service,market-db)_*
+
+- I want to set an auction for one of my gacha, so that I can sell it.
+*_/market/auction/ (Gateway/user-service,market-service,market-db)_*
+
+- I want to bid for a gacha from the market, so that I can buy it.
+*_/market/auction/{{auctionId}}/bid(Gateway/user-service,market-service,market-db)_*
+
+- I want to view my transaction history, so that I can track my market movements.
+*_/internal/market/get_transaction_history(Gateway/user-service,market-service,market-db)_*??????????
+
+- I want to receive a gacha when i win an auction, so that I receive a gacha.
+
+
+- I want to receive in-game currency when someone win my auction, so that I sell work as I expect. 
+
+
+- I want to receive my in-game currency back when i lost an auction, so that my in-game currency.
+
+
+- I want to that the auctions cannot be temperes, so that my in-game currency and collection are safe.
+
+
+= User Stories Admin
+
+== Profile/Accounts
+- I want to login and logout as admin from the system, so that I can access and leave the game.
+
+- I want to check all users account/profile, so that I can monitor all the users accounts/profiles.
+*_/admin/user/get_all (Gateway/admin-service/user-service,user-db)_*
+
+- I want to check a specific user account/profile, so that I can monitor user account/profile.
+*_/admin/user/{{userId}}(Gateway/admin-service/user-service,user-db)_*
+
+- I want to modify a specific user account/profile, so that I can update a specific user account/profile.
+*_/admin/user/{{userId}}(Gateway/admin-service/user-service,user-db)_*
+
+- I want to check a specific player currency transaction history, so that I can monitor the transactions of a player.
+*_/admin/user/{{userId}}/transaction_history(Gateway,admin-service,user-service,user-db,market)_*
+
+- I want to check a specific player market history, so that I can monitor the market of a player. 
+*_/admin/user/{{userId}}/auction/get_all(Gateway,admin-service,user-service,market-service,market-db)_*
+
+
+== Gachas
+- I want to check all the gacha collection, so that I can check all the collection.
+*_/admin/gacha/get_all(Gateway,admin-service,gacha-service,gacha-db)_*
+
+- I want to modify the gacha collection, so that I can add gachas.
+*_/admin/gacha/add(Gateway,admin-service,gacha-service,gacha-db)_*
+
+- I want to modify the gacha collection, so that I can delete gachas.
+*_/admin/gacha/{{gachaId}}(Gateway,admin-service,gacha-service,gacha-db)_*
+
+- I want to check a specific gacha, so that I can check the status of a gacha.
+*_/admin/gacha/{{gachaId}}(Gateway,admin-service,gacha-service,gacha-db)_*
+
+- I want to modify a specific gacha information, so that I can modify the status of a gacha.
+*_/admin/gacha/{{gachaId}}(Gateway,admin-service,gacha-service,gacha-db)_*
+
+== Market
+- I want to see the auction market, so that I can monitor the auction market.
+*_/admin/market/auction/get_all(Gateway,admin-service,market-service,market-db)_*
+
+- I want to see a specific auction, so that I can monitor a specific auction of the market.
+*_/admin/market/auction/{{auction_id}}(Gateway,admin-service,market-service,market-db)_*
+
+- I want to modify a specific auction, so that I can update the status of a specific auction.
+*_/admin/market/auction/{{auction_id}}(Gateway,admin-service,market-service,market-db)_*
+
+- I want to see the market history, so that I can check the market old auctions.
+*_/admin/market/transaction_history(Gateway,admin-service,market-service,market-db)_*
 
 = Market rules
-/*TO DO 
-Give a general description of the decision you took for the market.
-Try to answer questions like:
-• What happens to the currency of a player when someone else bids
-higher?
-• What happens if I bid at the last second of the auction?
-• Can I bid for an auction in which I am the highest bidder?*/
 
+When a user places a higher bid than the previous one, the currency of the previous highest bid is returned to the user after the finish of the auction.  
+
+If someone places a bid at the very last second of the auction, they will win the gacha as the last valid bidder.
+
+It's also possible to bid on an auction where you are already the highest bidder. However, the user cannot place a bid if they do not have the required amount of coins to bid.
+
+Additionally, the owner of an auction cannot bid on their own auction. As the owner, you can delete the auction at any time before it expires, but you need to confirm the action by entering your password. The maximum duration of an auction is 24 hours.
+
+All bids that are surpassed will be refunded at the end of the auction.
+
+All auctions remain visible to users, along with all the auction details. These details include the Auction ID, Owner ID, Gacha ID, Start Time, End Time, and Winner ID. Additionally, all bids made are displayed, showing the Bid ID, User ID of each bidder, the Bugscoins spent, and the Time of each bid.
 
 = Testing
+
+The tests were conducted using mock that allowed for the isolated testing of individual services. These mocks simulated the behavior of external components, enabling the verification of each service's functionality without relying on real external resources. To conduct the tests, Locust was used, a performance testing tool that allowed for load simulation and analysis of the service responses in various scenarios, ensuring an accurate assessment of the performance and robustness of each component.
+
 /*TO DO 
 Write here any particular fact about the testing.
 For example:
