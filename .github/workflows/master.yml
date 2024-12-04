@@ -1,65 +1,65 @@
 name: ci
 
 on:
-    push:
-        branches:
-            - "master"
-            - "dev"
-            - "release-v1.0a"
+  push:
+    branches:
+      - "master"
+      - "dev"
+      - "release-v1.0a"
 
 jobs:
-    build:
-        runs-on: ubuntu-latest
+  build:
+    runs-on: ubuntu-latest
 
-        steps:
-            # All the commands after this step will be executed
-            # at the repository's root directory
-            - name: Checkout repo
-              uses: actions/checkout@v4
+    steps:
+      # All the commands after this step will be executed
+      # at the repository's root directory
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-            - name: Setup certificates
-              run: |
-                  cd beetle-quest/deploy/cacerts
-                  sed -i '/rm .\/cacerts\/cert.srl/ s/.*$/# Removed cert.srl cleanup/' generate-db-certs.sh
-                  sed -i '/read -p "Do you want to change ownership/ s/.*$/answer="y"/' generate-db-certs.sh
-                  ./generate-db-certs.sh
+      - name: Setup certificates
+        run: |
+          cd beetle-quest/deploy/cacerts
+          sed -i '/rm .\/cacerts\/cert.srl/ s/.*$/# Removed cert.srl cleanup/' generate-db-certs.sh
+          sed -i '/read -p "Do you want to change ownership/ s/.*$/answer="y"/' generate-db-certs.sh
+          ./generate-db-certs.sh
 
-            - name: Start beetle-quest services
-              uses: hoverkraft-tech/compose-action@v2.0.1
-              with:
-                  compose-file: "./beetle-quest/deploy/compose.yaml"
-                  up-flags: "--build -d"
-                  down-flags: "--volumes"
+      - name: Start beetle-quest services
+        uses: hoverkraft-tech/compose-action@v2.0.1
+        with:
+          compose-file: "./beetle-quest/deploy/compose.yaml"
+          up-flags: "--build -d"
+          down-flags: "--volumes"
 
-            - name: Sleep for 5 seconds
-              run: |
-                  echo "Waiting for containers to become healthy..."
-                  sleep 5
+      - name: Sleep for 5 seconds
+        run: |
+          echo "Waiting for containers to become healthy..."
+          sleep 5
 
-            - name: Execute postman's tests
-              run: |
-                  cd ./beetle-quest/tests/postman/
-                  docker run --rm --net beetle-quest_internal -v ${{ github.workspace }}/beetle-quest/tests/postman/collection.json:/collection.json postman/newman run /collection.json --bail --insecure --color on 2>&1 | tee postman_output.txt
+      - name: Execute postman's tests
+        run: |
+          cd ./beetle-quest/tests/postman/
+          set -o pipefail && docker run --rm --net beetle-quest_internal -v ${{ github.workspace }}/beetle-quest/tests/postman/collection.json:/collection.json postman/newman run /collection.json --bail --insecure --color on 2>&1 | tee postman_output.txt
 
-            - name: Execute locust's tests
-              run: |
-                  cd ./beetle-quest/tests/locust/
-                  docker build -t beetle-quest-locust:latest .
-                  docker run --rm --network=beetle-quest_external -p 127.0.0.1:8089:8089 beetle-quest-locust:latest 2>&1 | tee locust_output.txt
+      - name: Execute locust's tests
+        run: |
+          cd ./beetle-quest/tests/locust/
+          docker build -t beetle-quest-locust:latest .
+          set -o pipefail && docker run --rm --network=beetle-quest_external -p 127.0.0.1:8089:8089 beetle-quest-locust:latest 2>&1 | tee locust_output.txt
 
-            - name: Run govulncheck
-              uses: golang/govulncheck-action@v1
-              with:
-                  repo-checkout: false
-                  cache: false
-                  work-dir: ${{ github.workspace }}/beetle-quest/
-                  go-version-file: "go.mod"
-                  go-package: ./...
+      - name: Run govulncheck
+        uses: golang/govulncheck-action@v1
+        with:
+          repo-checkout: false
+          cache: false
+          work-dir: ${{ github.workspace }}/beetle-quest/
+          go-version-file: "go.mod"
+          go-package: ./...
 
-            - name: Upload a Build Artifact
-              uses: actions/upload-artifact@v4
-              with:
-                  name: Tests results
-                  path: |
-                      ./beetle-quest/tests/postman/postman_output.txt
-                      ./beetle-quest/tests/locust/locust_output.txt
+      - name: Upload a Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Tests results
+          path: |
+            ./beetle-quest/tests/postman/postman_output.txt
+            ./beetle-quest/tests/locust/locust_output.txt
