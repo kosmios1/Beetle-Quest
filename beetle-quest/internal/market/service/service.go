@@ -103,13 +103,13 @@ func (s *MarketService) RollGacha(userId string) (*models.Gacha, string, error) 
 		// making it less likely to be selected.
 		totalWeight := 0
 		for _, gacha := range gachas {
-			totalWeight += 1000 / int(gacha.Rarity+1)
+			totalWeight += 100000 / (int(gacha.Rarity+1) * 100)
 		}
 		randomWeight := rand.IntN(totalWeight)
 
 		var cumulativeWeight int = 0
 		for _, gacha := range gachas {
-			cumulativeWeight += 1000 / int(gacha.Rarity+1)
+			cumulativeWeight += 100000 / (int(gacha.Rarity+1) * 100)
 			if randomWeight < cumulativeWeight {
 				selectedGacha = &gacha
 				break
