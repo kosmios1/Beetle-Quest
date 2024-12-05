@@ -8,6 +8,7 @@ import random
 
 import hashlib
 import base64
+import traceback
 
 from datetime import datetime
 from http import HTTPStatus
@@ -34,11 +35,12 @@ class AuthenticatedUser(FastHttpUser):
     access_token = None
     identity_token = None
 
-    """
-    This method is called before the virtual user execute any task.
-    It is used to perform the login and registration of a random user and to store
-    its UUID.
-    """
+    host = "https://localhost"
+
+    def __init__(self, environment) -> None:
+        self.host = "https://localhost"
+        super().__init__(environment)
+
     def on_start(self):
         self.make_authentication_request()
         self.make_oauth_authorization_request()
@@ -87,6 +89,7 @@ class AuthenticatedUser(FastHttpUser):
                     sys.exit()
             except Exception as e:
                 print(f"Failed to get the code from the response: {e}")
+                print("Traceback details: ", traceback.format_exc())
                 exit(-1)
 
         with self.client.post("/oauth/token", data={
@@ -341,7 +344,9 @@ class AuthenticatedAdmin(FastHttpUser):
     access_token = None
     identity_token = None
 
-    host = "https://localhost:6443"
+    def __init__(self, environment) -> None:
+        self.host = "https://localhost:6443"
+        super().__init__(environment)
 
     def on_start(self):
         self.make_authentication_request()
@@ -377,6 +382,7 @@ class AuthenticatedAdmin(FastHttpUser):
                     sys.exit()
             except Exception as e:
                 print(f"Failed to get the code from the response: {e}")
+                print("Traceback details: ", traceback.format_exc())
                 exit(-1)
 
         with self.client.post("/oauth/token", data={
