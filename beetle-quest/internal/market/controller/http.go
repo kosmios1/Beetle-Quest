@@ -168,7 +168,7 @@ func (c *MarketController) CreateAuction(ctx *gin.Context) {
 			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
-		case models.ErrAuctionAltreadyExists:
+		case models.ErrAuctionAltreadyExists, models.ErrGachaAlreadyAuctioned:
 			ctx.HTML(http.StatusConflict, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
