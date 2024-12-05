@@ -37,7 +37,7 @@
 !beetle-quest/
 !beetle-quest/**
 !beetle-quest/**/*.*
-beetle-quest/deploy/traefik/certs/
+beetle-quest/deploy/traefik/certs/*.pem
 beetle-quest/deploy/*/postgres/certs
 beetle-quest/deploy/*/redis/certs
 beetle-quest/tests/trivy_scan_results
