@@ -1098,9 +1098,9 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseUrl}}/auth/admin/login",
+							"raw": "{{adminUrl}}/auth/admin/login",
 							"host": [
-								"{{baseUrl}}"
+								"{{adminUrl}}"
 							],
 							"path": [
 								"auth",
@@ -1308,9 +1308,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{hostUrl}}/oauth/authorize?response_type=code&client_id=beetle-quest&redirect_uri={{oauthCallback}}&scope=admin&state={{state}}&code_challenge={{codeChallenge}}&code_challenge_method=S256",
+							"raw": "{{adminHostUrl}}/oauth/authorize?response_type=code&client_id=beetle-quest&redirect_uri={{oauthCallback}}&scope=admin&state={{state}}&code_challenge={{codeChallenge}}&code_challenge_method=S256",
 							"host": [
-								"{{hostUrl}}"
+								"{{adminHostUrl}}"
 							],
 							"path": [
 								"oauth",
@@ -1414,9 +1414,9 @@
 							]
 						},
 						"url": {
-							"raw": "{{hostUrl}}/oauth/token",
+							"raw": "{{adminHostUrl}}/oauth/token",
 							"host": [
-								"{{hostUrl}}"
+								"{{adminHostUrl}}"
 							],
 							"path": [
 								"oauth",
@@ -2393,6 +2393,11 @@
 		{
 			"key": "adminUrl",
 			"value": "https://admin-reverse-proxy/api/v1",
+			"type": "string"
+		},
+		{
+			"key": "adminHostUrl",
+			"value": "https://admin-reverse-proxy",
 			"type": "string"
 		},
 		{
