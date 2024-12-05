@@ -90,7 +90,11 @@ func (c *MarketController) RollGacha(ctx *gin.Context) {
 		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 
-	ctx.HTML(http.StatusOK, "successMsg.tmpl", gin.H{"Message": msg, "HiddenData": gacha.GachaID.String(), "HiddenData2": gacha.Rarity.String()})
+	if gacha == nil {
+		ctx.HTML(http.StatusOK, "successMsg.tmpl", gin.H{"Message": msg})
+	} else {
+		ctx.HTML(http.StatusOK, "successMsg.tmpl", gin.H{"Message": msg, "HiddenData": gacha.GachaID.String(), "HiddenData2": gacha.Rarity.String()})
+	}
 }
 
 func (c *MarketController) BuyGacha(ctx *gin.Context) {
