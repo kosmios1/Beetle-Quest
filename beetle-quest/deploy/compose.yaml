@@ -106,6 +106,8 @@ services:
             - ./cacerts/cert.pem:/certs/caCert.pem:ro
             - ./cacerts/key.pem:/certs/caKey.pem:ro
         deploy:
+            mode: replicated
+            replicas: 2
             resources:
                 limits:
                     cpus: "1"
@@ -147,8 +149,8 @@ services:
             - ./cacerts/cert.pem:/certs/caCert.pem:ro
             - ./cacerts/key.pem:/certs/caKey.pem:ro
         deploy:
-            # mode: replicated
-            # replicas: 2
+            mode: replicated
+            replicas: 2
             resources:
                 limits:
                     cpus: "1"
@@ -185,8 +187,8 @@ services:
             - ./cacerts/cert.pem:/certs/caCert.pem:ro
             - ./cacerts/key.pem:/certs/caKey.pem:ro
         deploy:
-            # mode: replicated
-            # replicas: 2
+            mode: replicated
+            replicas: 2
             resources:
                 limits:
                     cpus: "1"
@@ -214,8 +216,8 @@ services:
             - ./cacerts/cert.pem:/certs/caCert.pem:ro
             - ./cacerts/key.pem:/certs/caKey.pem:ro
         deploy:
-            # mode: replicated
-            # replicas: 2
+            mode: replicated
+            replicas: 2
             resources:
                 limits:
                     cpus: "1"
@@ -238,8 +240,8 @@ services:
             - ./cacerts/cert.pem:/certs/caCert.pem:ro
             - ./cacerts/key.pem:/certs/caKey.pem:ro
         deploy:
-            # mode: replicated
-            # replicas: 2
+            mode: replicated
+            replicas: 2
             resources:
                 limits:
                     cpus: "1"
@@ -276,8 +278,8 @@ services:
             - ./cacerts/cert.pem:/certs/caCert.pem:ro
             - ./cacerts/key.pem:/certs/caKey.pem:ro
         deploy:
-            # mode: replicated
-            # replicas: 2
+            mode: replicated
+            replicas: 2
             resources:
                 limits:
                     cpus: "1"
