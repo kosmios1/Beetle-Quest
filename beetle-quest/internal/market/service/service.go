@@ -267,16 +267,19 @@ func (s *MarketService) CreateAuction(userId, gachaId string, endTime time.Time)
 
 	user, err := s.urepo.FindByID(uid)
 	if err != nil {
+		log.Printf("[ERROR] urepo.FindByID: %v\n", err)
 		return nil, err
 	}
 
 	gacha, err := s.grepo.FindByID(gid)
 	if err != nil {
+		log.Printf("[ERROR] grepo.FindByID: %v\n", err)
 		return nil, err
 	}
 
 	gachas, err := s.grepo.GetUserGachas(uid)
 	if err != nil {
+		log.Printf("[ERROR] grepo.GetUserGachas: %v\n", err)
 		return nil, err
 	}
 
@@ -294,6 +297,7 @@ func (s *MarketService) CreateAuction(userId, gachaId string, endTime time.Time)
 
 	auctions, err := s.mrepo.GetUserAuctions(uid)
 	if err != nil {
+		log.Printf("[ERROR] mrepo.GetUserAuctions: %v\n", err)
 		return nil, err
 	}
 
@@ -318,10 +322,12 @@ func (s *MarketService) CreateAuction(userId, gachaId string, endTime time.Time)
 	}
 
 	if err = s.evrepo.AddEndAuctionEvent(auction); err != nil {
+		log.Printf("[ERROR] evrepo.AddEndAuctionEvent: %v\n", err)
 		return nil, models.ErrInternalServerError
 	}
 
 	if err := s.mrepo.Create(auction); err != nil {
+		log.Printf("[ERROR] mrepo.Create: %v\n", err)
 		return nil, err
 	}
 
