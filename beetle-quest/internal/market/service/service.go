@@ -77,24 +77,24 @@ func (s *MarketService) AddBugsCoin(userId string, amount int64) error {
 	return nil
 }
 
-func (s *MarketService) RollGacha(userId string) (models.UUID, string, error) {
+func (s *MarketService) RollGacha(userId string) (*models.Gacha, string, error) {
 	uid, err := utils.ParseUUID(userId)
 	if err != nil {
-		return models.UUID{}, "", models.ErrInternalServerError
+		return nil, "", models.ErrInternalServerError
 	}
 
 	user, err := s.urepo.FindByID(uid)
 	if err != nil {
-		return models.UUID{}, "", err
+		return nil, "", err
 	}
 
 	if user.Currency < 1000 {
-		return models.UUID{}, "", models.ErrNotEnoughMoneyToRollGacha
+		return nil, "", models.ErrNotEnoughMoneyToRollGacha
 	}
 
 	gachas, err := s.grepo.GetAll()
 	if err != nil {
-		return models.UUID{}, "", err
+		return nil, "", err
 	}
 
 	var selectedGacha *models.Gacha
@@ -132,7 +132,7 @@ func (s *MarketService) RollGacha(userId string) (models.UUID, string, error) {
 	if err := s.mrepo.AddTransaction(t); err != nil {
 		// The client doesn't need to know why the request
 		// failed, so we can just return a generic error.
-		return models.UUID{}, "", models.ErrInternalServerError
+		return nil, "", models.ErrInternalServerError
 	}
 
 	user.Currency -= 1000
@@ -140,9 +140,9 @@ func (s *MarketService) RollGacha(userId string) (models.UUID, string, error) {
 		if err != models.ErrUserNotFound {
 			// Because the client should not know how we are updating the user in the backend
 			//  and an error like models.ErrUsernameOrEmailAlreadyExists should not be reported
-			return models.UUID{}, "", models.ErrInternalServerError
+			return nil, "", models.ErrInternalServerError
 		}
-		return models.UUID{}, "", err
+		return nil, "", err
 	}
 
 	gachas, err = s.grepo.GetUserGachas(uid)
@@ -152,14 +152,14 @@ func (s *MarketService) RollGacha(userId string) (models.UUID, string, error) {
 		if err != models.ErrUserNotFound {
 			// Because the client should not know how we are updating the user in the backend
 			//  and an error like models.ErrUsernameOrEmailAlreadyExists should not be reported
-			return models.UUID{}, "", models.ErrInternalServerError
+			return nil, "", models.ErrInternalServerError
 		}
-		return models.UUID{}, "", err
+		return nil, "", err
 	}
 
 	for _, gacha := range gachas {
 		if gacha.GachaID == gid {
-			return models.UUID{}, "Opps you already have this gacha!", nil
+			return nil, "Opps you already have this gacha!", nil
 		}
 	}
 
@@ -169,12 +169,12 @@ func (s *MarketService) RollGacha(userId string) (models.UUID, string, error) {
 		if err != models.ErrUserNotFound {
 			// Because the client should not know how we are updating the user in the backend
 			//  and an error like models.ErrUsernameOrEmailAlreadyExists should not be reported
-			return models.UUID{}, "", models.ErrInternalServerError
+			return nil, "", models.ErrInternalServerError
 		}
-		return models.UUID{}, "", err
+		return nil, "", err
 	}
 
-	return gid, "Gacha successfully obtained, check your inventory!", nil
+	return selectedGacha, "Gacha successfully obtained, check your inventory!", nil
 }
 
 func (s *MarketService) BuyGacha(userId string, gachaId string) (*models.Gacha, error) {

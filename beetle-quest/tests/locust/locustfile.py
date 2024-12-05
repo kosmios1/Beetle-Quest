@@ -9,6 +9,8 @@ import random
 import hashlib
 import base64
 import traceback
+import threading
+import logging
 
 from datetime import datetime
 from http import HTTPStatus
@@ -22,6 +24,10 @@ user_ids = []
 gacha_ids = []
 auction_ids = []
 
+lock = threading.Lock()
+total_counter = 0
+rarities_counter = {}
+rarities_percentage = {}
 
 class AuthenticatedUser(FastHttpUser):
     abstract = True
@@ -227,6 +233,8 @@ class MarketMSRequests(AuthenticatedUser):
 
     @task
     def roll_gacha(self):
+        global total_counter, rarities_counter, rarities_percentage
+
         with self.client.get(f"{base_path}/market/gacha/roll", allow_redirects=False, catch_response=True) as response:
             if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
                 response.failure(f"Request failed with status code: {response.status_code}")
@@ -237,6 +245,18 @@ class MarketMSRequests(AuthenticatedUser):
                 if input_tag:
                     hidden_data_value = input_tag["value"]
                     self.own_gacha.append(hidden_data_value)
+
+                input_tag = soup.find('input', {'name': 'hidden_data2'})
+                if input_tag:
+                    hidden_data_value = input_tag["value"]
+                    with lock:
+                        if hidden_data_value not in rarities_counter:
+                            rarities_counter[hidden_data_value] = 0
+                        total_counter = total_counter + 1
+                        rarities_counter[hidden_data_value] = rarities_counter[hidden_data_value] + 1
+                        for key in rarities_counter:
+                            rarities_percentage[key] = int((rarities_counter[key] / total_counter) * 100)
+                        logging.info(rarities_percentage)
             response.success()
 
     @task
@@ -313,7 +333,7 @@ class MarketMSRequests(AuthenticatedUser):
         if random.random() >= 0.1:
             return
 
-        if len(auction_ids) == 0:
+        if len(self.own_auctions) == 0:
             return
         randauctionid = random.choice(self.own_auctions)
         with self.client.post(f"{base_path}/market/auction/{randauctionid}", json={
@@ -579,7 +599,7 @@ class AdminMSRequests(AuthenticatedAdmin):
         with self.client.patch(f"{base_path}/admin/market/auction/{randauctionid}", json={
             "gacha_id": randgachaid
         }, allow_redirects=False, catch_response=True) as response:
-            if response.status_code != HTTPStatus.INTERNAL_SERVER_ERROR:
+            if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
                 response.failure(f"Request failed with status code: {response.status_code}")
                 return
             response.success()

@@ -71,7 +71,7 @@ func (c *MarketController) RollGacha(ctx *gin.Context) {
 		return
 	}
 
-	gid, msg, err := c.srv.RollGacha(userId.(string))
+	gacha, msg, err := c.srv.RollGacha(userId.(string))
 	if err != nil {
 		switch err {
 		case models.ErrInternalServerError:
@@ -90,7 +90,7 @@ func (c *MarketController) RollGacha(ctx *gin.Context) {
 		log.Panicf("Unreachable code, err: %s", err.Error())
 	}
 
-	ctx.HTML(http.StatusOK, "successMsg.tmpl", gin.H{"Message": msg, "HiddenData": gid.String()})
+	ctx.HTML(http.StatusOK, "successMsg.tmpl", gin.H{"Message": msg, "HiddenData": gacha.GachaID.String(), "HiddenData2": gacha.Rarity.String()})
 }
 
 func (c *MarketController) BuyGacha(ctx *gin.Context) {
