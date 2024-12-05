@@ -1465,9 +1465,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/admin/user/get_all",
+							"raw": "{{adminUrl}}/admin/user/get_all",
 							"host": [
-								"{{baseUrl}}"
+								"{{adminUrl}}"
 							],
 							"path": [
 								"admin",
@@ -1510,8 +1510,8 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/admin/user/{{testID}}",
-							"host": ["{{baseUrl}}"],
+							"raw": "{{adminUrl}}/admin/user/{{testID}}",
+							"host": ["{{adminUrl}}"],
 							"path": ["admin","user","{{testID}}"]
 						}
 					}
@@ -1531,9 +1531,9 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseUrl}}/admin/user/{{testID}}",
+							"raw": "{{adminUrl}}/admin/user/{{testID}}",
 							"host": [
-								"{{baseUrl}}"
+								"{{adminUrl}}"
 							],
 							"path": ["admin","user","{{testID}}"]
 						}
@@ -1570,8 +1570,8 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/admin/user/{{testID}}/transaction_history",
-							"host": ["{{baseUrl}}"],
+							"raw": "{{adminUrl}}/admin/user/{{testID}}/transaction_history",
+							"host": ["{{adminUrl}}"],
 							"path": ["admin","user","{{testID}}","transaction_history"]
 						}
 					},
@@ -1609,8 +1609,8 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/admin/user/{{testID}}/auction/get_all",
-							"host": ["{{baseUrl}}"],
+							"raw": "{{adminUrl}}/admin/user/{{testID}}/auction/get_all",
+							"host": ["{{adminUrl}}"],
 							"path": ["admin","user","{{testID}}","auction","get_all"
 							]
 						}
@@ -1712,9 +1712,9 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseUrl}}/admin/gacha/add",
+							"raw": "{{adminUrl}}/admin/gacha/add",
 							"host": [
-								"{{baseUrl}}"
+								"{{adminUrl}}"
 							],
 							"path": [
 								"admin",
@@ -1765,9 +1765,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/admin/gacha/get_all",
+							"raw": "{{adminUrl}}/admin/gacha/get_all",
 							"host": [
-								"{{baseUrl}}"
+								"{{adminUrl}}"
 							],
 							"path": [
 								"admin",
@@ -1804,9 +1804,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/admin/gacha/{{gachaId}}",
+							"raw": "{{adminUrl}}/admin/gacha/{{gachaId}}",
 							"host": [
-								"{{baseUrl}}"
+								"{{adminUrl}}"
 							],
 							"path": [
 								"admin",
@@ -1831,9 +1831,9 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseUrl}}/admin/gacha/{{gachaId}}",
+							"raw": "{{adminUrl}}/admin/gacha/{{gachaId}}",
 							"host": [
-								"{{baseUrl}}"
+								"{{adminUrl}}"
 							],
 							"path": [
 								"admin",
@@ -1896,8 +1896,8 @@
 				    "method": "GET",
 						"header": [],
 						"url": {
-						  "raw": "{{baseUrl}}/admin/market/transaction_history",
-							"host": ["{{baseUrl}}"],
+						  "raw": "{{adminUrl}}/admin/market/transaction_history",
+							"host": ["{{adminUrl}}"],
 							"path": ["admin","market","transaction_history"]
 				    }
 					}
@@ -1933,8 +1933,8 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/admin/market/auction/get_all",
-							"host": ["{{baseUrl}}"],
+							"raw": "{{adminUrl}}/admin/market/auction/get_all",
+							"host": ["{{adminUrl}}"],
 							"path": ["admin","market","auction","get_all"]
 						}
 					}
@@ -1967,8 +1967,8 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/admin/market/auction/{{auctionId}}",
-							"host": ["{{baseUrl}}"],
+							"raw": "{{adminUrl}}/admin/market/auction/{{auctionId}}",
+							"host": ["{{adminUrl}}"],
 							"path": ["admin","market","auction","{{auctionId}}"]
 						}
 					}
@@ -2010,8 +2010,8 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseUrl}}/admin/market/auction/{{auctionId}}",
-							"host": ["{{baseUrl}}"],
+							"raw": "{{adminUrl}}/admin/market/auction/{{auctionId}}",
+							"host": ["{{adminUrl}}"],
 							"path": ["admin","market","auction","{{auctionId}}"]
 						}
 					}
@@ -2388,6 +2388,11 @@
 		{
 			"key": "hostUrl",
 			"value": "https://reverse-proxy",
+			"type": "string"
+		},
+		{
+			"key": "adminUrl",
+			"value": "https://admin-reverse-proxy/api/v1",
 			"type": "string"
 		},
 		{

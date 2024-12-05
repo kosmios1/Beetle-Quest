@@ -9,7 +9,7 @@ api:
   debug: false
 
 # log:
-#     level: "DEBUG"
+#   level: "DEBUG"
 
 entryPoints:
   websec:
@@ -17,6 +17,6 @@ entryPoints:
 
 providers:
   file:
-    filename: "/etc/traefik/rules.yml"
+    filename: "/etc/traefik/admin-rules.yml"
     watch: true
-    debugLogGeneratedTemplate: true # FIXME: set to false
+    debugLogGeneratedTemplate: true
