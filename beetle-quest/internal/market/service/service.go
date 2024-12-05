@@ -44,22 +44,6 @@ func (s *MarketService) AddBugsCoin(userId string, amount int64) error {
 		return err
 	}
 
-	t := &models.Transaction{
-		TransactionID:   utils.GenerateUUID(),
-		TransactionType: models.Deposit,
-		UserID:          user.UserID,
-		Amount:          amount,
-		DateTime:        time.Now(),
-		EventType:       models.MarketEv,
-		EventID:         models.UUID{},
-	}
-
-	if err := s.mrepo.AddTransaction(t); err != nil {
-		// NOTE: The client doesn't need to know why the request
-		// failed, so we can just return a generic error.
-		return models.ErrInternalServerError
-	}
-
 	if user.Currency+amount < 0 {
 		return models.ErrMaxMoneyExceeded
 	}
@@ -72,6 +56,23 @@ func (s *MarketService) AddBugsCoin(userId string, amount int64) error {
 			return models.ErrInternalServerError
 		}
 		return err
+	}
+
+	t := &models.Transaction{
+		TransactionID:   utils.GenerateUUID(),
+		TransactionType: models.Deposit,
+		UserID:          user.UserID,
+		Amount:          amount,
+		DateTime:        time.Now(),
+		EventType:       models.MarketEv,
+		EventID:         models.UUID{},
+	}
+
+	if err := s.mrepo.AddTransaction(t); err != nil {
+		// NOTE: Because the client should not know how we are updating the user in the backend
+		user.Currency -= amount
+		_ = s.urepo.Update(user)
+		return models.ErrInternalServerError
 	}
 	return nil
 }

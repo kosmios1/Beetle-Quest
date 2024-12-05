@@ -12,8 +12,10 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-            # All the commands after this step will be executed
-            # at the repository's root directory
+            ###################################
+            # Initial setup                   #
+            ###################################
+
             - name: Checkout repo
               uses: actions/checkout@v4
 
@@ -24,15 +26,58 @@ jobs:
                   sed -i '/read -p "Do you want to change ownership/ s/.*$/answer="y"/' generate-db-certs.sh
                   ./generate-db-certs.sh
 
-            - name: Start beetle-quest services
-              uses: hoverkraft-tech/compose-action@v2.0.1
-              with:
-                  compose-file: "./beetle-quest/deploy/compose.yaml"
-                  up-flags: "--build -d"
-                  down-flags: "--volumes"
+            ###################################
+            # Unit testing                    #
+            ###################################
 
-            - name: Sleep for 5 seconds
+            - name: Run unit tests
               run: |
+                  cd ./beetle-quest/deploy/
+
+                  docker build -t beetle-quest-auth:test -f ./auth/Dockerfile ..
+                  docker run --rm -p 127.0.0.1:8080:8080 -e JWT_SECRET_KEY="e6df59f91871f2229a0296c6b5ffaf44cef6af30cd05057857b9f0a74b0d28c1" --name testing beetle-quest-auth:test
+                  set -o pipefail && docker run --rm --network host -v ${{ github.workspace }}/beetle-quest/tests/unit/postman/beetle_quest-auth_service-unit_tests.json:/collection.json \
+                    postman/newman run /collection.json --bail --insecure --ignore-redirects --color on 2>&1 | tee ${{ github.workspace }}/beetle-quest/tests/unit/postman/postman_unit_auth_output.txt
+                  docker stop testing
+
+                  docker build -t beetle-quest-admin:test -f ./admin/Dockerfile ..
+                  docker run --rm -p 127.0.0.1:8080:8080 -e JWT_SECRET_KEY="e6df59f91871f2229a0296c6b5ffaf44cef6af30cd05057857b9f0a74b0d28c1" --name testing beetle-quest-admin:test
+                  set -o pipefail && docker run --rm --network host -v ${{ github.workspace }}/beetle-quest/tests/unit/postman/beetle_quest-admin_service-unit_tests.json:/collection.json \
+                    postman/newman run /collection.json --bail --insecure --ignore-redirects --color on 2>&1 | tee ${{ github.workspace }}/beetle-quest/tests/unit/postman/postman_unit_admin_output.txt
+                  docker stop testing
+
+                  docker build -t beetle-quest-gacha:test -f ./gacha/Dockerfile ..
+                  docker run --rm -p 127.0.0.1:8080:8080 -e JWT_SECRET_KEY="e6df59f91871f2229a0296c6b5ffaf44cef6af30cd05057857b9f0a74b0d28c1" --name testing beetle-quest-gacha:test
+                  set -o pipefail && docker run --rm --network host -v ${{ github.workspace }}/beetle-quest/tests/unit/postman/beetle_quest-gacha_service-unit_tests.json:/collection.json \
+                    postman/newman run /collection.json --bail --insecure --ignore-redirects --color on 2>&1 | tee ${{ github.workspace }}/beetle-quest/tests/unit/postman/postman_unit_gacha_output.txt
+                  docker stop testing
+
+                  docker build -t beetle-quest-market:test -f ./market/Dockerfile ..
+                  docker run --rm -p 127.0.0.1:8080:8080 -e JWT_SECRET_KEY="e6df59f91871f2229a0296c6b5ffaf44cef6af30cd05057857b9f0a74b0d28c1" --name testing beetle-quest-market:test
+                  set -o pipefail && docker run --rm --network host -v ${{ github.workspace }}/beetle-quest/tests/unit/postman/beetle_quest-market_service-unit_tests.json:/collection.json \
+                    postman/newman run /collection.json --bail --insecure --ignore-redirects --color on 2>&1 | tee ${{ github.workspace }}/beetle-quest/tests/unit/postman/postman_unit_market_output.txt
+                  docker stop testing
+
+                  docker build -t beetle-quest-user:test -f ./user/Dockerfile ..
+                  docker run --rm -p 127.0.0.1:8080:8080 -e JWT_SECRET_KEY="e6df59f91871f2229a0296c6b5ffaf44cef6af30cd05057857b9f0a74b0d28c1" --name testing beetle-quest-user:test
+                  set -o pipefail && docker run --rm --network host -v ${{ github.workspace }}/beetle-quest/tests/unit/postman/beetle_quest-user_service-unit_tests.json:/collection.json \
+                    postman/newman run /collection.json --bail --insecure --ignore-redirects --color on 2>&1 | tee ${{ github.workspace }}/beetle-quest/tests/unit/postman/postman_unit_user_output.txt
+                  docker stop testing
+
+            ###################################
+            # Integration and load testing    #
+            ###################################
+
+            - name: Build Docker images
+              run: |
+                  cd ./beetle-quest/deploy/
+                  docker compose build
+
+            - name: Run Docker containers
+              run: |
+                  cd ./beetle-quest/deploy/
+                  docker compose up -d
+                  docker compose ps -a
                   echo "Waiting for containers to become healthy..."
                   sleep 5
 
@@ -45,7 +90,17 @@ jobs:
               run: |
                   cd ./beetle-quest/tests/locust/
                   docker build -t beetle-quest-locust:latest .
-                  set -o pipefail && docker run --rm --network=beetle-quest_external -p 127.0.0.1:8089:8089 beetle-quest-locust:latest 2>&1 | tee locust_output.txt
+                  docker run --rm --network=beetle-quest_external -p 127.0.0.1:8089:8089 beetle-quest-locust:latest 2>&1 | tee locust_output.txt
+
+            - name: Stop docker containers
+              run: |
+                  cd ./beetle-quest/deploy/
+                  docker compose logs > docker-compose-logs.txt
+                  docker compose down
+
+            ###################################
+            # Static analysis                 #
+            ###################################
 
             - name: Run govulncheck
               uses: golang/govulncheck-action@v1
@@ -56,10 +111,26 @@ jobs:
                   go-version-file: "go.mod"
                   go-package: ./...
 
+            - name: Scan docker images
+              run: |
+                  cd ./beetle-quest/tests/
+                  ./scan-images.sh
+
+            ###################################
+            # Creating artifacts              #
+            ###################################
+
             - name: Upload a Build Artifact
               uses: actions/upload-artifact@v4
               with:
                   name: Tests results
                   path: |
+                      ./beetle-quest/deploy/docker-compose-logs.txt
+                      ./beetle-quest/tests/trivy_scan_results/*_scan.txt
                       ./beetle-quest/tests/postman/postman_output.txt
                       ./beetle-quest/tests/locust/locust_output.txt
+                      ./beetle-quest/tests/unit/postman/postman_unit_auth_output.txt
+                      ./beetle-quest/tests/unit/postman/postman_unit_admin_output.txt
+                      ./beetle-quest/tests/unit/postman/postman_unit_gacha_output.txt
+                      ./beetle-quest/tests/unit/postman/postman_unit_user_output.txt
+                      ./beetle-quest/tests/unit/postman/postman_unit_market_output.txt

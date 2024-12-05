@@ -24,7 +24,7 @@ for image in "${images[@]}"; do
     output_file="$output_dir/${image//:latest/}_scan.txt"
 
     echo "Scanning image: $image"
-    sudo docker run --rm -v /var/run/docker.sock:/var/run/docker.sock:ro -v ./../../.trivy_cache:/.cache/ aquasec/trivy image -f table "$image" &> "$output_file"
+    docker run --rm -v /var/run/docker.sock:/var/run/docker.sock:ro -v ./../../.trivy_cache:/.cache/ aquasec/trivy image -f table "$image" &> "$output_file"
 
     sed -n '14,$p' "$output_file" 2>&1 | tee "$output_dir/${image//:latest/}_table.txt"
     rm "$output_file"

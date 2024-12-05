@@ -49,30 +49,28 @@ class AuthenticatedUser(FastHttpUser):
         self.password = random_str[::-1]
         self.email = f"{random_str[:len(random_str)//2]}@{random_str[len(random_str)//2:]}.it"
 
-        response = self.client.post(f"{base_path}/auth/register", json={
+        with self.client.post(f"{base_path}/auth/register", json={
             "username": self.username,
             "password": self.password,
             "email": self.email,
-        }, allow_redirects=False)
+        }, allow_redirects=False, catch_response=True) as response:
+            if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
+                response.failure(f"Request failed with status code: {response.status_code}")
+                return
 
-        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
-            response.raise_for_status()
-            return
-
-        response = self.client.post(f"{base_path}/auth/login", json={
+        with self.client.post(f"{base_path}/auth/login", json={
             "username": self.username,
             "password": self.password,
-        }, allow_redirects=False)
-
-        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
-            response.raise_for_status()
-            return
+        }, allow_redirects=False, catch_response=True) as response:
+            if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
+                response.failure(f"Request failed with status code: {response.status_code}")
+                return
 
     def make_oauth_authorization_request(self):
         # Make oauth2 authorization request
         state = generate_random_string()
         codeVerifier, codeChallenge = generate_code_verifier_and_chall()
-        response = self.client.get("/oauth/authorize", params={
+        with self.client.get("/oauth/authorize", params={
             "response_type": "code",
             "client_id": "beetle-quest",
             "redirect_uri": "/fake/callback",
@@ -80,118 +78,122 @@ class AuthenticatedUser(FastHttpUser):
             "state": state,
             "code_challenge": codeChallenge,
             "code_challenge_method": "S256",
-        }, allow_redirects=False)
+        }, allow_redirects=False, catch_response=True) as response:
+            try:
+                code = response.headers["Location"].split("code=")[1].split("&")[0]
+                recv_state = response.headers["Location"].split("state=")[1].split("&")[0]
+                if state != recv_state:
+                    print(f"State mismatch: {state}")
+                    sys.exit()
+            except Exception as e:
+                print(f"Failed to get the code from the response: {e}")
+                exit(-1)
 
-        try:
-            code = response.headers["Location"].split("code=")[1].split("&")[0]
-            recv_state = response.headers["Location"].split("state=")[1].split("&")[0]
-            if state != recv_state:
-                print(f"State mismatch: {state}")
-                sys.exit()
-        except Exception as e:
-            print(f"Failed to get the code from the response: {e}")
-            exit(-1)
-
-        response = self.client.post("/oauth/token", data={
+        with self.client.post("/oauth/token", data={
             "grant_type": "authorization_code",
             "code": code,
             "redirect_uri": "/fake/callback",
             "client_id": "beetle-quest",
             "code_verifier": codeVerifier,
-        }, allow_redirects=False)
+        }, allow_redirects=False, catch_response=True) as response:
+            self.access_token = response.json()["access_token"]
+            self.client.auth_header = f"Bearer {self.access_token}"
 
-        self.access_token = response.json()["access_token"]
-        self.client.auth_header = f"Bearer {self.access_token}"
+            self.identity_token = response.json()["id_token"]
+            if self.identity_token == None:
+                print(f"Failed to parse the token {self.identity_token}")
+                sys.exit()
 
-        self.identity_token = response.json()["id_token"]
-        if self.identity_token == None:
-            print(f"Failed to parse the token {self.identity_token}")
-            sys.exit()
-
-        id_token = parse_jwt(self.identity_token, algorithms="HS256")
-        if id_token == None:
-            print(f"Failed to parse the token {id_token}")
-            sys.exit()
-        self.user_id = id_token["sub"]
-
+            id_token = parse_jwt(self.identity_token, algorithms="HS256")
+            if id_token == None:
+                print(f"Failed to parse the token {id_token}")
+                sys.exit()
+            self.user_id = id_token["sub"]
 
     def on_stop(self):
-        response = self.client.get(f"{base_path}/auth/logout", allow_redirects=False)
-        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
-            response.raise_for_status()
-            return
+        with self.client.get(f"{base_path}/auth/logout", allow_redirects=False, catch_response=True) as response:
+            if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
+                response.failure(f"Request failed with status code: {response.status_code}")
+                return
+            response.success()
 
 class UserMSRequests(AuthenticatedUser):
     wait_time = between(1, 2)
 
     @task
-    def get_user(self):
-        response = self.client.get(f"{base_path}/user/account/{self.user_id}", allow_redirects=False)
-        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
-            response.raise_for_status()
-            return
+    def get_userinfo(self):
+        with self.client.get("/userinfo", allow_redirects=False, catch_response=True) as response:
+            if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
+                response.failure(f"Request failed with status code: {response.status_code}")
+                return
+            response.success()
 
     @task
-    def get_userinfo(self):
-        response = self.client.get("/userinfo", allow_redirects=False)
-        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
-            response.raise_for_status()
-            return
-
+    def get_user(self):
+        with self.client.get(f"{base_path}/user/account/{self.user_id}", allow_redirects=False, catch_response=True) as response:
+            if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
+                response.failure(f"Request failed with status code: {response.status_code}")
+                return
+            response.success()
 
     @task
     def update_user(self):
-        response = self.client.patch(f"{base_path}/user/account/{self.user_id}", json={
+        with self.client.patch(f"{base_path}/user/account/{self.user_id}", json={
             "username": "",
             "email": "",
             "new_password": self.password,
             "old_password": self.password,
-        }, allow_redirects=False)
-        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
-            response.raise_for_status()
-            return
+        }, allow_redirects=False, catch_response=True) as response:
+            if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
+                response.failure(f"Request failed with status code: {response.status_code}")
+                return
+            response.success()
 
     @task
     def delete_user(self):
         if random.random() >= 0.1:
             return
 
-        response = self.client.post(f"{base_path}/user/account/delete", json={
+        with self.client.post(f"{base_path}/user/account/{self.user_id}", json={
             "password": self.password,
-        }, allow_redirects=False)
-        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
-            response.raise_for_status()
-            return
+        }, allow_redirects=False, catch_response=True) as response:
+            if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
+                response.failure(f"Request failed with status code: {response.status_code}")
+                return
+            response.success()
 
 class GachaMSRequests(AuthenticatedUser):
     wait_time = between(1, 2)
 
     @task
     def get_gacha_list(self):
-        response = self.client.get(f"{base_path}/gacha/list", allow_redirects=False)
-        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
-            response.raise_for_status()
-            return
+        with self.client.get(f"{base_path}/gacha/list", allow_redirects=False, catch_response=True) as response:
+            if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
+                response.failure(f"Request failed with status code: {response.status_code}")
+                return
+            response.success()
 
     @task
     def get_gacha(self):
         if len(gacha_ids) == 0:
             return
         randgachaid = random.choice(gacha_ids)
-        response = self.client.get(f"{base_path}/gacha/{randgachaid}", allow_redirects=False)
-        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
-            response.raise_for_status()
-            return
+        with self.client.get(f"{base_path}/gacha/{randgachaid}", allow_redirects=False, catch_response=True) as response:
+            if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
+                response.failure(f"Request failed with status code: {response.status_code}")
+                return
+            response.success()
 
     @task
     def get_users_gacha_list(self):
         if len(user_ids) == 0:
             return
         randuserid = random.choice(user_ids)
-        response = self.client.get(f"{base_path}/gacha/user/{randuserid}/list", allow_redirects=False)
-        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
-            response.raise_for_status()
-            return
+        with self.client.get(f"{base_path}/gacha/user/{randuserid}/list", allow_redirects=False, catch_response=True) as response:
+            if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
+                response.failure(f"Request failed with status code: {response.status_code}")
+                return
+            response.success()
 
     @task
     def get_users_gacha(self):
@@ -199,10 +201,11 @@ class GachaMSRequests(AuthenticatedUser):
             return
         randuserid = random.choice(user_ids)
         randgachaid = random.choice(gacha_ids)
-        response = self.client.get(f"{base_path}/gacha/user/{randgachaid}/{randuserid}", allow_redirects=False)
-        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
-            response.raise_for_status()
-            return
+        with self.client.get(f"{base_path}/gacha/{randgachaid}/user/{randuserid}", allow_redirects=False, catch_response=True) as response:
+            if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
+                response.failure(f"Request failed with status code: {response.status_code}")
+                return
+            response.success()
 
 class MarketMSRequests(AuthenticatedUser):
     own_auctions = []
@@ -211,89 +214,96 @@ class MarketMSRequests(AuthenticatedUser):
     wait_time = between(1, 2)
     @task
     def buy_bugscoin(self):
-        response = self.client.post(f"{base_path}/market/bugscoin/buy", json={
+        with self.client.post(f"{base_path}/market/bugscoin/buy", json={
             "amount": f"{100000}",
-        }, allow_redirects=False)
-        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
-            response.raise_for_status()
-            return
+        }, allow_redirects=False, catch_response=True) as response:
+            if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
+                response.failure(f"Request failed with status code: {response.status_code}")
+                return
+            response.success()
 
     @task
     def roll_gacha(self):
-        response = self.client.get(f"{base_path}/market/gacha/roll", allow_redirects=False)
-        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
-            response.raise_for_status()
-            return
-        if response.text != None:
-            soup = BeautifulSoup(response.text, 'html.parser')
-            input_tag = soup.find('input', {'name': 'hidden_data'})
-            if input_tag:
-                hidden_data_value = input_tag["value"]
-                self.own_gacha.append(hidden_data_value)
+        with self.client.get(f"{base_path}/market/gacha/roll", allow_redirects=False, catch_response=True) as response:
+            if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
+                response.failure(f"Request failed with status code: {response.status_code}")
+                return
+            if response.text != None:
+                soup = BeautifulSoup(response.text, 'html.parser')
+                input_tag = soup.find('input', {'name': 'hidden_data'})
+                if input_tag:
+                    hidden_data_value = input_tag["value"]
+                    self.own_gacha.append(hidden_data_value)
+            response.success()
 
     @task
     def buy_gacha(self):
         if len(gacha_ids) == 0:
             return
         randgachaid = random.choice(gacha_ids)
-        response = self.client.get(f"{base_path}/market/gacha/{randgachaid}/buy", allow_redirects=False)
-        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
-            response.raise_for_status()
-            return
-        if response.text != None:
-            soup = BeautifulSoup(response.text, 'html.parser')
-            input_tag = soup.find('input', {'name': 'hidden_data'})
-            if input_tag:
-                hidden_data_value = input_tag["value"]
-                self.own_gacha.append(hidden_data_value)
+        with self.client.get(f"{base_path}/market/gacha/{randgachaid}/buy", allow_redirects=False, catch_response=True) as response:
+            if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
+                response.failure(f"Request failed with status code: {response.status_code}")
+                return
+            if response.text != None:
+                soup = BeautifulSoup(response.text, 'html.parser')
+                input_tag = soup.find('input', {'name': 'hidden_data'})
+                if input_tag:
+                    hidden_data_value = input_tag["value"]
+                    self.own_gacha.append(hidden_data_value)
+            response.success()
 
     @task
     def create_auction(self):
         if len(self.own_gacha) == 0:
             return
         randgachaid = random.choice(self.own_gacha)
-        response = self.client.post(f"{base_path}/market/auction/", json={
+        with self.client.post(f"{base_path}/market/auction/", json={
             "gacha_id": randgachaid,
             "end_time": datetime.fromtimestamp(time.time() + (5 * 60)).strftime("%Y-%m-%dT%H:%M"),
-        }, allow_redirects=False)
-        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
-            response.raise_for_status()
-            return
-        if response.text != None:
-            soup = BeautifulSoup(response.text, 'html.parser')
-            input_tag = soup.find('input', {'name': 'hidden_data'})
-            if input_tag:
-                hidden_data_value = input_tag["value"]
-                self.own_auctions.append(hidden_data_value)
+        }, allow_redirects=False, catch_response=True) as response:
+            if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
+                response.failure(f"Request failed with status code: {response.status_code}")
+                return
+            if response.text != None:
+                soup = BeautifulSoup(response.text, 'html.parser')
+                input_tag = soup.find('input', {'name': 'hidden_data'})
+                if input_tag:
+                    hidden_data_value = input_tag["value"]
+                    self.own_auctions.append(hidden_data_value)
+            response.success()
 
     @task
     def get_auction_list(self):
-        response = self.client.get(f"{base_path}/market/auction/list", allow_redirects=False)
-        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
-            response.raise_for_status()
-            return
+        with self.client.get(f"{base_path}/market/auction/list", allow_redirects=False, catch_response=True) as response:
+            if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
+                response.failure(f"Request failed with status code: {response.status_code}")
+                return
+            response.success()
 
     @task
     def get_auction_details(self):
         if len(auction_ids) == 0:
             return
         randauctionid = random.choice(auction_ids)
-        response = self.client.get(f"{base_path}/market/auction/{randauctionid}", allow_redirects=False)
-        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
-            response.raise_for_status()
-            return
+        with self.client.get(f"{base_path}/market/auction/{randauctionid}", allow_redirects=False, catch_response=True) as response:
+            if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
+                response.failure(f"Request failed with status code: {response.status_code}")
+                return
+            response.success()
 
     @task
     def bid_to_auction(self):
         if len(auction_ids) == 0:
             return
         randauctionid = random.choice(auction_ids)
-        response = self.client.post(f"{base_path}/market/auction/{randauctionid}/bid", json={
+        with self.client.post(f"{base_path}/market/auction/{randauctionid}/bid", json={
             "bid_amount": f"{random.randint(0, 100000)}",
-        }, allow_redirects=False)
-        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
-            response.raise_for_status()
-            return
+            }, allow_redirects=False, catch_response=True) as response:
+            if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
+                response.failure(f"Request failed with status code: {response.status_code}")
+                return
+            response.success()
 
     @task
     def delete_auction(self):
@@ -303,12 +313,13 @@ class MarketMSRequests(AuthenticatedUser):
         if len(auction_ids) == 0:
             return
         randauctionid = random.choice(self.own_auctions)
-        response = self.client.post(f"{base_path}/market/auction/{randauctionid}", json={
+        with self.client.post(f"{base_path}/market/auction/{randauctionid}", json={
             "password": self.password,
-        }, allow_redirects=False)
-        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
-            response.raise_for_status()
-            return
+        }, allow_redirects=False, catch_response=True) as response:
+            if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
+                response.failure(f"Request failed with status code: {response.status_code}")
+                return
+            response.success()
 
 # ==============================================================================
 # Admin
@@ -336,22 +347,21 @@ class AuthenticatedAdmin(FastHttpUser):
         self.make_oauth_authorization_request()
 
     def make_authentication_request(self):
-        response = self.client.post(f"{base_path}/auth/admin/login", json={
+        with self.client.post(f"{base_path}/auth/admin/login", json={
             "admin_id": self.admin_id,
             "password": self.password,
             "otp_code": self.otp.now()
-        }, allow_redirects=False)
-
-        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
-            response.raise_for_status()
-            return
+        }, allow_redirects=False, catch_response=True) as response:
+            if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
+                response.failure(f"Request failed with status code: {response.status_code}")
+                return
 
 
 
     def make_oauth_authorization_request(self):
         state = generate_random_string()
         codeVerifier, codeChallenge = generate_code_verifier_and_chall()
-        response = self.client.get("/oauth/authorize", params={
+        with self.client.get("/oauth/authorize", params={
             "response_type": "code",
             "client_id": "beetle-quest",
             "redirect_uri": "/fake/callback",
@@ -359,45 +369,44 @@ class AuthenticatedAdmin(FastHttpUser):
             "state": state,
             "code_challenge": codeChallenge,
             "code_challenge_method": "S256",
-        }, allow_redirects=False)
+        }, allow_redirects=False, catch_response=True) as response:
+            try:
+                code = response.headers["Location"].split("code=")[1].split("&")[0]
+                recv_state = response.headers["Location"].split("state=")[1].split("&")[0]
+                if state != recv_state:
+                    print(f"State mismatch: {state}")
+                    sys.exit()
+            except Exception as e:
+                print(f"Failed to get the code from the response: {e}")
+                exit(-1)
 
-        try:
-            code = response.headers["Location"].split("code=")[1].split("&")[0]
-            recv_state = response.headers["Location"].split("state=")[1].split("&")[0]
-            if state != recv_state:
-                print(f"State mismatch: {state}")
-                sys.exit()
-        except Exception as e:
-            print(f"Failed to get the code from the response: {e}")
-            exit(-1)
-
-        response = self.client.post("/oauth/token", data={
+        with self.client.post("/oauth/token", data={
             "grant_type": "authorization_code",
             "code": code,
             "redirect_uri": "/fake/callback",
             "client_id": "beetle-quest",
             "code_verifier": codeVerifier,
-        }, allow_redirects=False)
+        }, allow_redirects=False, catch_response=True) as response:
+            self.access_token = response.json()["access_token"]
+            self.client.auth_header = f"Bearer {self.access_token}"
 
-        self.access_token = response.json()["access_token"]
-        self.client.auth_header = f"Bearer {self.access_token}"
+            self.identity_token = response.json()["id_token"]
+            if self.identity_token == None:
+                print(f"Failed to parse the token { self.identity_token}")
+                sys.exit()
 
-        self.identity_token = response.json()["id_token"]
-        if self.identity_token == None:
-            print(f"Failed to parse the token { self.identity_token}")
-            sys.exit()
-
-        id_token = parse_jwt(self.identity_token, algorithms="HS256")
-        if id_token == None:
-            print(f"Failed to parse the token {id_token}")
-            sys.exit()
-        self.user_id = id_token["sub"]
+            id_token = parse_jwt(self.identity_token, algorithms="HS256")
+            if id_token == None:
+                print(f"Failed to parse the token {id_token}")
+                sys.exit()
+            self.user_id = id_token["sub"]
 
     def on_stop(self):
-        response = self.client.get(f"{base_path}/auth/logout")
-        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
-            response.raise_for_status()
-            return
+        with self.client.get(f"{base_path}/auth/logout") as response:
+            if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
+                response.failure(f"Request failed with status code: {response.status_code}")
+                return
+            response.success()
 
 class AdminMSRequests(AuthenticatedAdmin):
     wait_time = between(1, 2)
@@ -408,42 +417,40 @@ class AdminMSRequests(AuthenticatedAdmin):
         global user_ids, gacha_ids, auction_ids
         super().on_start()
 
-        response = self.client.get(f"{base_path}/admin/user/get_all", allow_redirects=False)
-        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
-            response.raise_for_status()
-            return
+        with self.client.get(f"{base_path}/admin/user/get_all", allow_redirects=False, catch_response=True) as response:
+            if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
+                response.failure(f"Request failed with status code: {response.status_code}")
+                return
+            response_data = response.json()
+            user_list = response_data.get("UserList", [])
+            user_ids = parse_uuids(user_list, "user_id")
 
-        response_data = response.json()
-        user_list = response_data.get("UserList", [])
-        user_ids = parse_uuids(user_list, "user_id")
+        with self.client.get(f"{base_path}/admin/gacha/get_all", allow_redirects=False, catch_response=True) as response:
+            if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
+                response.failure(f"Request failed with status code: {response.status_code}")
+                return
+            response_data = response.json()
+            gacha_list = response_data.get("GachaList", [])
+            gacha_ids = parse_uuids(gacha_list, "gacha_id")
 
-        response = self.client.get(f"{base_path}/admin/gacha/get_all", allow_redirects=False)
-        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
-            response.raise_for_status()
-            return
-
-        response_data = response.json()
-        gacha_list = response_data.get("GachaList", [])
-        gacha_ids = parse_uuids(gacha_list, "gacha_id")
-
-        response = self.client.get(f"{base_path}/admin/market/auction/get_all", allow_redirects=False)
-        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
-            response.raise_for_status()
-            return
-
-        response_data = response.json()
-        auction_list = response_data.get("AuctionList", [])
-        auction_ids = parse_uuids(auction_list, "auction_id")
+        with self.client.get(f"{base_path}/admin/market/auction/get_all", allow_redirects=False, catch_response=True) as response:
+            if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
+                response.failure(f"Request failed with status code: {response.status_code}")
+                return
+            response_data = response.json()
+            auction_list = response_data.get("AuctionList", [])
+            auction_ids = parse_uuids(auction_list, "auction_id")
 
     @task
     def get_user(self):
         if len(user_ids) == 0:
             return
         randuserid = random.choice(user_ids)
-        response = self.client.get(f"{base_path}/admin/user/{randuserid}", allow_redirects=False)
-        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
-            response.raise_for_status()
-            return
+        with self.client.get(f"{base_path}/admin/user/{randuserid}", allow_redirects=False, catch_response=True) as response:
+            if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
+                response.failure(f"Request failed with status code: {response.status_code}")
+                return
+            response.success()
 
     @task
     def update_user(self):
@@ -451,57 +458,62 @@ class AdminMSRequests(AuthenticatedAdmin):
             return
         randstr = generate_random_string()
         randuserid = random.choice(user_ids)
-        response = self.client.patch(f"{base_path}/admin/user/{randuserid}", json={
+        with self.client.patch(f"{base_path}/admin/user/{randuserid}", json={
             "username": randstr,
             "email": f"{randstr[:len(randstr)//2:]}@{randstr[len(randstr)//2::]}.it",
             "currency": f"{random.randint(0, 1000000)}",
-        }, allow_redirects=False)
-        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
-            response.raise_for_status()
-            return
+        }, allow_redirects=False, catch_response=True) as response:
+            if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
+                response.failure(f"Request failed with status code: {response.status_code}")
+                return
+            response.success()
 
     @task
     def get_user_transactions(self):
         if len(user_ids) == 0:
             return
         randuserid = random.choice(user_ids)
-        response = self.client.get(f"{base_path}/admin/user/{randuserid}/transaction_history", allow_redirects=False)
-        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
-            response.raise_for_status()
-            return
+        with self.client.get(f"{base_path}/admin/user/{randuserid}/transaction_history", allow_redirects=False, catch_response=True) as response:
+            if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
+                response.failure(f"Request failed with status code: {response.status_code}")
+                return
+            response.success()
 
     @task
     def get_user_auctions(self):
         if len(user_ids) == 0:
             return
         randuserid = random.choice(user_ids)
-        response = self.client.get(f"{base_path}/admin/user/{randuserid}/auction/get_all", allow_redirects=False)
-        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
-            response.raise_for_status()
-            return
+        with self.client.get(f"{base_path}/admin/user/{randuserid}/auction/get_all", allow_redirects=False, catch_response=True) as response:
+            if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
+                response.failure(f"Request failed with status code: {response.status_code}")
+                return
+            response.success()
 
     @task
     def add_gacha(self):
         randstr = generate_random_string()
-        response = self.client.post(f"{base_path}/admin/gacha/add", json={
+        with self.client.post(f"{base_path}/admin/gacha/add", json={
             "name": randstr,
             "rarity": random.choice(["Common", "Uncommon", "Rare", "Epic", "Legendary"]),
             "price": f"{random.randint(0, 1000)}",
             "image_path": randstr[::-1]
-        }, allow_redirects=False)
-        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
-            response.raise_for_status()
-            return
+        }, allow_redirects=False, catch_response=True) as response:
+            if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
+                response.failure(f"Request failed with status code: {response.status_code}")
+                return
+            response.success()
 
     @task
     def get_gacha_details(self):
         if len(gacha_ids) == 0:
             return
         randgachaid = random.choice(gacha_ids)
-        response = self.client.get(f"{base_path}/admin/gacha/{randgachaid}", allow_redirects=False)
-        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
-            response.raise_for_status()
-            return
+        with self.client.get(f"{base_path}/admin/gacha/{randgachaid}", allow_redirects=False, catch_response=True) as response:
+            if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
+                response.failure(f"Request failed with status code: {response.status_code}")
+                return
+            response.success()
 
     @task
     def update_gacha(self):
@@ -509,15 +521,16 @@ class AdminMSRequests(AuthenticatedAdmin):
             return
         randstr = generate_random_string()
         randgachaid = random.choice(gacha_ids)
-        response = self.client.patch(f"{base_path}/admin/gacha/{randgachaid}", json={
+        with self.client.patch(f"{base_path}/admin/gacha/{randgachaid}", json={
             "name": randstr,
             "rarity": random.choice(["Common", "Uncommon", "Rare", "Epic", "Legendary"]),
             "price": f"{random.randint(0, 1000)}",
             "image_path": randstr[::-1]
-        }, allow_redirects=False)
-        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
-            response.raise_for_status()
-            return
+        }, allow_redirects=False, catch_response=True) as response:
+            if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
+                response.failure(f"Request failed with status code: {response.status_code}")
+                return
+            response.success()
 
     @task
     def delete_gacha(self):
@@ -527,39 +540,44 @@ class AdminMSRequests(AuthenticatedAdmin):
         if len(gacha_ids) == 0:
             return
         randgachaid = random.choice(gacha_ids)
-        response = self.client.delete(f"{base_path}/admin/gacha/{randgachaid}", allow_redirects=False)
-        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
-            response.raise_for_status()
-            return
+        with self.client.delete(f"{base_path}/admin/gacha/{randgachaid}", allow_redirects=False, catch_response=True) as response:
+            if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
+                response.failure(f"Request failed with status code: {response.status_code}")
+                return
+            response.success()
 
     @task
     def get_transaction_history(self):
-        response = self.client.get(f"{base_path}/admin/market/transaction_history", allow_redirects=False)
-        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
-            response.raise_for_status()
-            return
+        with self.client.get(f"{base_path}/admin/market/transaction_history", allow_redirects=False, catch_response=True) as response:
+            if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
+                response.failure(f"Request failed with status code: {response.status_code}")
+                return
+            response.success()
 
     @task
     def get_auction_details(self):
         if len(auction_ids) == 0:
             return
         randauctionid = random.choice(auction_ids)
-        response = self.client.get(f"{base_path}/admin/market/auction/{randauctionid}", allow_redirects=False)
-        if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
-            response.raise_for_status()
-            return
+        with self.client.get(f"{base_path}/admin/market/auction/{randauctionid}", allow_redirects=False, catch_response=True) as response:
+            if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
+                response.failure(f"Request failed with status code: {response.status_code}")
+                return
+            response.success()
 
     @task
     def update_auction(self):
-        if len(auction_ids) == 0:
+        if len(auction_ids) == 0 or len(gacha_ids) == 0:
             return
+        randgachaid = random.choice(gacha_ids)
         randauctionid = random.choice(auction_ids)
-        response = self.client.patch(f"{base_path}/admin/market/auction/{randauctionid}", json={
-
-        }, allow_redirects=False)
-        if response.status_code != HTTPStatus.INTERNAL_SERVER_ERROR:
-            response.raise_for_status()
-            return
+        with self.client.patch(f"{base_path}/admin/market/auction/{randauctionid}", json={
+            "gacha_id": randgachaid
+        }, allow_redirects=False) as response:
+            if response.status_code != HTTPStatus.INTERNAL_SERVER_ERROR:
+                response.failure(f"Request failed with status code: {response.status_code}")
+                return
+            response.success()
 
 # ==============================================================================
 # Test stages definition
