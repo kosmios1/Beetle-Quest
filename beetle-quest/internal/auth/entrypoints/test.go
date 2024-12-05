@@ -8,9 +8,14 @@ import (
 
 	arepo "beetle-quest/pkg/repositories/impl/mock/admin"
 	urepo "beetle-quest/pkg/repositories/impl/mock/user"
+
+	"github.com/go-session/session/v3"
 )
 
 func NewAuthController() (*controller.AuthController, error) {
+	session.InitManager(
+		session.SetStore(session.NewMemoryStore()),
+	)
 	return controller.NewAuthController(
 		service.NewAuthService(
 			urepo.NewUserRepo(),

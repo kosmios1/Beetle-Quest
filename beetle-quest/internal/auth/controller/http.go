@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-session/session"
+	"github.com/go-session/session/v3"
 	"github.com/golang-jwt/jwt"
 
 	"github.com/go-oauth2/oauth2/v4"
@@ -341,8 +341,8 @@ func (c *AuthController) userAuthorizationHandler(w http.ResponseWriter, r *http
 	}
 
 	userID = uid.(string)
-	store.Delete("LoggedInUserID")
-	_ = store.Save()
+	// store.Delete("LoggedInUserID")
+	// _ = store.Save()
 	return
 }
 
