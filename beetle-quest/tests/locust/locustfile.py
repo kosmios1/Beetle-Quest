@@ -111,7 +111,7 @@ class AuthenticatedUser(FastHttpUser):
             self.user_id = id_token["sub"]
 
     def on_stop(self):
-        with self.client.get(f"{base_path}/auth/logout", allow_redirects=False, catch_response=True) as response:
+        with self.client.get(f"{base_path}/auth/logout", catch_response=True) as response:
             if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
                 response.failure(f"Request failed with status code: {response.status_code}")
                 return
@@ -341,6 +341,7 @@ class AuthenticatedAdmin(FastHttpUser):
     access_token = None
     identity_token = None
 
+    host = "https://localhost:6443"
 
     def on_start(self):
         self.make_authentication_request()
@@ -355,8 +356,6 @@ class AuthenticatedAdmin(FastHttpUser):
             if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
                 response.failure(f"Request failed with status code: {response.status_code}")
                 return
-
-
 
     def make_oauth_authorization_request(self):
         state = generate_random_string()
@@ -402,7 +401,7 @@ class AuthenticatedAdmin(FastHttpUser):
             self.user_id = id_token["sub"]
 
     def on_stop(self):
-        with self.client.get(f"{base_path}/auth/logout") as response:
+        with self.client.get(f"{base_path}/auth/logout", catch_response=True) as response:
             if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
                 response.failure(f"Request failed with status code: {response.status_code}")
                 return
@@ -573,7 +572,7 @@ class AdminMSRequests(AuthenticatedAdmin):
         randauctionid = random.choice(auction_ids)
         with self.client.patch(f"{base_path}/admin/market/auction/{randauctionid}", json={
             "gacha_id": randgachaid
-        }, allow_redirects=False) as response:
+        }, allow_redirects=False, catch_response=True) as response:
             if response.status_code != HTTPStatus.INTERNAL_SERVER_ERROR:
                 response.failure(f"Request failed with status code: {response.status_code}")
                 return
