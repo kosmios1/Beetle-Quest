@@ -39,3 +39,4 @@
 !beetle-quest/**/*.*
 beetle-quest/deploy/*/postgres/certs
 beetle-quest/deploy/*/redis/certs
+beetle-quest/tests/trivy_scan_results
