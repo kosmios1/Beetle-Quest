@@ -153,7 +153,10 @@ class UserMSRequests(AuthenticatedUser):
 
     @task
     def delete_user(self):
-        response = self.client.delete(f"{base_path}/user/account/delete", json={
+        if random.random() >= 0.1:
+            return
+
+        response = self.client.post(f"{base_path}/user/account/delete", json={
             "password": self.password,
         }, allow_redirects=False)
         if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
@@ -294,10 +297,13 @@ class MarketMSRequests(AuthenticatedUser):
 
     @task
     def delete_auction(self):
+        if random.random() >= 0.1:
+            return
+
         if len(auction_ids) == 0:
             return
         randauctionid = random.choice(self.own_auctions)
-        response = self.client.delete(f"{base_path}/market/auction/{randauctionid}", data={
+        response = self.client.post(f"{base_path}/market/auction/{randauctionid}", json={
             "password": self.password,
         }, allow_redirects=False)
         if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
@@ -515,6 +521,9 @@ class AdminMSRequests(AuthenticatedAdmin):
 
     @task
     def delete_gacha(self):
+        if random.random() >= 0.1:
+            return
+
         if len(gacha_ids) == 0:
             return
         randgachaid = random.choice(gacha_ids)
