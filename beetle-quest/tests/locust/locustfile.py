@@ -249,13 +249,14 @@ class MarketMSRequests(AuthenticatedUser):
                 input_tag = soup.find('input', {'name': 'hidden_data2'})
                 if input_tag:
                     hidden_data_value = input_tag["value"]
-                    with lock:
-                        if hidden_data_value not in rarities_counter:
-                            rarities_counter[hidden_data_value] = 0
-                        total_counter = total_counter + 1
-                        rarities_counter[hidden_data_value] = rarities_counter[hidden_data_value] + 1
-                        for key in rarities_counter:
-                            rarities_percentage[key] = int((rarities_counter[key] / total_counter) * 100)
+                    if hidden_data_value != '':
+                        with lock:
+                            if hidden_data_value not in rarities_counter:
+                                rarities_counter[hidden_data_value] = 0
+                            total_counter = total_counter + 1
+                            rarities_counter[hidden_data_value] = rarities_counter[hidden_data_value] + 1
+                            for key in rarities_counter:
+                                rarities_percentage[key] = (rarities_counter[key] / total_counter) * 100
                         logging.info(rarities_percentage)
             response.success()
 
