@@ -3,10 +3,15 @@ module beetle-quest
 go 1.23.2
 
 require (
+	github.com/gin-contrib/cors v1.7.2
 	github.com/gin-contrib/secure v1.1.0
 	github.com/gin-gonic/gin v1.10.0
 	github.com/go-oauth2/oauth2/v4 v4.5.2
+	github.com/go-oauth2/redis/v4 v4.1.1
 	github.com/go-redis/redis/v8 v8.0.0-beta.5
+	github.com/go-session/redis/v3 v3.2.1
+	github.com/go-session/session v3.1.2+incompatible
+	github.com/go-session/session/v3 v3.1.5
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/google/uuid v1.6.0
 	github.com/pquerna/otp v1.4.0
@@ -17,7 +22,6 @@ require (
 )
 
 require (
-	github.com/boj/redistore v0.0.0-20180917114910-cd5dcc76aeff // indirect
 	github.com/boombuler/barcode v1.0.1-0.20190219062509-6c824513bacc // indirect
 	github.com/bytedance/sonic v1.11.6 // indirect
 	github.com/bytedance/sonic/loader v0.1.1 // indirect
@@ -28,22 +32,12 @@ require (
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
-	github.com/gin-contrib/cors v1.7.2 // indirect
-	github.com/gin-contrib/sessions v1.0.1 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
-	github.com/go-oauth2/redis/v4 v4.1.1 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.20.0 // indirect
-	github.com/go-session/redis/v3 v3.2.1 // indirect
-	github.com/go-session/session v3.1.2+incompatible // indirect
-	github.com/go-session/session/v3 v3.1.5 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
-	github.com/gomodule/redigo v2.0.0+incompatible // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
-	github.com/gorilla/context v1.1.2 // indirect
-	github.com/gorilla/securecookie v1.1.2 // indirect
-	github.com/gorilla/sessions v1.2.2 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
 	github.com/jackc/pgx/v5 v5.5.5 // indirect
