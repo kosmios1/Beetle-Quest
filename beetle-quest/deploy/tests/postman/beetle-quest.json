@@ -90,7 +90,6 @@
 									"listen": "test",
 									"script": {
 										"exec": [
-										    "console.log(pm.response.text());",
 											"pm.test(\"Status code is 302\", function () {",
 											"    pm.response.to.have.status(302);",
 											"});",
