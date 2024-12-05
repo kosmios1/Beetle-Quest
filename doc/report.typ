@@ -24,51 +24,9 @@
 = Introduction
 The goal of this project is to develop a web app and define its architecture for creating a web-based gacha game. So the users will be able to engage in all the standard activities found in a gacha game like: _`roll`, `buy coin`, `create auctions`, `bid`_.
 
-All these actions will be implemented with *_Go_* language and through a _microservices_ architecture..
+All these actions will be implemented with *_Go_* language and through a _microservices_ architecture.
 
-
-= Microservices
-The main idea was to divide a monolithic system into a series of microservices, each of which handles a specific functionality.
-This fragmentation allows for greater modularity and control of the system. To make the web-application more scalable, the microservices have been designed to be independent and stateless.
-Microservices that need to store data use their own dedicated database, which they access directly.
-However, if a service needs to access data managed by another service, it must use the internal API which is only accessible within the internal network.
-
-#linebreak()
-
-In the following pharagraps we will examinate the implemented services, and expose their functionalities.
-
-== _Auth_
-User registration, login and logout are all managed in a centralised manner by the same service: the Auth service.
-Which also provides helper endpoints to check the validity of access tokens, allowing authentication and authorization within the web-app.
-
-== _User_
-This service is responsable for managing user's account informations. A user, once logged in, can access it's account details, modify them or delete the account itself.
-
-== _Gacha_
-Gacha collections are managed by the Gacha service. It allows users to get the list of available gachas as well as information on each one of them. User can inspect the personal inventory of different players and their personal one.
-
-== _Market_
-The Market service allows users to perform actions involving the acquisition of `BugsCoins` and gachas. It manages auctions lifetime and transactions in the system.
-
-#linebreak()
-Through this service users can obtain gachas by performing two actions: buy and roll. To roll the user has to pay 1000 `BugsCoins`, he/she will obtain a random gacha from the system with a probability which depends on the rarity of the gacha.
-
-#linebreak()
-The user has the permission to create and delete it's own auctions but can not bid to them, he/she can bid to other's auctions.
-
-== _Static_
-This service is responsible for serving the static content of the web-app, like the images, the _css_ and the _html_ files.
-
-
-== _Admin_
-This service provides the administrator with the necessary tools to manage the system in a controlled manner, allowing operations on users, gacha, and transactions and operation carried out in the market.
-
-It can fetch the list of users with their associated information, performs detailed searching, modify users profile, view all the transactions carried out by a user and ispect user's auction list.
-
-It can perform global actions on the gachas, like: add new one, modify/delete an existing one and get information on the system gachas. The service provides similar actions also on transactions and auctions.
-
-
-== Gacha Collection
+= Gacha Collection
 /* TO DO
 #align(center+horizon)[
     #set text(size: 14.2pt)
@@ -119,8 +77,6 @@ It can perform global actions on the gachas, like: add new one, modify/delete an
 */
 
 
-
-
 = Architecture with MicroFreshner
 The microservices architecture defined for this project is the result of a process of analysis and detection of the smells present in the original monolithic prototype, carried out using MicroFreshner.
 
@@ -141,10 +97,69 @@ Moreover, to achieve more effective control over the system, we have introduced 
 We have also used a reverse proxy called *_Traefik_*, which acts as an intermediary between external users and the system's internal services. In this architecture, Traefik functions as an access gateway, managing and routing requests to the appropriate microservices, ensuring efficient and centralized traffic handling.
 
 
-== Descrive Why you coonnected two microservices ?
+= Microservices
+The main idea was to divide a monolithic system into a series of microservices, each of which handles a specific functionality.
+This fragmentation allows for greater modularity and control of the system. To make the web-application more scalable, the microservices have been designed to be independent and stateless.
+Microservices that need to store data use their own dedicated database, which they access directly.
+However, if a service needs to access data managed by another service, it must use the internal API which is only accessible within the internal network.
+
+#linebreak()
+
+In the following pharagraps we will examinate the implemented services, and expose their functionalities.
+
+== _Auth_
+User registration, login and logout are all managed in a centralised manner by the same service: the Auth service.
+Which also provides helper endpoints to check the validity of access tokens, allowing authentication and authorization within the web-app.
+
+== _User_
+This service is responsable for managing user's account informations. A user, once logged in, can access it's account details, modify them or delete the account itself.
+
+== _Gacha_
+Gacha collections are managed by the Gacha service. It allows users to get the list of available gachas as well as information on each one of them. User can inspect the personal inventory of different players and their personal one.
+
+== _Market_
+The Market service allows users to perform actions involving the acquisition of `BugsCoins` and gachas. It manages auctions lifetime and transactions in the system.
+
+#linebreak()
+Through this service users can obtain gachas by performing two actions: buy and roll. To roll the user has to pay 1000 `BugsCoins`, he/she will obtain a random gacha from the system with a probability which depends on the rarity of the gacha.
+
+#linebreak()
+The user has the permission to create and delete it's own auctions but can not bid to them, he/she can bid to other's auctions.
+
+== _Static_
+This service is responsible for serving the static content of the web-app, like the images, the _css_ and the _html_ files.
+
+
+== _Admin_
+This service provides the administrator with the necessary tools to manage the system in a controlled manner, allowing operations on users, gacha, and transactions and operation carried out in the market.
+
+It can fetch the list of users with their associated information, performs detailed searching, modify users profile, view all the transactions carried out by a user and ispect user's auction list.
+
+It can perform global actions on the gachas, like: add new one, modify/delete an existing one and get information on the system gachas. The service provides similar actions also on transactions and auctions.
+
+
+
+== Descrive Why you connected two microservices ?
+
+- Admin-Service ↔ Gacha-Service: The admin-service connects with the gacha-service to manage gacha, such as adding/delete/modify gachas.
+
+- Admin-Service ↔ Market-Service: Admin-service interacts with market-service to regulate or manage the marketplace, including listing auctions, listing transactions, or update/modifie auction.
+
+- Admin-Service ↔ User-Service: The admin-service connects with user-service to manage user accounts, such as listing users, modifying user profiles, or checking user transaction history and the user auction list.
+
+- Auth-Service ↔ User-Service: The auth-service relies on user-service for user data, such as validating credentials.
+
+- Gacha-Service ↔ User-Service: The gacha-service connects with the user-service to manage the user's gacha collection, such as listing the user's gacha collection or checking the gacha details.
+
+- Market-Service ↔ User-Service: The market-service connects with the user-service to manage the user's currency and transactions, such as checking the user's currency and adding currency.
+
+- Market-Service ↔ Gacha-Service: The market-service connects with the gacha-service to manage the gacha collection, such as listing the gacha collection or checking the gacha details or when a gacha is sold in the market.
+
+
 /*For example: “Market is connected with Currency because it needs to check
 the currency of a user and notify the update of it due to the end of an
 auction or a higher bid”.*/
+
 
 = User Stories Player
 
@@ -153,10 +168,10 @@ auction or a higher bid”.*/
 - I want to be able to register to the system, so that I can access the game.
 
 - I want to be able to delete my account, so that I can remove my information to the game.  
-*_/user/account/{{userId}}(Gateway/user-service,user-db)_*
+  - *_/user/account/{{userId}}(Gateway/user-service,user-db)_*
 
 - I want to be able to modify my account information, so that I can update my profile.
-*_/user/account/{{userId}}(Gateway/user-service,user-db)_*
+  - *_/user/account/{{userId}}(Gateway/user-service,user-db)_*
 
 - I want to be able to login and logout, so that I can access and leave the game.
 
@@ -164,40 +179,40 @@ auction or a higher bid”.*/
 
 
 == Collections
-- I want to see my gacha collection, so that I can see what I have.
-*_/gacha/user/{{userId}}/list(Gateway/user-service,userd-db,gacha-service,gacha-db)_*
+-  I want to see my gacha collection, so that I can see what I have.
+  - *_/gacha/user/{{userId}}/list(Gateway/user-service,userd-db,gacha-service,gacha-db)_*
 
 - I want to see the info of a gacha in my collection, so that I can see the details of a gacha.
-*_/gacha/{{gachaId}}/user/{{userId}} (Gateway/user-service,user-db,gacha-service,gacha-db)_*
+  - *_/gacha/{{gachaId}}/user/{{userId}} (Gateway/user-service,user-db,gacha-service,gacha-db)_*
 
 - I want to see the system gacha collection, so that I can see what I can get.
-*_/gacha/list(Gateway/user-service,gacha-service,gacha-db)_*
+  - *_/gacha/list(Gateway/user-service,gacha-service,gacha-db)_*
 
 - I want to see the info of a gacha in the system collection, so that I can see the details of a gacha.
-*_/gacha/{{gachaId}}(Gateway/user-service,gacha-service,gacha-db)_*
+  - *_/gacha/{{gachaId}}(Gateway/user-service,gacha-service,gacha-db)_*
 
 == Currency
 - I want to use in-game currency for roll a gacha, so that I can get a random gacha.
-*_market/gacha/roll(Gateway/user-service,market-service,market-db)_*
+  - *_market/gacha/roll(Gateway/user-service,market-service,market-db)_*
 
 - I want to buy in-game currency, so that I can get more gachas.
-*_/market/bugscoin/buy(Gateway/user-service,market-service,market-db)_*
+  - *_/market/bugscoin/buy(Gateway/user-service,market-service,market-db)_*
 
 - I want to be safe about the in-game currency transactions, so that my money is protected.
 
 
 == Market
 - I want to see the auction market, so that i can evaluate if buy/sell a gacha.
-*_/market/auction/list(Gateway/user-service,market-service,market-db)_*
+  - *_/market/auction/list(Gateway/user-service,market-service,market-db)_*
 
 - I want to set an auction for one of my gacha, so that I can sell it.
-*_/market/auction/ (Gateway/user-service,market-service,market-db)_*
+  - *_/market/auction/ (Gateway/user-service,market-service,market-db)_*
 
 - I want to bid for a gacha from the market, so that I can buy it.
-*_/market/auction/{{auctionId}}/bid(Gateway/user-service,market-service,market-db)_*
+  - *_/market/auction/{{auctionId}}/bid(Gateway/user-service,market-service,market-db)_*
 
 - I want to view my transaction history, so that I can track my market movements.
-*_/internal/market/get_transaction_history(Gateway/user-service,market-service,market-db)_*??????????
+  - *_/internal/market/get_transaction_history(Gateway/user-service,market-service,market-db)_*??????????
 
 - I want to receive a gacha when i win an auction, so that I receive a gacha.
 
@@ -217,49 +232,49 @@ auction or a higher bid”.*/
 - I want to login and logout as admin from the system, so that I can access and leave the game.
 
 - I want to check all users account/profile, so that I can monitor all the users accounts/profiles.
-*_/admin/user/get_all (Gateway/admin-service/user-service,user-db)_*
+  - *_/admin/user/get_all (Gateway/admin-service/user-service,user-db)_*
 
 - I want to check a specific user account/profile, so that I can monitor user account/profile.
-*_/admin/user/{{userId}}(Gateway/admin-service/user-service,user-db)_*
+  - *_/admin/user/{{userId}}(Gateway/admin-service/user-service,user-db)_*
 
 - I want to modify a specific user account/profile, so that I can update a specific user account/profile.
-*_/admin/user/{{userId}}(Gateway/admin-service/user-service,user-db)_*
+  - *_/admin/user/{{userId}}(Gateway/admin-service/user-service,user-db)_*
 
 - I want to check a specific player currency transaction history, so that I can monitor the transactions of a player.
-*_/admin/user/{{userId}}/transaction_history(Gateway,admin-service,user-service,user-db,market)_*
+  - *_/admin/user/{{userId}}/transaction_history(Gateway,admin-service,user-service,user-db,market)_*
 
 - I want to check a specific player market history, so that I can monitor the market of a player. 
-*_/admin/user/{{userId}}/auction/get_all(Gateway,admin-service,user-service,market-service,market-db)_*
+  - *_/admin/user/{{userId}}/auction/get_all(Gateway,admin-service,user-service,market-service,market-db)_*
 
 
 == Gachas
 - I want to check all the gacha collection, so that I can check all the collection.
-*_/admin/gacha/get_all(Gateway,admin-service,gacha-service,gacha-db)_*
+  - *_/admin/gacha/get_all(Gateway,admin-service,gacha-service,gacha-db)_*
 
 - I want to modify the gacha collection, so that I can add gachas.
-*_/admin/gacha/add(Gateway,admin-service,gacha-service,gacha-db)_*
+  - *_/admin/gacha/add(Gateway,admin-service,gacha-service,gacha-db)_*
 
 - I want to modify the gacha collection, so that I can delete gachas.
-*_/admin/gacha/{{gachaId}}(Gateway,admin-service,gacha-service,gacha-db)_*
+  - *_/admin/gacha/{{gachaId}}(Gateway,admin-service,gacha-service,gacha-db)_*
 
 - I want to check a specific gacha, so that I can check the status of a gacha.
-*_/admin/gacha/{{gachaId}}(Gateway,admin-service,gacha-service,gacha-db)_*
+  - *_/admin/gacha/{{gachaId}}(Gateway,admin-service,gacha-service,gacha-db)_*
 
 - I want to modify a specific gacha information, so that I can modify the status of a gacha.
-*_/admin/gacha/{{gachaId}}(Gateway,admin-service,gacha-service,gacha-db)_*
+  - *_/admin/gacha/{{gachaId}}(Gateway,admin-service,gacha-service,gacha-db)_*
 
 == Market
 - I want to see the auction market, so that I can monitor the auction market.
-*_/admin/market/auction/get_all(Gateway,admin-service,market-service,market-db)_*
+  - *_/admin/market/auction/get_all(Gateway,admin-service,market-service,market-db)_*
 
 - I want to see a specific auction, so that I can monitor a specific auction of the market.
-*_/admin/market/auction/{{auction_id}}(Gateway,admin-service,market-service,market-db)_*
+  - *_/admin/market/auction/{{auction_id}}(Gateway,admin-service,market-service,market-db)_*
 
 - I want to modify a specific auction, so that I can update the status of a specific auction.
-*_/admin/market/auction/{{auction_id}}(Gateway,admin-service,market-service,market-db)_*
+  - *_/admin/market/auction/{{auction_id}}(Gateway,admin-service,market-service,market-db)_*
 
 - I want to see the market history, so that I can check the market old auctions.
-*_/admin/market/transaction_history(Gateway,admin-service,market-service,market-db)_*
+  - *_/admin/market/transaction_history(Gateway,admin-service,market-service,market-db)_*
 
 = Market rules
 
