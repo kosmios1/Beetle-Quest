@@ -30,7 +30,7 @@ func NewMarketRepo() *MarketRepo {
 	var repo = &MarketRepo{}
 	for {
 		dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s timezone=%s", dbHost, dbUserName, dbUserPassword, dbName, dbPort, dbSSLMode, dbTimeZone)
-		db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+		db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{TranslateError: true})
 		if err != nil {
 			log.Printf("Failed to connect to the Database: %v", err)
 			time.Sleep(1 * time.Second)
