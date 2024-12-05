@@ -19,7 +19,7 @@ func NewGachaService(repo repositories.GachaRepo) *GachaService {
 func (s *GachaService) FindByID(id string) (*models.Gacha, error) {
 	gachaID, err := utils.ParseUUID(id)
 	if err != nil {
-		return nil, models.ErrInternalServerError
+		return nil, models.ErrInvalidUUID
 	}
 
 	gacha, err := s.gachaRepo.FindByID(gachaID)
@@ -49,7 +49,7 @@ func (s *GachaService) GetUserGachaDetails(userId, gachaId string) (*models.Gach
 
 	gid, err := utils.ParseUUID(gachaId)
 	if err != nil {
-		return nil, models.ErrInternalServerError
+		return nil, models.ErrInvalidUUID
 	}
 
 	for _, gacha := range gachas {
@@ -63,7 +63,7 @@ func (s *GachaService) GetUserGachaDetails(userId, gachaId string) (*models.Gach
 func (s *GachaService) GetUserGachasStr(userId string) ([]models.Gacha, error) {
 	uid, err := utils.ParseUUID(userId)
 	if err != nil {
-		return nil, models.ErrInternalServerError
+		return nil, models.ErrInvalidUUID
 	}
 	return s.gachaRepo.GetUserGachas(uid)
 }

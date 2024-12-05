@@ -32,7 +32,7 @@ func NewMarketService(urepo repositories.UserRepo, grepo repositories.GachaRepo,
 func (s *MarketService) AddBugsCoin(userId string, amount int64) error {
 	id, err := utils.ParseUUID(userId)
 	if err != nil {
-		return models.ErrInternalServerError
+		return models.ErrInvalidUUID
 	}
 
 	if amount <= 0 {
@@ -80,7 +80,7 @@ func (s *MarketService) AddBugsCoin(userId string, amount int64) error {
 func (s *MarketService) RollGacha(userId string) (*models.Gacha, string, error) {
 	uid, err := utils.ParseUUID(userId)
 	if err != nil {
-		return nil, "", models.ErrInternalServerError
+		return nil, "", models.ErrInvalidUUID
 	}
 
 	user, err := s.urepo.FindByID(uid)
@@ -180,12 +180,12 @@ func (s *MarketService) RollGacha(userId string) (*models.Gacha, string, error) 
 func (s *MarketService) BuyGacha(userId string, gachaId string) (*models.Gacha, error) {
 	uid, err := utils.ParseUUID(userId)
 	if err != nil {
-		return nil, models.ErrInternalServerError
+		return nil, models.ErrInvalidUUID
 	}
 
 	gid, err := utils.ParseUUID(gachaId)
 	if err != nil {
-		return nil, models.ErrInternalServerError
+		return nil, models.ErrInvalidUUID
 	}
 
 	userGacha, err := s.grepo.GetUserGachas(uid)
@@ -257,29 +257,26 @@ func (s *MarketService) BuyGacha(userId string, gachaId string) (*models.Gacha, 
 func (s *MarketService) CreateAuction(userId, gachaId string, endTime time.Time) (*models.Auction, error) {
 	uid, err := utils.ParseUUID(userId)
 	if err != nil {
-		return nil, models.ErrInternalServerError
+		return nil, models.ErrInvalidUUID
 	}
 
 	gid, err := utils.ParseUUID(gachaId)
 	if err != nil {
-		return nil, models.ErrInternalServerError
+		return nil, models.ErrInvalidUUID
 	}
 
 	user, err := s.urepo.FindByID(uid)
 	if err != nil {
-		log.Printf("[ERROR] urepo.FindByID: %v\n", err)
 		return nil, err
 	}
 
 	gacha, err := s.grepo.FindByID(gid)
 	if err != nil {
-		log.Printf("[ERROR] grepo.FindByID: %v\n", err)
 		return nil, err
 	}
 
 	gachas, err := s.grepo.GetUserGachas(uid)
 	if err != nil {
-		log.Printf("[ERROR] grepo.GetUserGachas: %v\n", err)
 		return nil, err
 	}
 
@@ -297,7 +294,6 @@ func (s *MarketService) CreateAuction(userId, gachaId string, endTime time.Time)
 
 	auctions, err := s.mrepo.GetUserAuctions(uid)
 	if err != nil {
-		log.Printf("[ERROR] mrepo.GetUserAuctions: %v\n", err)
 		return nil, err
 	}
 
@@ -322,12 +318,10 @@ func (s *MarketService) CreateAuction(userId, gachaId string, endTime time.Time)
 	}
 
 	if err = s.evrepo.AddEndAuctionEvent(auction); err != nil {
-		log.Printf("[ERROR] evrepo.AddEndAuctionEvent: %v\n", err)
 		return nil, models.ErrInternalServerError
 	}
 
 	if err := s.mrepo.Create(auction); err != nil {
-		log.Printf("[ERROR] mrepo.Create: %v\n", err)
 		return nil, err
 	}
 
@@ -337,12 +331,12 @@ func (s *MarketService) CreateAuction(userId, gachaId string, endTime time.Time)
 func (s *MarketService) DeleteAuction(userId, auctionId, password string) error {
 	uid, err := utils.ParseUUID(userId)
 	if err != nil {
-		return models.ErrInternalServerError
+		return models.ErrInvalidUUID
 	}
 
 	aid, err := utils.ParseUUID(auctionId)
 	if err != nil {
-		return models.ErrInternalServerError
+		return models.ErrInvalidUUID
 	}
 
 	user, err := s.urepo.FindByID(uid)
@@ -451,7 +445,7 @@ func (s *MarketService) GetAuctionDetails(auctionId string) (*models.Auction, []
 func (s *MarketService) FindByID(auctionId string) (*models.Auction, error) {
 	aid, err := utils.ParseUUID(auctionId)
 	if err != nil {
-		return nil, models.ErrInternalServerError
+		return nil, models.ErrInvalidUUID
 	}
 
 	auction, err := s.mrepo.FindByID(aid)
@@ -464,7 +458,7 @@ func (s *MarketService) FindByID(auctionId string) (*models.Auction, error) {
 func (s *MarketService) GetBidListOfAuctionID(auctionId string) ([]models.Bid, error) {
 	aid, err := utils.ParseUUID(auctionId)
 	if err != nil {
-		return nil, models.ErrInternalServerError
+		return nil, models.ErrInvalidUUID
 	}
 
 	bids, err := s.mrepo.GetBidListOfAuction(aid)
@@ -477,12 +471,12 @@ func (s *MarketService) GetBidListOfAuctionID(auctionId string) ([]models.Bid, e
 func (s *MarketService) MakeBid(userId, auctionId string, bidAmount int64) error {
 	uid, err := utils.ParseUUID(userId)
 	if err != nil {
-		return models.ErrInternalServerError
+		return models.ErrInvalidUUID
 	}
 
 	aid, err := utils.ParseUUID(auctionId)
 	if err != nil {
-		return models.ErrInternalServerError
+		return models.ErrInvalidUUID
 	}
 
 	auction, err := s.mrepo.FindByID(aid)

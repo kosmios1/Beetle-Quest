@@ -168,7 +168,7 @@ func (c *AuthController) Register(ctx *gin.Context) {
 			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
-		case models.ErrUsernameOrEmailAlreadyExists, models.ErrInvalidUsernameOrPassOrEmail:
+		case models.ErrUsernameOrEmailAlreadyExists, models.ErrInvalidUsernameOrPassOrEmail, models.ErrInvalidUUID:
 			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
@@ -195,7 +195,7 @@ func (c *AuthController) Login(ctx *gin.Context) {
 			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
-		case models.ErrInvalidPassword:
+		case models.ErrInvalidPassword, models.ErrInvalidUUID:
 			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
@@ -383,7 +383,7 @@ func (c *AuthController) AdminLogin(ctx *gin.Context) {
 			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
-		case models.ErrInvalidAdminIDOrPassOrOTOP:
+		case models.ErrInvalidAdminIDOrPassOrOTOP, models.ErrInvalidUUID:
 			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return

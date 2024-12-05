@@ -53,7 +53,7 @@ func (c *MarketController) BuyBugscoin(ctx *gin.Context) {
 			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
-		case models.ErrMaxMoneyExceeded:
+		case models.ErrMaxMoneyExceeded, models.ErrInvalidUUID:
 			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
@@ -82,7 +82,7 @@ func (c *MarketController) RollGacha(ctx *gin.Context) {
 			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
-		case models.ErrNotEnoughMoneyToRollGacha:
+		case models.ErrNotEnoughMoneyToRollGacha, models.ErrInvalidUUID:
 			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
@@ -119,7 +119,7 @@ func (c *MarketController) BuyGacha(ctx *gin.Context) {
 			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
-		case models.ErrUserAlreadyHasGacha, models.ErrNotEnoughMoneyToBuyGacha:
+		case models.ErrUserAlreadyHasGacha, models.ErrNotEnoughMoneyToBuyGacha, models.ErrInvalidUUID:
 			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
@@ -164,7 +164,7 @@ func (c *MarketController) CreateAuction(ctx *gin.Context) {
 			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
-		case models.ErrInvalidData, models.ErrUserDoesNotOwnGacha, models.ErrInvalidEndTime:
+		case models.ErrInvalidData, models.ErrUserDoesNotOwnGacha, models.ErrInvalidEndTime, models.ErrInvalidUUID:
 			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
@@ -268,7 +268,7 @@ func (c *MarketController) AuctionDelete(ctx *gin.Context) {
 			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
-		case models.ErrUserNotOwnerOfAuction, models.ErrInvalidPassword, models.ErrAuctionEnded, models.ErrAuctionIsTooCloseToEnd, models.ErrAuctionHasBids:
+		case models.ErrUserNotOwnerOfAuction, models.ErrInvalidPassword, models.ErrAuctionEnded, models.ErrAuctionIsTooCloseToEnd, models.ErrAuctionHasBids, models.ErrInvalidUUID:
 			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
@@ -319,7 +319,7 @@ func (c *MarketController) BidToAuction(ctx *gin.Context) {
 			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
-		case models.ErrOwnerCannotBid, models.ErrBidAmountNotEnough, models.ErrNotEnoughMoneyToBid, models.ErrAuctionEnded:
+		case models.ErrOwnerCannotBid, models.ErrBidAmountNotEnough, models.ErrNotEnoughMoneyToBid, models.ErrAuctionEnded, models.ErrInvalidUUID:
 			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return

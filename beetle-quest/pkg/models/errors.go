@@ -7,6 +7,7 @@ func (e constError) Error() string {
 }
 
 const (
+	ErrInvalidUUID                     constError = "invalid uuid"
 	ErrInternalServerError             constError = "internal server error"
 	ErrInvalidUserID                   constError = "invalid user id"
 	ErrInvalidAuctionID                constError = "invalid auction id"

@@ -118,7 +118,7 @@ func (c *UserController) UpdateUserAccountDetails(ctx *gin.Context) {
 			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
-		case models.ErrUsernameAlreadyExists, models.ErrEmailAlreadyExists, models.ErrInvalidPassword, models.ErrUsernameOrEmailAlreadyExists:
+		case models.ErrUsernameAlreadyExists, models.ErrEmailAlreadyExists, models.ErrInvalidPassword, models.ErrUsernameOrEmailAlreadyExists, models.ErrInvalidUUID:
 			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
@@ -163,7 +163,7 @@ func (c *UserController) DeleteUserAccount(ctx *gin.Context) {
 			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
-		case models.ErrInvalidPassword:
+		case models.ErrInvalidPassword, models.ErrInvalidUUID:
 			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return

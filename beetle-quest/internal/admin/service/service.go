@@ -32,7 +32,7 @@ func (s *AdminService) GetAllUsers() ([]models.User, error) {
 func (s *AdminService) FindUserByID(userId string) (*models.UserDetailsTemplate, error) {
 	uid, err := utils.ParseUUID(userId)
 	if err != nil {
-		return nil, models.ErrInternalServerError
+		return nil, models.ErrInvalidUUID
 	}
 
 	user, err := s.urepo.FindByID(uid)
@@ -72,7 +72,7 @@ func (s *AdminService) FindUserByID(userId string) (*models.UserDetailsTemplate,
 func (s *AdminService) UpdateUserProfile(userId string, data *models.AdminUpdateUserAccount) error {
 	uid, err := utils.ParseUUID(userId)
 	if err != nil {
-		return models.ErrInternalServerError
+		return models.ErrInvalidUUID
 	}
 
 	user, err := s.urepo.FindByID(uid)
@@ -102,7 +102,7 @@ func (s *AdminService) UpdateUserProfile(userId string, data *models.AdminUpdate
 func (s *AdminService) GetUserTransactionHistory(userId string) ([]models.Transaction, error) {
 	uid, err := utils.ParseUUID(userId)
 	if err != nil {
-		return nil, models.ErrInternalServerError
+		return nil, models.ErrInvalidUUID
 	}
 
 	if transactions, err := s.mrepo.GetUserTransactionHistory(uid); err == nil {
@@ -115,7 +115,7 @@ func (s *AdminService) GetUserTransactionHistory(userId string) ([]models.Transa
 func (s *AdminService) GetUserAuctionList(userId string) ([]models.Auction, error) {
 	uid, err := utils.ParseUUID(userId)
 	if err != nil {
-		return nil, models.ErrInternalServerError
+		return nil, models.ErrInvalidUUID
 	}
 
 	if auctions, err := s.mrepo.GetUserAuctions(uid); err == nil {
@@ -155,7 +155,7 @@ func (s *AdminService) AddGacha(data *models.AdminAddGachaRequest) (*models.Gach
 func (s *AdminService) UpdateGacha(gachaId string, data *models.AdminUpdateGachaRequest) error {
 	gid, err := utils.ParseUUID(gachaId)
 	if err != nil {
-		return models.ErrInternalServerError
+		return models.ErrInvalidUUID
 	}
 
 	gacha, err := s.grepo.FindByID(gid)
@@ -192,7 +192,7 @@ func (s *AdminService) UpdateGacha(gachaId string, data *models.AdminUpdateGacha
 func (s *AdminService) DeleteGacha(gachaId string) error {
 	gid, err := utils.ParseUUID(gachaId)
 	if err != nil {
-		return models.ErrInternalServerError
+		return models.ErrInvalidUUID
 	}
 
 	gacha, error := s.grepo.FindByID(gid)
@@ -209,7 +209,7 @@ func (s *AdminService) GetAllGachas() ([]models.Gacha, error) {
 func (s *AdminService) FindGachaByID(gachaId string) (*models.Gacha, error) {
 	gid, err := utils.ParseUUID(gachaId)
 	if err != nil {
-		return nil, models.ErrInternalServerError
+		return nil, models.ErrInvalidUUID
 	}
 
 	return s.grepo.FindByID(gid)
@@ -228,7 +228,7 @@ func (s *AdminService) GetAllAuctions() ([]models.Auction, error) {
 func (s *AdminService) FindAuctionByID(auctionId string) (*models.Auction, error) {
 	aid, err := utils.ParseUUID(auctionId)
 	if err != nil {
-		return nil, models.ErrInternalServerError
+		return nil, models.ErrInvalidUUID
 	}
 	return s.mrepo.FindByID(aid)
 }
@@ -236,12 +236,12 @@ func (s *AdminService) FindAuctionByID(auctionId string) (*models.Auction, error
 func (s *AdminService) UpdateAuction(auctionId string, gachaId string) error {
 	aid, err := utils.ParseUUID(auctionId)
 	if err != nil {
-		return models.ErrInternalServerError
+		return models.ErrInvalidUUID
 	}
 
 	gid, err := utils.ParseUUID(gachaId)
 	if err != nil {
-		return models.ErrInternalServerError
+		return models.ErrInvalidUUID
 	}
 
 	auction, err := s.mrepo.FindByID(aid)

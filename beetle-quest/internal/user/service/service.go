@@ -23,7 +23,7 @@ func NewUserService(urepo repositories.UserRepo, grepo repositories.GachaRepo, m
 func (s *UserService) GetUserAccountDetails(userID string) (*models.User, []models.Gacha, []models.Transaction, error) {
 	uid, err := utils.ParseUUID(userID)
 	if err != nil {
-		return nil, nil, nil, models.ErrInternalServerError
+		return nil, nil, nil, models.ErrInvalidUUID
 
 	}
 	user, err := s.urepo.FindByID(uid)
@@ -53,7 +53,7 @@ func (s *UserService) GetUserAccountDetails(userID string) (*models.User, []mode
 func (s *UserService) DeleteUserAccount(userID string, password string) error {
 	uid, err := utils.ParseUUID(userID)
 	if err != nil {
-		return models.ErrInternalServerError
+		return models.ErrInvalidUUID
 	}
 
 	user, err := s.urepo.FindByID(uid)
@@ -82,7 +82,7 @@ func (s *UserService) DeleteUserAccount(userID string, password string) error {
 func (s *UserService) UpdateUserAccountDetails(userID string, newEmail, newUsername, oldPassword, newPassword string) error {
 	uid, err := utils.ParseUUID(userID)
 	if err != nil {
-		return models.ErrInternalServerError
+		return models.ErrInvalidUUID
 	}
 
 	user, err := s.urepo.FindByID(uid)

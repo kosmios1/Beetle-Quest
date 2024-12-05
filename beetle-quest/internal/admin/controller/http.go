@@ -94,7 +94,7 @@ func (c *AdminController) UpdateUserProfile(ctx *gin.Context) {
 			ctx.HTML(http.StatusConflict, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
-		case models.ErrInvalidData:
+		case models.ErrInvalidData, models.ErrInvalidUUID:
 			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
@@ -170,11 +170,7 @@ func (c *AdminController) AddGacha(ctx *gin.Context) {
 	gacha, err := c.srv.AddGacha(&data)
 	if err != nil {
 		switch err {
-		case models.ErrGachaAlreadyExists:
-			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
-			ctx.Abort()
-			return
-		case models.ErrInvalidRarityValue:
+		case models.ErrGachaAlreadyExists, models.ErrInvalidUUID, models.ErrInvalidRarityValue:
 			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
@@ -338,7 +334,7 @@ func (cnt *AdminController) UpdateAuction(ctx *gin.Context) {
 			ctx.HTML(http.StatusNotFound, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
-		case models.ErrInvalidData:
+		case models.ErrInvalidData, models.ErrInvalidUUID:
 			ctx.HTML(http.StatusBadRequest, "errorMsg.tmpl", gin.H{"Error": err.Error()})
 			ctx.Abort()
 			return
