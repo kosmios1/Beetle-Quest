@@ -79,7 +79,7 @@ jobs:
                   docker compose up -d
                   docker compose ps -a
                   echo "Waiting for containers to become healthy..."
-                  sleep 5
+                  sleep 10
 
             - name: Execute postman's tests
               run: |
