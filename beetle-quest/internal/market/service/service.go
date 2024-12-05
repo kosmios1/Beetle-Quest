@@ -302,7 +302,7 @@ func (s *MarketService) CreateAuction(userId, gachaId string, endTime time.Time)
 	}
 
 	for _, a := range auctions {
-		if a.GachaID == gid {
+		if a.GachaID == gid && time.Now().Before(a.EndTime) {
 			return nil, models.ErrGachaAlreadyAuctioned
 		}
 	}
