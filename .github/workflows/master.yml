@@ -84,13 +84,13 @@ jobs:
             - name: Execute postman's tests
               run: |
                   cd ./beetle-quest/tests/postman/
-                  set -o pipefail && docker run --rm --net beetle-quest_internal -v ${{ github.workspace }}/beetle-quest/tests/postman/beetle-quest.json:/collection.json postman/newman run /collection.json --bail --insecure --ignore-redirects --color on 2>&1 | tee postman_output.txt
+                  set -o pipefail && docker run --rm --net beetle-quest_internal --net beetle-quest_admin -v ${{ github.workspace }}/beetle-quest/tests/postman/beetle-quest.json:/collection.json postman/newman run /collection.json --bail --insecure --ignore-redirects --color on 2>&1 | tee postman_output.txt
 
             - name: Execute locust's tests
               run: |
                   cd ./beetle-quest/tests/locust/
                   docker build -t beetle-quest-locust:latest .
-                  docker run --rm --network=beetle-quest_external -p 127.0.0.1:8089:8089 beetle-quest-locust:latest 2>&1 | tee locust_output.txt
+                  docker run --rm --network host -p 127.0.0.1:8089:8089 beetle-quest-locust:latest 2>&1 | tee locust_output.txt
 
             - name: Stop docker containers
               run: |
