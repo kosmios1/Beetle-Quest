@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 openssl genpkey -algorithm RSA -out client_internal_key.pem -pkeyopt rsa_keygen_bits:2048
 openssl req -new -key client_internal_key.pem -out client_internal_cert.pem -subj "/C=IT/ST=State/L=City/O=Organization/OU=Department/CN=reverse-proxy"
