@@ -105,6 +105,7 @@ func (r *UserRepo) FindByUsername(username string) (*models.User, error) {
 	var user models.User
 	result := r.db.Table("users").First(&user, models.User{Username: username})
 	if result.Error != nil {
+		log.Printf("%v\n", result.Error)
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return nil, models.ErrUserNotFound
 		}

@@ -92,11 +92,11 @@ class AuthenticatedUser(FastHttpUser):
                 recv_state = response.headers["Location"].split("state=")[1].split("&")[0]
                 if state != recv_state:
                     print(f"State mismatch: {state}")
-                    sys.exit()
+                    return
             except Exception as e:
                 print(f"Failed to get the code from the response: {e}")
                 print("Traceback details: ", traceback.format_exc())
-                exit(-1)
+                return
 
         with self.client.post("/oauth/token", data={
             "grant_type": "authorization_code",
@@ -111,12 +111,12 @@ class AuthenticatedUser(FastHttpUser):
             self.identity_token = response.json()["id_token"]
             if self.identity_token == None:
                 print(f"Failed to parse the token {self.identity_token}")
-                sys.exit()
+                return
 
             id_token = parse_jwt(self.identity_token, algorithms="HS256")
             if id_token == None:
                 print(f"Failed to parse the token {id_token}")
-                sys.exit()
+                return
             self.user_id = id_token["sub"]
 
     def on_stop(self):
@@ -400,11 +400,11 @@ class AuthenticatedAdmin(FastHttpUser):
                 recv_state = response.headers["Location"].split("state=")[1].split("&")[0]
                 if state != recv_state:
                     print(f"State mismatch: {state}")
-                    sys.exit()
+                    return
             except Exception as e:
                 print(f"Failed to get the code from the response: {e}")
                 print("Traceback details: ", traceback.format_exc())
-                exit(-1)
+                return
 
         with self.client.post("/oauth/token", data={
             "grant_type": "authorization_code",
@@ -419,12 +419,12 @@ class AuthenticatedAdmin(FastHttpUser):
             self.identity_token = response.json()["id_token"]
             if self.identity_token == None:
                 print(f"Failed to parse the token { self.identity_token}")
-                sys.exit()
+                return
 
             id_token = parse_jwt(self.identity_token, algorithms="HS256")
             if id_token == None:
                 print(f"Failed to parse the token {id_token}")
-                sys.exit()
+                return
             self.user_id = id_token["sub"]
 
     def on_stop(self):
