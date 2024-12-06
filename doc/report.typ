@@ -271,9 +271,9 @@ All the following endpoints requests involve the _admin-service_ and _admin-db_.
 
 = Market rules
 
-The market service has been implemented whit the following rules in mind:
+The market service has been implemented with the following rules in mind:
 
-- The user has the permission to create and delete it's own auctions but can not bid to them, he/she can bid to other's auctions
+- The user has the permission to create and delete it's own auctions but can not bid to them.
 
 - When a user places a higher bid than the previous one, the currency of the previous highest bid is returned to the user after the finish of the auction.
 
@@ -293,7 +293,7 @@ The market service has been implemented whit the following rules in mind:
 
 The tests were conducted using mocks that allowed for the isolated testing of individual services. These mocks simulated the behavior of external components, enabling the verification of each service's functionality without relying on real external resources. Both unit and integration tests where carried out with #link("https://www.postman.com/")[Postman].
 
-To conduct the test a performance testing tool, #link("https://locust.io/")[Locust], was used that allowed for load simulation and analysis of the service responses in various scenarios, ensuring an accurate assessment of the performance and robustness of each component
+A performance testing tool, #link("https://locust.io/")[Locust], is used to perform load simulations and analysis of the service responses in various scenarios, ensuring an accurate assessment of the performance and robustness of each component.
 
 #linebreak()
 
@@ -301,9 +301,7 @@ To conduct the test a performance testing tool, #link("https://locust.io/")[Locu
 
 == Data
 
-#text(red)[TODO:] Select one input that you had to sanitize, describe what it represent, which microservice(s) use it and how you sanitize it.
-
-#linebreak()
+All the input data that goes into dbs is automatically sanitized thanks to #link("https://gorm.io/")[GORM], a GO library used to comunicate with databases, which will automatically escape arguments.
 
 In the application, the databases are implemented using PostgreSQL or Redis. For PostgreSQL, Transparent Data Encryption (TDE) is used. TDE is a technology that protect sensitive data by encrypting the database files at rest. It ensures that data stored on disk is encrypted, making it inaccessible to unauthorized users or applications, while it automatically encrypts the data before it is written to disk and decrypts it when it is read.
 
@@ -316,15 +314,95 @@ All connections between databases/services and services use mutual TLS (mTLS), e
 
 == Authentication and Authorization
 
-#text(red)[TODO]
+The application is equipped with a centralised authentication and authorization managment system.
+A middleware in the gateway delegates authentication to the _auth service_. Which will answers with a 2XX code if the access token is valid, otherwise the original request is rejected.
 
-/*TO DO Describe the scenario you selected (centralized vs distributed) by indicating
-the basic steps to validate a token and how the keys to sign the token are
-used and stored.
-Try to describe it as schematic as possible (support it with lists, tables or
-figures)
-Put the payload format of your Access Token (bullet list, table or image)*/
+A user has to perform the following requests, irrelevant headers are omitted:
 
+#show raw: set text(10pt)
++ Login: provide user credentials and authenticate himself.
+  ```bash
+  POST /api/v1/auth/login HTTP/1.1
+  Content-Type: application/json
+  Host: localhost
+  {
+      "username": "admin",
+      "password": "admin"
+  }
+
+  # Response
+  HTTP/2.0 302 Found
+  location: /api/v1/auth/authorizePage
+  set-cookie:
+    go_session_id=ZGQxNmE5OWUtOGJjYy00YjYxLWEwMTktNGQ1YjdjYzAxZ
+    TNm.cfb4dfbd6ddf1da42c5cd21eafd5aad54d06ad6e; Path=/;  Expires=Fri, 13 Dec 2024 14:09:21 GMT; Max-Age=604800;  HttpOnly; Secure
+  ```
++ Authorize: authorize a client to access specific resource server.
+  ```bash
+  GET /oauth/authorize?response_type=code&client_id=beetle-quest
+    &redirect_uri=https%3A%2F%2Flocalhost%2Fapi%2Fv1%2Fauth%2FtokenPage
+    &state=1234zyx&code_challenge=Fel21eLqcCtfPR-4P01pZh8wOHWOrnU2sljrKj1_dbQ
+    &code_challenge_method=S256 HTTP/1.1
+  Cookie:
+    go_session_id=ZGQxNmE5OWUtOGJjYy00YjYxLWEwMTktNGQ1YjdjYz
+    AxZTNm.cfb4dfbd6ddf1da42c5cd21eafd5aad54d06ad6e; Path=/; Expires=Fri, 13  Dec 2024 14:09:21 GMT; Max-Age=604800; HttpOnly; Secure
+  Host: localhost
+
+  #Response
+  HTTP/2.0 302 Found
+  content-length: 0
+  date: Fri, 06 Dec 2024 14:13:02 GMT
+  location: https://localhost/api/v1/auth/tokenPage?code=Y2VKYMZHOGITOTNLZS0ZZGYZLWE0MZITMZA1NGE5NGNKODA4&state=1234zyx
+  ```
++ Token: exchange authorize code to retrive access and id tokens.
+  ```bash
+  POST /oauth/token HTTP/1.1
+  Content-Type: multipart/form-data; boundary=91c9b6f32ab6bf35-4fd95e306a9da8de-ae6d91617e6618a3-c2427f089c8f8027
+  Cookie:
+    go_session_id=ZGQxNmE5OWUtOGJjYy00YjYxLWEwMTktNGQ1YjdjYzAxZTNm.cf
+    b4dfbd6ddf1da42c5cd21eafd5aad54d06ad6e; Path=/; Expires=Fri, 13  Dec 2024 14:09:21 GMT; Max-Age=604800; HttpOnly; Secure
+  Host: localhost
+
+  --91c9b6f32ab6bf35-4fd95e306a9da8de-ae6d91617e6618a3-c2427f089c8f8027
+  Content-Disposition: form-data; name="grant_type"
+
+  authorization_code
+  --91c9b6f32ab6bf35-4fd95e306a9da8de-ae6d91617e6618a3-c2427f089c8f8027
+  Content-Disposition: form-data; name="code"
+
+  Y2VKYMZHOGITOTNLZS0ZZGYZLWE0MZITMZA1NGE5NGNKODA4
+  --91c9b6f32ab6bf35-4fd95e306a9da8de-ae6d91617e6618a3-c2427f089c8f8027
+  Content-Disposition: form-data; name="redirect_uri"
+
+  https://localhost/api/v1/auth/tokenPage
+  --91c9b6f32ab6bf35-4fd95e306a9da8de-ae6d91617e6618a3-c2427f089c8f8027
+  Content-Disposition: form-data; name="client_id"
+
+  beetle-quest
+  --91c9b6f32ab6bf35-4fd95e306a9da8de-ae6d91617e6618a3-c2427f089c8f8027
+  Content-Disposition: form-data; name="code_verifier"
+
+  Jso64mDhrRrtEZ5huMPut6la0aXoy2kevDpmUkqwJq4
+  --91c9b6f32ab6bf35-4fd95e306a9da8de-ae6d91617e6618a3-c2427f089c8f8027--
+
+  # Response
+  HTTP/2.0 200 OK
+  content-type: application/json;charset=UTF-8
+  {
+    "access_token": "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJiZWV
+    0bGUtcXVlc3QiLCJleHAiOjE3MzM1MDE3MjEsImlhdCI6MTczMzQ5NDUyMSwiaXNzIjoi
+    YmVldGxlLXF1ZXN0IiwibmJmIjoxNzMzNDk0NTIxLCJzdWIiOiIwOTA4N2Y0NS01MjA5L
+    TRlZmEtODViZC03NjE1NjJhNmRmNTMiLCJzY29wZSI6IiJ9.HRJMvO-DvRHEFYBMM6XE
+    ozlL5m8xn4JEuBeN1SU7-M5I0k4ySr8KDwPO5o7e4flSHCnRXH0h_X5PFLHN34xxVg",
+    "expires_in": 7200,
+    "id_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJiZWV0bGU
+    tcXVlc3QiLCJleHAiOjE3MzM0OTgxMjEsImlhdCI6MTczMzQ5NDUyMSwiaXNzIjoiQmVld
+    GxlIFF1ZXN0IiwibmJmIjoxNzMzNDk0NTIxLCJzdWIiOiIwOTA4N2Y0NS01MjA5LTRlZmE
+    tODViZC03NjE1NjJhNmRmNTMifQ._RsinFKR9pnxNIJ8AMBD6o8dGIdY_wGkm4-PmvCyWn0",
+    "refresh_token": "MTLHOTI2ZJKTMJY3NI01ZWYWLTK0YTETNGQ2NDGZYMIZM2JM",
+    "token_type": "Bearer"
+  }
+  ```
 
 == Analyses
 
@@ -351,7 +429,7 @@ Meanwhile, for the analysis of Docker images, #link("https://trivy.dev/")[`trivy
 
 #linebreak()
 
-The scan results can be obtained executing `./scan-images.sh`, which is placed in `beetle-quest/tests/`, the output will be found inside `trivy_scan_results/` in the same folder. For the sake of space, we will only report the results of the summary of th scan on _admin service_, the other results are similar as all services images are based on `debian 12.8`.
+The scan results can be obtained executing `./scan-images.sh`, which is placed in `beetle-quest/tests/`, the output will be found inside `trivy_scan_results/` in the same folder. For the sake of space, we will only report the results of the summary of the scan on _admin service_, the other results are similar as all services images are based on `debian 12.8`.
 
 #linebreak()
 
@@ -375,14 +453,21 @@ The scan results can be obtained executing `./scan-images.sh`, which is placed i
 
 = Additional features
 
-#text(red)[TODO: describe]
+The final application also incorporate several additional features to enhance its functionality and user experience.
 
-- mTLS
-- Shared CA
-- Web Gui
-- OAuth2.0
-- Buy gacha
-- ...
+#linebreak()
+
+From the security point of view a shared Certificate Authority (CA), public and private key, has been used in conjunction with
+mutual TLS (mTLS) between microservices, which will ensure secure communication between clients and servers by requiring both parties to authenticate each other.
+
+The OAuth 2.0 protocol is implemented following the RFC 7636 Authorization Code Grant with PKCE standard, instead of the Password Grant one that nowadays is deprecated and it's use its discouradged #footnote[The latest OAuth 2.0 Security Best Current Practice disallows the password grant entirely. (https://oauth.net/2/grant-types/password/)].
+
+Refresh tokens are also implemeted, which allows the client to obtain a new valid access token without the need to redo the full authorization procedure.
+
+#linebreak()
+
+A simple web GUI has been developed to improve usability, providing only users (not admins) with an intuitive interface.
+Furthermore, a "buy gacha" feature has been be introduced, enabling users to directly acquire gachas.
 
 /* TO DO
 Describe here any additional feature you implemented.
