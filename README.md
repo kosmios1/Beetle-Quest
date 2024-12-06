@@ -41,6 +41,9 @@ To generate the needed SSL/TLS certificates execute:
 ```bash
 cd beetle-quest/deploy/cacerts
 ./generate-db-certs.sh
+
+cd ../traefik/certs/
+./create_internal_traefik_cert.sh
 ```
 
 ### Starting the application
@@ -96,7 +99,7 @@ docker compose down -v
 
 ### Postman
 
-You fill find the Postman collection file`collection.json` inside `beetle-quest/tests/postman/`, you can execute them with Postam Newman:
+You fill find the Postman collection file `collection.json` inside `beetle-quest/tests/postman/`, you can execute them with Postman Newman:
 
 ```sh
 cd ./beetle-quest/tests/postman/
@@ -107,12 +110,12 @@ docker run --rm --net beetle-quest_internal --net beetle-quest_admin -v ./beetle
 > If you are using the desktop postaman app remember to:
 >
 > - allow the programmatic modification of cookies on the `localhost` domain;
-> - use `https://localhost/api/v1/` as the `baseUrl`;
-> - use `https://localhost/` as the `hostUrl`.
+> - use `https://localhost/api/v1/` as the `baseUrl` and `adminUrl`;
+> - use `https://localhost/` as the `hostUrl` and `adminHostUrl`.
 
 ### Locust
 
-Locust's tests can be found inside `beetle-quest/tests/locust/` folder, to start locust, and run the tests, these commands have to be executed:
+Locust's tests can be found inside `beetle-quest/tests/locust/` folder, to start Locust, and run the tests, these commands have to be executed:
 
 ```sh
 cd beetle-quest/tests/locust/
@@ -177,8 +180,6 @@ Options:
 > - `market`
 > - `admin`
 
-````sh
-
 ## Project structure
 
 The project is structured as follows:
@@ -186,6 +187,7 @@ The project is structured as follows:
 ```bash
 .
 ├── assets/
+│   ├── admin_otp_qrcode.png
 │   ├── drawio
 │   ├── gimp
 │   └── images
@@ -197,12 +199,8 @@ The project is structured as follows:
 │   ├── go.sum
 │   ├── internal/
 │   ├── pkg/
-│   └── templates/
+│   ├── templates/
+│   └── tests/
 ├── doc/
 └── README.md
-````
-
-## References
-
-- [Project Structure 1](https://betterprogramming.pub/how-are-you-structuring-your-go-microservices-a355d6293932)
-- [Project Structure 2](https://gochronicles.com/project-structure/)
+```
