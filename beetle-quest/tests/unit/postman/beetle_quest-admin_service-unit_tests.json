@@ -1,9 +1,7 @@
 {
 	"info": {
-		"_postman_id": "c3174dff-f60f-4f09-b104-795124395b34",
-		"name": "beetle_quest-admin_service-unit_tests Copy",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "39361032"
+		"name": "beetle_quest-admin_service-unit_tests",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
 		{

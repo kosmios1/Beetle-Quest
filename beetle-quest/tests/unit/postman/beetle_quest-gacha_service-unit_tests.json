@@ -1,9 +1,7 @@
 {
 	"info": {
-		"_postman_id": "ec5c2ac8-51da-4107-9c70-f7773f86e5e8",
 		"name": "beetle_quest-gacha_service-unit_tests",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "39385405"
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
 		{

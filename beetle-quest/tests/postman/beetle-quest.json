@@ -1,9 +1,7 @@
 {
 	"info": {
-		"_postman_id": "2b905826-23f3-4189-96a1-34c51f9c7aab",
 		"name": "Beetle Quest API",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "39361032"
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
 		{

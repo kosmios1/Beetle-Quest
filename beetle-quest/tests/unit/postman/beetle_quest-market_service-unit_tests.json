@@ -1,9 +1,7 @@
 {
 	"info": {
-		"_postman_id": "c4fd5ba8-943d-4448-aea9-150b92b1d8ba",
 		"name": "User Service Unit tests",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "39361032"
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
 		{

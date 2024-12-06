@@ -47,24 +47,6 @@
                     <input type="email" id="register-email" name="email" required />
                     <button type="submit">Register</button>
                 </form>
-
-                <form
-                    hx-post="/api/v1/auth/admin/login"
-                    hx-target="#content"
-                    hx-target-4xx="#notification-popup"
-                    hx-target-5*="#notification-popup"
-                    hx-swap="innerHTML"
-                    hx-ext="json-enc"
-                >
-                    <h2>Admin Login</h2>
-                    <label for="login-admin_id">AdminID:</label>
-                    <input type="text" id="login-admin_id" name="admin_id" required />
-                    <label for="login-password">Password:</label>
-                    <input type="password" id="login-password" name="password" required />
-                    <label for="login-otp">OTP:</label>
-                    <input type="text" id="login-otp" name="otp_code" required />
-                    <button type="submit">Login</button>
-                </form>
             </div>
         </div>
         <div id="notification-popup" class="notification-popup"></div>

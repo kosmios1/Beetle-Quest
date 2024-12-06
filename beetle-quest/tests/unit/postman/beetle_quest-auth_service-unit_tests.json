@@ -1,9 +1,7 @@
 {
 	"info": {
-		"_postman_id": "7c1adced-bc21-4752-bbce-4e0b2cf63669",
 		"name": "Auth Service Unit Tests",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "39361032"
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
 		{
@@ -179,7 +177,6 @@
 									"pm.test(\"Response body contains login form\", function () {",
 									"    pm.expect(pm.response.text()).to.include('hx-post=\"/api/v1/auth/login\"');",
 									"    pm.expect(pm.response.text()).to.include('hx-post=\"/api/v1/auth/register\"');",
-									"    pm.expect(pm.response.text()).to.include('hx-post=\"/api/v1/auth/admin/login\"');",
 									"});",
 									"",
 									"pm.test(\"Response body contains Beetle Quest title\", function () {",
