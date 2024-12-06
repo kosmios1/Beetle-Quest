@@ -93,7 +93,7 @@ jobs:
               run: |
                   cd ./beetle-quest/tests/locust/
                   docker build -t beetle-quest-locust:latest .
-                  set -o pipefail && docker run --rm --network host -p 127.0.0.1:8089:8089 beetle-quest-locust:latest 2>&1 | tee locust_output.txt
+                  docker run --rm --network host -p 127.0.0.1:8089:8089 beetle-quest-locust:latest 2>&1 | tee locust_output.txt
 
             - name: Stop docker containers
               run: |
