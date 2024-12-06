@@ -15,4 +15,4 @@ RUN pip3 install -r requirements.txt
 EXPOSE 8089
 
 COPY ./locustfile.py locustfile.py
-CMD ["locust", "-f", "locustfile.py", "--headless", "--run-time", "450"]
+CMD ["locust", "-f", "locustfile.py", "--headless"]

@@ -85,7 +85,7 @@ To stop the application, run the following command:
 
 ```bash
 cd beetle-quest/deploy
-docker compose down
+docker compose down -v
 ```
 
 ## Tests
@@ -99,7 +99,8 @@ docker compose down
 You fill find the Postman collection file`collection.json` inside `beetle-quest/tests/postman/`, you can execute them with Postam Newman:
 
 ```sh
-docker run --rm --net beetle-quest_internal -v <path/to/this/repo>/beetle-quest/tests/postman/collection.json:/collection.json postman/newman run /collection.json --insecure --color on --ignore-redirects
+cd ./beetle-quest/tests/postman/
+docker run --rm --net beetle-quest_internal --net beetle-quest_admin -v ./beetle-quest.json:/collection.json postman/newman run /collection.json --bail --insecure --ignore-redirects --color on
 ```
 
 > [!NOTE]
@@ -125,15 +126,16 @@ docker run --rm --network=beetle-quest_external -p 127.0.0.1:8089:8089 beetle-qu
 > Being in test mode the microservices which are started in this mode have the following characteristics:
 >
 > - mTLS is disabled.
+> - The service is available at `http://localhost:8080`.
 > - Authorization is provided by an API key instead of Oauth2 (to use mock tokens in testing environment).
 > - Data are stored in memory.
 > - The services are not behind a reverse proxy.
-> - The services CORS protection is disabled.
 > - The services will not be able to communicate with the other services, they simulate the other services with a memory storage thanks to the mock repositories.
 
 > [!NOTE]
-> The unit tests are developed to test one service at the time. The right procedure would be to run a specific test and
-> run only the right section in postman, then stop the service, run the next service with its tests.
+> The unit tests are developed to test one service at the time. The right procedure would be to run a specific microservice and
+> its test, found in `./beetle-quest/tests/unit/postman/beetle_quest-<service-name>_service-unit_tests.json`.
+> Then stop the service, run the next service with its tests.
 
 The first thing to do is to build a test image of a service (from the deploy folder), for example the `auth` service:
 
