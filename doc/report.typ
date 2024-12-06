@@ -3,7 +3,7 @@
 
 #show: doc => report(
   title: "BeetleQuest",
-  subtitle: "Advanced Software Engineering - 2nd Project Delivery",
+  subtitle: "Advanced Software Engineering - Project Delivery",
   authors: ("Cosimo Giraldi", "Giacomo Grassi", "Michele Ivan Bruna"),
   date: "2024/2025",
   doc,
@@ -17,7 +17,7 @@
   radius: 10pt,
 )
 
-#let makesubparagraph(title) = heading(numbering: none, outlined: false, level: 4)[#title]
+#let makesubparagraph(title, level: 4) = heading(numbering: none, outlined: false, level: level)[#title]
 
 
 
@@ -27,6 +27,36 @@ The goal of this project is to develop a web app and define its architecture for
 All these actions will be implemented with *_Go_* language and through a _microservices_ architecture.
 
 = Gacha Collection
+
+The gachas are fictional creatures inspired by #text(red)[_todo:..._]. Below are a few examples of these imaginative beings.
+
+
+#[
+  #set align(center)
+  #set table(
+    stroke: (x, y) => if y == 0 {
+      (bottom: 0.0pt + black)
+    },
+  )
+
+  #table(
+    columns: (auto, auto),
+    column-gutter: -8em,
+    align: horizon,
+    //fill: (x, _) =>
+    //  if calc.odd(x) { luma(240) }
+    //  else { white },
+    table.cell(rowspan: 2)[#image("beetle-quest-microfreshner-architecture-v2.png", width: 50%)],
+    image("beetle-quest-microfreshner-architecture-v2.png", width: 50%),
+    image("beetle-quest-microfreshner-architecture-v2.png", width: 50%),
+  )
+]
+
+#figure(
+  image("../assets/images/currency_cut.png", width: 45%),
+  caption: [The currency used within the game is called `BugsCoins`],
+)
+
 /* TO DO
 #align(center+horizon)[
     #set text(size: 14.2pt)
@@ -77,7 +107,8 @@ All these actions will be implemented with *_Go_* language and through a _micros
 */
 
 
-= Architecture with MicroFreshner
+= Architecture
+
 The microservices architecture defined for this project is the result of a process of analysis and detection of the smells present in the original monolithic prototype, carried out using MicroFreshner.
 
 #figure(
@@ -86,18 +117,19 @@ The microservices architecture defined for this project is the result of a proce
     BeetleQuest architecture
   ],
 )
-= Architectural Design Choices
+
+== Design Choices
 
 The architectural analysis of our initial system, carried out using MicroFreshner, revealed smell between the microservices. To isolate potential failures and improve the system's resilience, we introduced Circuit Breakers (CBs).
 
 The introduced Circuit Breakers effectively address the issues caused by continuous failures of a microservice, preventing the cascading propagation of errors that could slow down or completely halt the entire system.
 
-Moreover, to achieve more effective control over the system, we have introduced *_Timeouts_* on database connections. This solution significantly improves resilience and reliability. If a connection or query exceeds the maximum time defined by the timeout, the system considers the operation as failed and immediately activates error-handling mechanisms, ensuring a quick response and preventing bottlenecks or slowdowns.
+To achieve more effective control over the system we have introduced *_Timeouts_* on database connections. This solution significantly improves resilience and reliability. If a connection or query exceeds the maximum time defined by the timeout, the system considers the operation as failed and immediately activates error-handling mechanisms, ensuring a quick response and preventing bottlenecks or slowdowns.
 
 We have also used a reverse proxy called *_Traefik_*, which acts as an intermediary between external users and the system's internal services. In this architecture, Traefik functions as an access gateway, managing and routing requests to the appropriate microservices, ensuring efficient and centralized traffic handling.
 
+== Microservices
 
-= Microservices
 The main idea was to divide a monolithic system into a series of microservices, each of which handles a specific functionality.
 This fragmentation allows for greater modularity and control of the system. To make the web-application more scalable, the microservices have been designed to be independent and stateless.
 Microservices that need to store data use their own dedicated database, which they access directly.
@@ -105,214 +137,230 @@ However, if a service needs to access data managed by another service, it must u
 
 #linebreak()
 
-In the following pharagraps we will examinate the implemented services, and expose their functionalities.
+In the following pharagrap we will examinate the implemented services, and their functionalities.
+Eachone of the services, except for the _Static service_, has his own #link("https://www.postgresql.org/")[PostgreSQL] DB. Furthermore user sessions and market-timed-events, that will be discussed later, are stored in #link("https://redis.io/")[Redis] DBs.
 
-== _Auth_
-User registration, login and logout are all managed in a centralised manner by the same service: the Auth service.
-Which also provides helper endpoints to check the validity of access tokens, allowing authentication and authorization within the web-app.
+#makesubparagraph([_Auth_], level: 5)
+User registration, login and logout are all managed by the Auth service, which also checks the validity of access tokens, allowing authentication and authorization within the application.
 
-== _User_
+#makesubparagraph([_User_], level: 5)
 This service is responsable for managing user's account informations. A user, once logged in, can access it's account details, modify them or delete the account itself.
 
-== _Gacha_
-Gacha collections are managed by the Gacha service. It allows users to get the list of available gachas as well as information on each one of them. User can inspect the personal inventory of different players and their personal one.
+#makesubparagraph([_Gacha_], level: 5)
+The Gacha service manages collections, providing users with a list of available gachas and details about each one, as well as access to inspect the personal inventories of various players.
 
-== _Market_
-The Market service allows users to perform actions involving the acquisition of `BugsCoins` and gachas. It manages auctions lifetime and transactions in the system.
+#makesubparagraph([_Market_], level: 5)
+The Market service allows users to perform actions involving the acquisition of `BugsCoins` and gachas. It manages auctions lifetime and transactions in the system. Through this service users can obtain gachas by either buying or rolling for a random gacha based on rarity.
 
-#linebreak()
-Through this service users can obtain gachas by performing two actions: buy and roll. To roll the user has to pay 1000 `BugsCoins`, he/she will obtain a random gacha from the system with a probability which depends on the rarity of the gacha.
-
-#linebreak()
-The user has the permission to create and delete it's own auctions but can not bid to them, he/she can bid to other's auctions.
-
-== _Static_
+#makesubparagraph([_Static_], level: 5)
 This service is responsible for serving the static content of the web-app, like the images, the _css_ and the _html_ files.
 
+#makesubparagraph([_Admin_], level: 5)
+This service provides the administrator with the necessary tools to manage the system in a controlled manner: allowing operations on users, gacha, and transactions and market events.
 
-== _Admin_
-This service provides the administrator with the necessary tools to manage the system in a controlled manner, allowing operations on users, gacha, and transactions and operation carried out in the market.
+#makesubparagraph([_API gateway_], level: 5)
+There are two reverse proxies that implent the circuit breakers, the load balancers and the the API gateway. One is exclusive for the admin's operation the other for the clients' ones. Reverse proxies are implemented with #link("https://traefik.io/")[Traefik].
 
-It can fetch the list of users with their associated information, performs detailed searching, modify users profile, view all the transactions carried out by a user and ispect user's auction list.
+#linebreak()
 
-It can perform global actions on the gachas, like: add new one, modify/delete an existing one and get information on the system gachas. The service provides similar actions also on transactions and auctions.
+=== Microservices connections
 
+#makesubparagraph([Admin-Service ↔ Gacha-Service:], level: 5)
+The _admin service_ connects with the _gacha service_ to manage gacha, such as adding/delete/modify gachas.
 
+#makesubparagraph([Admin-Service ↔ Market-Service:], level: 5)
+_Admin service_ interacts with _market service_ to regulate or manage the marketplace, including listing auctions, listing transactions, or update/modify auction.
 
-== Descrive Why you connected two microservices ?
+#makesubparagraph([Admin-Service ↔ User-Service:], level: 5)
+The _admin service_ connects with _user service_ to manage user accounts, such as listing users, modifying user profiles, or checking user transaction history and the user auction list.
 
-- Admin-Service ↔ Gacha-Service: The admin-service connects with the gacha-service to manage gacha, such as adding/delete/modify gachas.
+#makesubparagraph([Auth-Service ↔ User-Service:], level: 5)
+The _auth service_ relies on _user service_ for user data, such as validating credentials.
 
-- Admin-Service ↔ Market-Service: Admin-service interacts with market-service to regulate or manage the marketplace, including listing auctions, listing transactions, or update/modifie auction.
+#makesubparagraph([Gacha-Service ↔ User-Service:], level: 5)
+The _gacha service_ connects with the _user service_ to manage the user's gacha collection, such as listing the user's gacha collection or checking the gacha details.
 
-- Admin-Service ↔ User-Service: The admin-service connects with user-service to manage user accounts, such as listing users, modifying user profiles, or checking user transaction history and the user auction list.
+#makesubparagraph([Market-Service ↔ User-Service:], level: 5)
+The _market service_ connects with the _user service_ to manage the user's currency and transactions, such as checking the user's currency and adding currency.
 
-- Auth-Service ↔ User-Service: The auth-service relies on user-service for user data, such as validating credentials.
+#makesubparagraph([Market-Service ↔ Gacha-Service:], level: 5) The _market service_ connects with the _gacha service_ to manage the gacha collection, such as listing the gacha collection or checking the gacha details or when a gacha is sold in the market.
 
-- Gacha-Service ↔ User-Service: The gacha-service connects with the user-service to manage the user's gacha collection, such as listing the user's gacha collection or checking the gacha details.
-
-- Market-Service ↔ User-Service: The market-service connects with the user-service to manage the user's currency and transactions, such as checking the user's currency and adding currency.
-
-- Market-Service ↔ Gacha-Service: The market-service connects with the gacha-service to manage the gacha collection, such as listing the gacha collection or checking the gacha details or when a gacha is sold in the market.
-
-
-/*For example: “Market is connected with Currency because it needs to check
-the currency of a user and notify the update of it due to the end of an
-auction or a higher bid”.*/
-
-
-= User Stories Player
+#linebreak()
 
 
-== Accounts
+= User Stories: Player
+
+Evrey request has to pass through the _gateway_ and the _auth-service_ and _session-db_, to check if it is a valid request. So those services are omitted in the list of the microservice(s) involved for the following requests.
+
+== Account
+
 - I want to be able to register to the system, so that I can access the game.
+  - `/auth/register` (_user-service,user-db_)
 
-- I want to be able to delete my account, so that I can remove my information to the game.  
-  - *_/user/account/{{userId}}(Gateway/user-service,user-db)_*
+- I want to be able to delete my account, so that I can remove my information to the game.
+  - `/user/account/{{userId}}` (_user-service,user-db/gacha-service,gacha-db/market-service,market-db_)
 
 - I want to be able to modify my account information, so that I can update my profile.
-  - *_/user/account/{{userId}}(Gateway/user-service,user-db)_*
+  - `/user/account/{{userId}}` (_user-service,user-db_)
 
 - I want to be able to login and logout, so that I can access and leave the game.
+  #linebreak()
+  I want be safe from unauthorized access, so that my account access information is protected.
+  - `/auth/logout`, `/auth/login` (_auth-service,auth-db,session-db_)
 
-- I want be safe from unauthorized access, so that my account access information is protected. 
+== Collection
 
-
-== Collections
 -  I want to see my gacha collection, so that I can see what I have.
-  - *_/gacha/user/{{userId}}/list(Gateway/user-service,userd-db,gacha-service,gacha-db)_*
+  - `/gacha/user/{{userId}}/list` (_gacha-service,gacha-db_)
 
 - I want to see the info of a gacha in my collection, so that I can see the details of a gacha.
-  - *_/gacha/{{gachaId}}/user/{{userId}} (Gateway/user-service,user-db,gacha-service,gacha-db)_*
+  - `/gacha/{{gachaId}}/user/{{userId}}` (_gacha-service,gacha-db_)
 
 - I want to see the system gacha collection, so that I can see what I can get.
-  - *_/gacha/list(Gateway/user-service,gacha-service,gacha-db)_*
+  - `/gacha/list` (_gacha-service,gacha-db_)
 
 - I want to see the info of a gacha in the system collection, so that I can see the details of a gacha.
-  - *_/gacha/{{gachaId}}(Gateway/user-service,gacha-service,gacha-db)_*
+  - `/gacha/{{gachaId}}` (_gacha-service,gacha-db_)
 
 == Currency
+
 - I want to use in-game currency for roll a gacha, so that I can get a random gacha.
-  - *_market/gacha/roll(Gateway/user-service,market-service,market-db)_*
+  - `market/gacha/roll` (_user-service,user-db/market-service,market-db_)
 
 - I want to buy in-game currency, so that I can get more gachas.
-  - *_/market/bugscoin/buy(Gateway/user-service,market-service,market-db)_*
+  - `/market/bugscoin/buy` (_market-service,market-db/user-service,user-db_)
 
 - I want to be safe about the in-game currency transactions, so that my money is protected.
+  - `/auth/logout`, `/auth/login` (_auth-service,session-db_)
 
 
 == Market
+
 - I want to see the auction market, so that i can evaluate if buy/sell a gacha.
-  - *_/market/auction/list(Gateway/user-service,market-service,market-db)_*
+  - `/market/auction/list` (_market-service,market-db_)
 
 - I want to set an auction for one of my gacha, so that I can sell it.
-  - *_/market/auction/ (Gateway/user-service,market-service,market-db)_*
+  - `/market/auction/` (_gacha-service,gacha-db/market-service,market-db,market-timed-events_)
 
 - I want to bid for a gacha from the market, so that I can buy it.
-  - *_/market/auction/{{auctionId}}/bid(Gateway/user-service,market-service,market-db)_*
+  #linebreak()
+  I want to receive a gacha when i win an auction, so that I receive a gacha.
+  #linebreak()
+  I want to receive in-game currency when someone win my auction, so that I sell work as I expect.
+  #linebreak()
+  I want to receive my in-game currency back when i lost an auction, so that my in-game currency.
+  #linebreak()
+  I want to that the auctions cannot be temperes, so that my in-game currency and collection are safe.
+  - `/market/auction/{{auctionId}}/bid` (_user-service,user-db/market-service,market-db/gacha-service,gacha-db,market-timed-events_)
 
 - I want to view my transaction history, so that I can track my market movements.
-  - *_/internal/market/get_transaction_history(Gateway/user-service,market-service,market-db)_*??????????
-
-- I want to receive a gacha when i win an auction, so that I receive a gacha.
+  - `/internal/market/get_transaction_history` (_market-service,market-db_)
 
 
-- I want to receive in-game currency when someone win my auction, so that I sell work as I expect. 
+= User Stories: Admin
 
+All the following endpoints requests involve the _admin-service_ and _admin-db_.
 
-- I want to receive my in-game currency back when i lost an auction, so that my in-game currency.
+== Account
 
-
-- I want to that the auctions cannot be temperes, so that my in-game currency and collection are safe.
-
-
-= User Stories Admin
-
-== Profile/Accounts
 - I want to login and logout as admin from the system, so that I can access and leave the game.
+  - `/auth/admin/login`,`/auth/logout` (_auth-service,auth-db,session-db_)
 
 - I want to check all users account/profile, so that I can monitor all the users accounts/profiles.
-  - *_/admin/user/get_all (Gateway/admin-service/user-service,user-db)_*
+  - `/admin/user/get_all` (_user-service,user-db_)
 
 - I want to check a specific user account/profile, so that I can monitor user account/profile.
-  - *_/admin/user/{{userId}}(Gateway/admin-service/user-service,user-db)_*
-
-- I want to modify a specific user account/profile, so that I can update a specific user account/profile.
-  - *_/admin/user/{{userId}}(Gateway/admin-service/user-service,user-db)_*
+  #linebreak()
+  I want to modify a specific user account/profile, so that I can update a specific user account/profile.
+  - `/admin/user/{{userId}}` (_user-service,user-db_)
 
 - I want to check a specific player currency transaction history, so that I can monitor the transactions of a player.
-  - *_/admin/user/{{userId}}/transaction_history(Gateway,admin-service,user-service,user-db,market)_*
+  - `/admin/user/{{userId}}/transaction_history` (_user-service,user-db/market-service,market-db_)
 
-- I want to check a specific player market history, so that I can monitor the market of a player. 
-  - *_/admin/user/{{userId}}/auction/get_all(Gateway,admin-service,user-service,market-service,market-db)_*
+- I want to check a specific player market history, so that I can monitor the market of a player.
+  - `/admin/user/{{userId}}/auction/get_all` (_user-service,user-db/market-service,market-db_)
 
 
-== Gachas
+== Gacha
+
 - I want to check all the gacha collection, so that I can check all the collection.
-  - *_/admin/gacha/get_all(Gateway,admin-service,gacha-service,gacha-db)_*
+  - `/admin/gacha/get_all` (_gacha-service,gacha-db_)
 
 - I want to modify the gacha collection, so that I can add gachas.
-  - *_/admin/gacha/add(Gateway,admin-service,gacha-service,gacha-db)_*
+  - `/admin/gacha/add` (_gacha-service,gacha-db_)
 
 - I want to modify the gacha collection, so that I can delete gachas.
-  - *_/admin/gacha/{{gachaId}}(Gateway,admin-service,gacha-service,gacha-db)_*
+  #linebreak()
+  I want to check a specific gacha, so that I can check the status of a gacha.
+  #linebreak()
+  I want to modify a specific gacha information, so that I can modify the status of a gacha.
+  - `/admin/gacha/{{gachaId}}` (_gacha-service,gacha-db_)
 
-- I want to check a specific gacha, so that I can check the status of a gacha.
-  - *_/admin/gacha/{{gachaId}}(Gateway,admin-service,gacha-service,gacha-db)_*
-
-- I want to modify a specific gacha information, so that I can modify the status of a gacha.
-  - *_/admin/gacha/{{gachaId}}(Gateway,admin-service,gacha-service,gacha-db)_*
 
 == Market
+
 - I want to see the auction market, so that I can monitor the auction market.
-  - *_/admin/market/auction/get_all(Gateway,admin-service,market-service,market-db)_*
+  - `/admin/market/auction/get_all` (_market-service,market-db_)
 
 - I want to see a specific auction, so that I can monitor a specific auction of the market.
-  - *_/admin/market/auction/{{auction_id}}(Gateway,admin-service,market-service,market-db)_*
-
-- I want to modify a specific auction, so that I can update the status of a specific auction.
-  - *_/admin/market/auction/{{auction_id}}(Gateway,admin-service,market-service,market-db)_*
+  #linebreak()
+  I want to modify a specific auction, so that I can update the status of a specific auction.
+  - `/admin/market/auction/{{auction_id}}` (_market-service,market-db/gacha-service,gacha-db_)
 
 - I want to see the market history, so that I can check the market old auctions.
-  - *_/admin/market/transaction_history(Gateway,admin-service,market-service,market-db)_*
+  - `/admin/market/transaction_history` (_market-service,market-db_)
+
+#linebreak()
 
 = Market rules
 
-When a user places a higher bid than the previous one, the currency of the previous highest bid is returned to the user after the finish of the auction.  
+The market service has been implemented whit the following rules in mind:
 
-If someone places a bid at the very last second of the auction, they will win the gacha as the last valid bidder.
+- The user has the permission to create and delete it's own auctions but can not bid to them, he/she can bid to other's auctions
 
-It's also possible to bid on an auction where you are already the highest bidder. However, the user cannot place a bid if they do not have the required amount of coins to bid.
+- When a user places a higher bid than the previous one, the currency of the previous highest bid is returned to the user after the finish of the auction.
 
-Additionally, the owner of an auction cannot bid on their own auction. As the owner, you can delete the auction at any time before it expires, but you need to confirm the action by entering your password. The maximum duration of an auction is 24 hours.
+- If someone places a bid at the very last second of the auction, they will win the gacha as the last valid bidder.
 
-All bids that are surpassed will be refunded at the end of the auction.
+- It's also possible to bid on an auction where you are already the highest bidder. However, the user cannot place a bid if they do not have the required amount of coins to bid.
 
-All auctions remain visible to users, along with all the auction details. These details include the Auction ID, Owner ID, Gacha ID, Start Time, End Time, and Winner ID. Additionally, all bids made are displayed, showing the Bid ID, User ID of each bidder, the Bugscoins spent, and the Time of each bid.
+- Additionally, the owner of an auction cannot bid on their own auction. As the owner, you can delete the auction at any time before it expires, but you need to confirm the action by entering your password. The maximum duration of an auction is 24 hours.
+
+- All bids that are expired will be refunded at the end of the auction.
+
+- All auctions remain visible to users, along with all the auction details. Additionally, all bids made are displayed showing the bidder details.
+
+#linebreak()
 
 = Testing
 
-The tests were conducted using mock that allowed for the isolated testing of individual services. These mocks simulated the behavior of external components, enabling the verification of each service's functionality without relying on real external resources. To conduct the tests, Locust was used, a performance testing tool that allowed for load simulation and analysis of the service responses in various scenarios, ensuring an accurate assessment of the performance and robustness of each component.
+The tests were conducted using mocks that allowed for the isolated testing of individual services. These mocks simulated the behavior of external components, enabling the verification of each service's functionality without relying on real external resources. Both unit and integration tests where carried out with #link("https://www.postman.com/")[Postman].
 
-/*TO DO 
-Write here any particular fact about the testing.
-For example:
-• I tested in isolation the DBManager_x together with the DB_x
-• I used a third-party service that interacts with Service_y and I put them
-together in the isolation test because mock it is hard for reason z.*/
+To conduct the test a performance testing tool, #link("https://locust.io/")[Locust], was used that allowed for load simulation and analysis of the service responses in various scenarios, ensuring an accurate assessment of the performance and robustness of each component
+
+#linebreak()
+
+= Security
+
+== Data
+
+#text(red)[TODO:] Select one input that you had to sanitize, describe what it represent, which microservice(s) use it and how you sanitize it.
+
+#linebreak()
+
+In the application, the databases are implemented using PostgreSQL or Redis. For PostgreSQL, Transparent Data Encryption (TDE) is used. TDE is a technology that protect sensitive data by encrypting the database files at rest. It ensures that data stored on disk is encrypted, making it inaccessible to unauthorized users or applications, while it automatically encrypts the data before it is written to disk and decrypts it when it is read.
+
+On the other hand Redis data is not encrypted. This decision is mainly driven by its architecture as an in-memory database, which means that the data is not stored persistently on disk.
+
+#linebreak()
+
+All connections between databases/services and services use mutual TLS (mTLS), ensuring secure communication and authentication between the involved parties .
 
 
-= Secuirty
+== Authentication and Authorization
 
-== Secuirty - Data
-/*TO DO
-• Select one input that you had to sanitize, describe what it represent,
-which microservice(t) use it and how you sanitize it.
-• List the data you encrypted at rest, describe what they represent, which
-database stores them and where you en/decrypt them.*/
+#text(red)[TODO]
 
-
-== Secuirty - Authentication and Authorization
 /*TO DO Describe the scenario you selected (centralized vs distributed) by indicating
 the basic steps to validate a token and how the keys to sign the token are
 used and stored.
@@ -321,94 +369,119 @@ figures)
 Put the payload format of your Access Token (bullet list, table or image)*/
 
 
-== Security - Analyses
-/* TO DO 
-Put the screenshot of:
-• The report of the static analysis tool you used (e.g. Bandit’s final table).
-• The dashboard of docker scout with your (developed) images, where the
-vulnerabilities are indicated.
-If your language does not have static analysis tools available, specify it here.
-Otherwise, put the command(s) you used to reach the results in the
-screenshot.
-Put also the name of the docker hub repository with the images.
-Note: there is no need for docker scout for images of third-party software.*/
+== Analyses
+
+For the static code analysis, #link("https://pkg.go.dev/golang.org/x/vuln/cmd/govulncheck")[`govulncheck`] was used, which identifies vulnerabilities in Go dependencies by checking against the Go vulnerability database.
+
+#figure(
+  image("beetle-quest-microfreshner-architecture-v2.png", width: 55%),
+  caption: text(red)[TODO: govulncheck report],
+)
+
+#linebreak()
+
+Meanwhile, for the analysis of Docker images, #link("https://trivy.dev/")[`trivy`] was employed. In addition to analyzing images for CVEs using commands like `docker scan`, it also allows for the examination of Go binaries for vulnerable dependencies, misconfigurations, and potential leaks of secrets.
+
+#linebreak()
+
+The following resuls can be obtained executing `./scan-images.sh`, which is placed in `beetle-quest/tests/`, the output will be found inside `trivy_scan_results/` in the same folder.
+
+#figure(
+  image("beetle-quest-microfreshner-architecture-v2.png", width: 55%),
+  caption: text(red)[TODO: trivy report],
+)
+
 
 
 = Additional features
-/* TO DO 
+
+#text(red)[TODO: describe]
+
+- mTLS
+- Shared CA
+- Web Gui
+- OAuth2.0
+- Buy gacha
+- ...
+
+/* TO DO
 Describe here any additional feature you implemented.
 • What is this feature?
 • Why is it useful?
 • How is it implemented?
 */
 
-= Interesting Flows
+/*
+  // Not needed anymore
 
-Now we proceed analysing a few use case scenarios, to show the flow on the backend.
+  = Interesting Flows
 
-
-== Registration and login:
-
-When a player wants to register he sends a `POST` request to the API Gateway at\ `/auth/register` containig the user's _username_, _email_ and _password_.
-
-  - The Gateway forwards the request to the `auth` service.
-  - The `auth` service checks for the validity of the provided data;
-  - If no error occurs it creates the new user;
-  - It sends a request to the `user` service to create the new user data.
-  - The user service store the new user data in the `user DB`.
-  - The `user` service forward the action's status to the `auth` service.
-  - If `auth` service gets no error it returns to the API Gateway, a success message.
-
-Now the user can login trough a `POST` request to the API Gateway at `/auth/login` containig the the _username_ and the _password_.
-
-  - The Gateway forwards the request to the `auth` service.
-  - The `auth` service checks for the validity of the provided data comunicating with the `user` service.
-  - The `user` service checks if the user exist in the `user DB`, and return it's data to the `auth` service.
-  - If the user exist and the provided data is correct the `auth` service returns, to the API Gateway, a response containig a `token` that authenticates the user.
+  Now we proceed analysing a few use case scenarios, to show the flow on the backend.
 
 
-#linebreak()
+  == Registration and login:
 
-From now on we assume that all the requests contain the authentification `token` and that every microservice will obtain the `user_id` from it.
+  When a player wants to register he sends a `POST` request to the API Gateway at\ `/auth/register` containig the user's _username_, _email_ and  _password_.
+
+    - The Gateway forwards the request to the `auth` service.
+    - The `auth` service checks for the validity of the provided data;
+    - If no error occurs it creates the new user;
+    - It sends a request to the `user` service to create the new user data.
+    - The user service store the new user data in the `user DB`.
+    - The `user` service forward the action's status to the `auth` service.
+    - If `auth` service gets no error it returns to the API Gateway, a success message.
+
+  Now the user can login trough a `POST` request to the API Gateway at `/auth/login` containig the the _username_ and the _password_.
+
+    - The Gateway forwards the request to the `auth` service.
+    - The `auth` service checks for the validity of the provided data comunicating with the `user` service.
+    - The `user` service checks if the user exist in the `user DB`, and return it's data to the `auth` service.
+    - If the user exist and the provided data is correct the `auth` service returns, to the API Gateway, a response containig a `token` that  authenticates the user.
 
 
-== Roll gacha:
+  #linebreak()
 
-To roll for a gacha the user must send a `GET` request to the API Gateway at\ `/market/gacha/roll`
+  From now on we assume that all the requests contain the authentification `token` and that every microservice will obtain the `user_id` from it.
 
-- The Gateway send the request to the `auth` service.
-- The `auth` service checks for the validity of the `token`.
-- If the `token` id is valid then the request gets fowareded to the `market` service.
-- The `market` service will ask the `user` service if the user exists and it's data, then it checks if it has at least 1000 `BugsCoins`,
-- If so it removes that amount of money form the user, saving the transaction in the `market DB`.
-- The  `market` service will request the `gacha` service to get the list of all the gachas.
-- At this point the `market` service will extract randomly a gacha and, in the case that the user does not own that gacha, forward to the `gacha` service a save operation of the gacha to the user in question.
-- If no error appears it returns a success message to the API Gateway.
 
-== Create auction:
+  == Roll gacha:
 
-A user can create an acution sending a `POST` request to the API Gateway at\ `/market/auction` containig the _gacha id_ and the _expiration time_ of the action.
+  To roll for a gacha the user must send a `GET` request to the API Gateway at\ `/market/gacha/roll`
 
   - The Gateway send the request to the `auth` service.
   - The `auth` service checks for the validity of the `token`.
   - If the `token` id is valid then the request gets fowareded to the `market` service.
-  - The `market` service will check if the user has the specified gacha in his inventory, comunicating with the `gacha` service, then it will check if the _expiration time_ is valid.
-  - Then it will save the acution in the `market DB` and set a timed event in the `timed event DB` to close the auction.
+  - The `market` service will ask the `user` service if the user exists and it's data, then it checks if it has at least 1000 `BugsCoins`,
+  - If so it removes that amount of money form the user, saving the transaction in the `market DB`.
+  - The  `market` service will request the `gacha` service to get the list of all the gachas.
+  - At this point the `market` service will extract randomly a gacha and, in the case that the user does not own that gacha, forward to the `gacha`   service a save operation of the gacha to the user in question.
   - If no error appears it returns a success message to the API Gateway.
-  - If no other user bid to this auction before the _expiration time_, the `market` service will automatically remove the auction from the DB.
 
-== Bid an auction:
+  == Create auction:
 
-To bid an auction a user has to send a `POST` request to the API Gateway at\ `/market/auction/<auctionId>/bid`, where `<auctionId>` is the id of the auction. The request has to include the amount the user wants to bid.
+  A user can create an acution sending a `POST` request to the API Gateway at\ `/market/auction` containig the _gacha id_ and the _expiration time_ of  the action.
 
-  - The Gateway send the request to the `auth` service.
-  - The `auth` service checks for the validity of the `token`.
-  - If the `token` id is valid then the request gets fowarded to the `market` service.
-  - Now the `market` service will check with the `user` service if the user has the amount of `BugsCoins` he wants to bid.
-  - If the check passes the `market` service will comunicate the `user` service to remove the amount from the bidder, and store the bid in the `market DB`.
-  - If no error appears it returns a success message to the API Gateway.
-rite here any particular fact about the testing.
-For example:
-• I tested in isolation the DBManager_x together with the DB_x
-• I used a third-party service that interacts with Service_y and I put them
-together in the isolation test because mock it is hard for reason z.
+    - The Gateway send the request to the `auth` service.
+    - The `auth` service checks for the validity of the `token`.
+    - If the `token` id is valid then the request gets fowareded to the `market` service.
+    - The `market` service will check if the user has the specified gacha in his inventory, comunicating with the `gacha` service, then it will check   if the _expiration time_ is valid.
+    - Then it will save the acution in the `market DB` and set a timed event in the `timed event DB` to close the auction.
+    - If no error appears it returns a success message to the API Gateway.
+    - If no other user bid to this auction before the _expiration time_, the `market` service will automatically remove the auction from the DB.
+
+  == Bid an auction:
+
+  To bid an auction a user has to send a `POST` request to the API Gateway at\ `/market/auction/<auctionId>/bid`, where `<auctionId>` is the id of the  auction. The request has to include the amount the user wants to bid.
+
+    - The Gateway send the request to the `auth` service.
+    - The `auth` service checks for the validity of the `token`.
+    - If the `token` id is valid then the request gets fowarded to the `market` service.
+    - Now the `market` service will check with the `user` service if the user has the amount of `BugsCoins` he wants to bid.
+    - If the check passes the `market` service will comunicate the `user` service to remove the amount from the bidder, and store the bid in the  `market DB`.
+    - If no error appears it returns a success message to the API Gateway.
+  rite here any particular fact about the testing.
+  For example:
+  • I tested in isolation the DBManager_x together with the DB_x
+  • I used a third-party service that interacts with Service_y and I put them
+  together in the isolation test because mock it is hard for reason z.
+*/

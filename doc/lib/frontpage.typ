@@ -44,6 +44,8 @@
       list(..authors, marker: "", body-indent: 0pt), style:"italic" )
   ]
 
+  pagebreak()
+
   // Table of contents
   align(bottom)[
     #show outline.entry.where(level: 1): it => { strong(it) }
