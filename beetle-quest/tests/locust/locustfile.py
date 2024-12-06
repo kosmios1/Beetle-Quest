@@ -629,9 +629,15 @@ class AdminMSRequests(AuthenticatedAdmin):
 
 class StagesShapeWithCustomUsers(LoadTestShape):
     stages = [
-        {"duration": 30, "users": 100, "spawn_rate": 10, "user_classes": [AdminMSRequests, UserMSRequests, GachaMSRequests, MarketMSRequests]},
-        {"duration": 120, "users": 400, "spawn_rate": 100, "user_classes": [AdminMSRequests, UserMSRequests, GachaMSRequests, MarketMSRequests]},
-        {"duration": 30, "users": 100, "spawn_rate": 10, "user_classes": [AdminMSRequests, UserMSRequests, GachaMSRequests, MarketMSRequests]},
+        {"duration": 15, "users": 10, "spawn_rate": 5, "user_classes": [UserMSRequests, GachaMSRequests]},
+        {"duration": 30, "users": 30, "spawn_rate": 10, "user_classes": [MarketMSRequests]},
+        {"duration": 45, "users": 50, "spawn_rate": 15, "user_classes": [AdminMSRequests, UserMSRequests, GachaMSRequests]},
+        {"duration": 75, "users": 70, "spawn_rate": 25, "user_classes": [MarketMSRequests]},
+        {"duration": 120, "users": 100, "spawn_rate": 30, "user_classes": [AdminMSRequests, UserMSRequests, GachaMSRequests, MarketMSRequests]},
+        {"duration": 75, "users": 70, "spawn_rate": 25, "user_classes": [MarketMSRequests]},
+        {"duration": 45, "users": 50, "spawn_rate": 15, "user_classes": [AdminMSRequests, UserMSRequests, GachaMSRequests]},
+        {"duration": 30, "users": 30, "spawn_rate": 10, "user_classes": [MarketMSRequests]},
+        {"duration": 15, "users": 10, "spawn_rate": 5, "user_classes": [UserMSRequests, GachaMSRequests]},
     ]
 
     def tick(self):
