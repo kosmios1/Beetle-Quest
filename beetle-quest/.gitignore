@@ -1,6 +1,8 @@
 __pycache__/
+.venv/
 
 ./api/rest/v1/*.*
 !./api/rest/v1/openAPI.yaml
+
 
 TODO.md

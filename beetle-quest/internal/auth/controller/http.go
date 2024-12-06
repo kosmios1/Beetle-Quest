@@ -228,16 +228,12 @@ func (c *AuthController) Login(ctx *gin.Context) {
 func (c *AuthController) Logout(ctx *gin.Context) {
 	authHeader := ctx.GetHeader("Authorization")
 	bearerToken := strings.Split(authHeader, " ")
-	if len(bearerToken) != 2 {
-		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": models.ErrInternalServerError})
-		ctx.Abort()
-		return
-	}
-
-	if err := c.o2mng.RemoveAccessToken(ctx, bearerToken[1]); err != nil {
-		ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": models.ErrInternalServerError})
-		ctx.Abort()
-		return
+	if len(bearerToken) == 2 {
+		if err := c.o2mng.RemoveAccessToken(ctx, bearerToken[1]); err != nil {
+			ctx.HTML(http.StatusInternalServerError, "errorMsg.tmpl", gin.H{"Error": models.ErrInternalServerError})
+			ctx.Abort()
+			return
+		}
 	}
 
 	if err := session.Destroy(ctx.Request.Context(), ctx.Writer, ctx.Request); err != nil {
@@ -246,7 +242,6 @@ func (c *AuthController) Logout(ctx *gin.Context) {
 		return
 	}
 
-	ctx.SetCookie("go_session_id", "", -1, "/", "", true, true)
 	ctx.Redirect(http.StatusFound, "/static/")
 }
 

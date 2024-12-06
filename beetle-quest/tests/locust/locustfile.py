@@ -65,6 +65,7 @@ class AuthenticatedUser(FastHttpUser):
             if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
                 response.failure(f"Request failed with status code: {response.status_code}")
                 return
+            response.success()
 
         with self.client.post(f"{base_path}/auth/login", json={
             "username": self.username,
@@ -73,9 +74,10 @@ class AuthenticatedUser(FastHttpUser):
             if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
                 response.failure(f"Request failed with status code: {response.status_code}")
                 return
+            response.success()
 
     def make_oauth_authorization_request(self):
-        # Make oauth2 authorization request
+        code = ""
         state = generate_random_string()
         codeVerifier, codeChallenge = generate_code_verifier_and_chall()
         with self.client.get("/oauth/authorize", params={
@@ -87,16 +89,16 @@ class AuthenticatedUser(FastHttpUser):
             "code_challenge": codeChallenge,
             "code_challenge_method": "S256",
         }, allow_redirects=False, catch_response=True) as response:
-            try:
-                code = response.headers["Location"].split("code=")[1].split("&")[0]
-                recv_state = response.headers["Location"].split("state=")[1].split("&")[0]
-                if state != recv_state:
-                    print(f"State mismatch: {state}")
-                    return
-            except Exception as e:
-                print(f"Failed to get the code from the response: {e}")
-                print("Traceback details: ", traceback.format_exc())
+            if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
+                response.failure(f"Request failed with status code: {response.status_code}")
                 return
+
+            if response.headers is not None:
+                location = response.headers["Location"]
+                if location and len(location.split("code=")) > 1:
+                    code = location.split("code=")[1].split("&")[0]
+
+            response.success()
 
         with self.client.post("/oauth/token", data={
             "grant_type": "authorization_code",
@@ -105,19 +107,26 @@ class AuthenticatedUser(FastHttpUser):
             "client_id": "beetle-quest",
             "code_verifier": codeVerifier,
         }, allow_redirects=False, catch_response=True) as response:
-            self.access_token = response.json()["access_token"]
-            self.client.auth_header = f"Bearer {self.access_token}"
-
-            self.identity_token = response.json()["id_token"]
-            if self.identity_token == None:
-                print(f"Failed to parse the token {self.identity_token}")
+            if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
+                response.failure(f"Request failed with status code: {response.status_code}")
                 return
 
-            id_token = parse_jwt(self.identity_token, algorithms="HS256")
-            if id_token == None:
-                print(f"Failed to parse the token {id_token}")
-                return
-            self.user_id = id_token["sub"]
+            if response.text is not None:
+                if "access_token" in response.json() and "id_token" in response.json():
+                    self.access_token = response.json()["access_token"]
+                    self.client.auth_header = f"Bearer {self.access_token}"
+
+                    self.identity_token = response.json()["id_token"]
+                    if self.identity_token == None:
+                        print(f"Failed to parse the token {self.identity_token}")
+                        return
+
+                    id_token = parse_jwt(self.identity_token, algorithms="HS256")
+                    if id_token == None:
+                        print(f"Failed to parse the token {id_token}")
+                        return
+                    self.user_id = id_token["sub"]
+            response.success()
 
     def on_stop(self):
         with self.client.get(f"{base_path}/auth/logout", catch_response=True) as response:
@@ -382,8 +391,10 @@ class AuthenticatedAdmin(FastHttpUser):
             if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
                 response.failure(f"Request failed with status code: {response.status_code}")
                 return
+            response.success()
 
     def make_oauth_authorization_request(self):
+        code = ""
         state = generate_random_string()
         codeVerifier, codeChallenge = generate_code_verifier_and_chall()
         with self.client.get("/oauth/authorize", params={
@@ -395,16 +406,16 @@ class AuthenticatedAdmin(FastHttpUser):
             "code_challenge": codeChallenge,
             "code_challenge_method": "S256",
         }, allow_redirects=False, catch_response=True) as response:
-            try:
-                code = response.headers["Location"].split("code=")[1].split("&")[0]
-                recv_state = response.headers["Location"].split("state=")[1].split("&")[0]
-                if state != recv_state:
-                    print(f"State mismatch: {state}")
-                    return
-            except Exception as e:
-                print(f"Failed to get the code from the response: {e}")
-                print("Traceback details: ", traceback.format_exc())
+            if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
+                response.failure(f"Request failed with status code: {response.status_code}")
                 return
+
+            if response.headers is not None:
+                location = response.headers["Location"]
+                if location and len(location.split("code=")) > 1:
+                    code = location.split("code=")[1].split("&")[0]
+
+            response.success()
 
         with self.client.post("/oauth/token", data={
             "grant_type": "authorization_code",
@@ -413,19 +424,26 @@ class AuthenticatedAdmin(FastHttpUser):
             "client_id": "beetle-quest",
             "code_verifier": codeVerifier,
         }, allow_redirects=False, catch_response=True) as response:
-            self.access_token = response.json()["access_token"]
-            self.client.auth_header = f"Bearer {self.access_token}"
-
-            self.identity_token = response.json()["id_token"]
-            if self.identity_token == None:
-                print(f"Failed to parse the token { self.identity_token}")
+            if response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
+                response.failure(f"Request failed with status code: {response.status_code}")
                 return
 
-            id_token = parse_jwt(self.identity_token, algorithms="HS256")
-            if id_token == None:
-                print(f"Failed to parse the token {id_token}")
-                return
-            self.user_id = id_token["sub"]
+            if response.text is not None:
+                if "access_token" in response.json() and "id_token" in response.json():
+                    self.access_token = response.json()["access_token"]
+                    self.client.auth_header = f"Bearer {self.access_token}"
+
+                    self.identity_token = response.json()["id_token"]
+                    if self.identity_token == None:
+                        print(f"Failed to parse the token { self.identity_token}")
+                        return
+
+                    id_token = parse_jwt(self.identity_token, algorithms="HS256")
+                    if id_token == None:
+                        print(f"Failed to parse the token {id_token}")
+                        return
+                    self.user_id = id_token["sub"]
+            response.success()
 
     def on_stop(self):
         with self.client.get(f"{base_path}/auth/logout", catch_response=True) as response:
