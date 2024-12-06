@@ -28,7 +28,7 @@ All these actions will be implemented with *_Go_* language and through a _micros
 
 = Gacha Collection
 
-The gachas are fictional creatures inspired by #text(red)[_todo:..._]. Below are a few examples of these imaginative beings.
+The gachas are fictional creatures inspired by the beetles, they are divided into five classes of rariry. Below are a few examples of these imaginative beings.
 
 
 #[
@@ -39,72 +39,29 @@ The gachas are fictional creatures inspired by #text(red)[_todo:..._]. Below are
     },
   )
 
+  #linebreak()
+
   #table(
-    columns: (auto, auto),
-    column-gutter: -8em,
+    columns: (auto, auto, auto),
+    row-gutter: 0.5em,
+    column-gutter: -1em,
     align: horizon,
-    //fill: (x, _) =>
-    //  if calc.odd(x) { luma(240) }
-    //  else { white },
-    table.cell(rowspan: 2)[#image("beetle-quest-microfreshner-architecture-v2.png", width: 50%)],
-    image("beetle-quest-microfreshner-architecture-v2.png", width: 50%),
-    image("beetle-quest-microfreshner-architecture-v2.png", width: 50%),
+    image("../assets/images/png/warrior_cricket_common.png", width: 85%),
+    image("../assets/images/png/assassin_mosquito_rare.png", width: 85%),
+    image("../assets/images/png/druid_butterfly_legendary.png", width: 85%),
+
+    image("../assets/images/png/tank_mole-cricket_common.png", width: 85%),
+    image("../assets/images/png/warrior_beetle_rare.png", width: 85%),
+    image("../assets/images/png/warrior_hercule_beetle_legendary.png", width: 85%),
   )
 ]
 
+#linebreak()
+
 #figure(
-  image("../assets/images/currency_cut.png", width: 45%),
+  image("../assets/images/currency_cut.png", width: 30%),
   caption: [The currency used within the game is called `BugsCoins`],
 )
-
-/* TO DO
-#align(center+horizon)[
-    #set text(size: 14.2pt)
-    #grid(
-    columns: (3fr, .3fr),
-    [
-    #grid(
-        columns: (1fr, 1fr, 1fr, 1fr, 1fr),
-        column-gutter: 0pt,
-        row-gutter: 5pt,
-        [*Common (C)*], [*Uncommon (U)*], [*Rare (R)*], [*Epic (E)*], [*Legendary (L)*],
-        image("../assets/images/png/warrior_cricket_common.png",      width: 60%),
-        image("../assets/images/png/warrior_centipede_uncommon.png",      width: 60%),
-        image("../assets/images/png/warrior_beetle_rare.png",      width: 60%),
-        image("../assets/images/png/mage_moth_epic.png",      width: 60%),
-        image("../assets/images/png/warrior_hercule_beetle_legendary.png",      width: 60%),
-        //
-        image("../assets/images/png/warrior_locust_common.png", width: 60%),
-        image("../assets/images/png/priest_cicada_uncommon.png",      width: 60%),
-        image("../assets/images/png/priest_moth_rare.png",      width: 60%),
-        image("../assets/images/png/mage_butterfly_epic.png",      width: 60%),
-        image("../assets/images/png/mage_butterfly_legendary.png",      width: 60%),
-        //
-        image("../assets/images/png/tank_mole-cricket_common.png", width: 60%),
-        image("../assets/images/png/mage_mosquito_uncommon.png",      width: 60%),
-        image("../assets/images/png/druid_butterfly_rare.png",      width: 60%),
-        image("../assets/images/png/warrior_dragonfly_epic.png",      width: 60%),
-        image("../assets/images/png/druid_butterfly_legendary.png",      width: 60%),
-        //
-        image("../assets/images/png/munich_grasshopper_common.png",      width: 60%),
-        image("../assets/images/png/druid_bee_uncommon.png",      width: 60%),
-        image("../assets/images/png/assassin_mosquito_rare.png",      width: 60%),
-        image("../assets/images/png/assassin_peacock_epic.png",      width: 60%),
-        image("../assets/images/png/demoniac_mosquito_legendary.png",      width: 60%),
-    )],
-    [#set align(horizon)
-    #figure(
-        // image("../assets/images/png/coin.png", width: 80%),
-        image("../assets/images/currency_cut.png", width: 80%),
-        caption: [Currency],
-        //caption-pos: top, // V 0.12
-        supplement: [],
-        numbering: none,
-    )
-    ]
-    )
-]
-*/
 
 
 = Architecture
@@ -371,11 +328,21 @@ Put the payload format of your Access Token (bullet list, table or image)*/
 
 == Analyses
 
-For the static code analysis, #link("https://pkg.go.dev/golang.org/x/vuln/cmd/govulncheck")[`govulncheck`] was used, which identifies vulnerabilities in Go dependencies by checking against the Go vulnerability database.
+For the static code analysis, #link("https://pkg.go.dev/golang.org/x/vuln/cmd/govulncheck")[`govulncheck`] was used, which identifies vulnerabilities in Go dependencies by checking against the Go vulnerability database. Install govulncheck and then execute `govulncheck ./...` in the `beetle-quest/` directory, to obtain the following output.
 
 #figure(
-  image("beetle-quest-microfreshner-architecture-v2.png", width: 55%),
-  caption: text(red)[TODO: govulncheck report],
+  ```
+  === Symbol Results ===
+
+  No vulnerabilities found.
+
+  Your code is affected by 0 vulnerabilities.
+  This scan also found 0 vulnerabilities in packages you import and 1
+  vulnerability in modules you require, but your code doesn't appear to call these
+  vulnerabilities.
+  Use '-show verbose' for more details.
+  ```,
+  caption: [Govulncheck analyses output report],
 )
 
 #linebreak()
@@ -384,14 +351,27 @@ Meanwhile, for the analysis of Docker images, #link("https://trivy.dev/")[`trivy
 
 #linebreak()
 
-The following resuls can be obtained executing `./scan-images.sh`, which is placed in `beetle-quest/tests/`, the output will be found inside `trivy_scan_results/` in the same folder.
+The scan results can be obtained executing `./scan-images.sh`, which is placed in `beetle-quest/tests/`, the output will be found inside `trivy_scan_results/` in the same folder. For the sake of space, we will only report the results of the summary of th scan on _admin service_, the other results are similar as all services images are based on `debian 12.8`.
+
+#linebreak()
 
 #figure(
-  image("beetle-quest-microfreshner-architecture-v2.png", width: 55%),
-  caption: text(red)[TODO: trivy report],
+  ```
+  beetle-quest-admin-service:latest (debian 12.8)
+  ===============================================
+  Total: 7 (UNKNOWN: 0, LOW: 7, MEDIUM: 0, HIGH: 0, CRITICAL: 0)
+
+  Library: libc6
+  Vulnerabilities: CVE-2010-4756, CVE-2018-20796,  CVE-2019-1010022, CVE-2019-1010023, CVE-2019-1010024, CVE-2019-1010025, CVE-2019-9192
+  Severity: LOW
+  Status: affected
+  Installed Version: 2.36-9+deb12u9
+  Fixed Version: N/A
+  ```,
+  caption: [Trivy summay on the _admin service_],
 )
 
-
+#linebreak()
 
 = Additional features
 
