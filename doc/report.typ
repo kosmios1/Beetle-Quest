@@ -28,7 +28,7 @@ All these actions will be implemented with *_Go_* language and through a _micros
 
 = Gacha Collection
 
-The gachas are fictional creatures inspired by the beetles, they are divided into five classes of rariry. Below are a few examples of these imaginative beings.
+The gachas are fictional creatures inspired by beetles, they are divided into five classes of rariry. Below are a few examples of these imaginative beings.
 
 
 #[
@@ -95,7 +95,7 @@ However, if a service needs to access data managed by another service, it must u
 #linebreak()
 
 In the following pharagrap we will examinate the implemented services, and their functionalities.
-Eachone of the services, except for the _Static service_, has his own #link("https://www.postgresql.org/")[PostgreSQL] DB. Furthermore user sessions and market-timed-events, that will be discussed later, are stored in #link("https://redis.io/")[Redis] DBs.
+Each service, except for the _Static service_, has his own #link("https://www.postgresql.org/")[PostgreSQL] or #link("https://redis.io/")[Redis] DB. Furthermore user sessions and market-timed-events, that will be discussed later, are stored in #link("https://redis.io/")[Redis] DBs.
 
 #makesubparagraph([_Auth_], level: 5)
 User registration, login and logout are all managed by the Auth service, which also checks the validity of access tokens, allowing authentication and authorization within the application.
@@ -113,10 +113,10 @@ The Market service allows users to perform actions involving the acquisition of 
 This service is responsible for serving the static content of the web-app, like the images, the _css_ and the _html_ files.
 
 #makesubparagraph([_Admin_], level: 5)
-This service provides the administrator with the necessary tools to manage the system in a controlled manner: allowing operations on users, gacha, and transactions and market events.
+This service provides the administrator with the necessary tools to manage the system in a controlled manner: allowing operations on users, gacha and market services.
 
 #makesubparagraph([_API gateway_], level: 5)
-There are two reverse proxies that implent the circuit breakers, the load balancers and the the API gateway. One is exclusive for the admin's operation the other for the clients' ones. Reverse proxies are implemented with #link("https://traefik.io/")[Traefik].
+There are two reverse proxies (the gateways to access the application) which use different technologies like circuit breakers, load balancers to handle requests. One gateway is exclusive for the admin's operation the other for the users' ones. Reverse proxies are implemented with #link("https://traefik.io/")[Traefik].
 
 #linebreak()
 
@@ -135,19 +135,19 @@ The _admin service_ connects with _user service_ to manage user accounts, such a
 The _auth service_ relies on _user service_ for user data, such as validating credentials.
 
 #makesubparagraph([Gacha-Service ↔ User-Service:], level: 5)
-The _gacha service_ connects with the _user service_ to manage the user's gacha collection, such as listing the user's gacha collection or checking the gacha details.
+The _user service_ connects with the _gacha service_ to retrieve owned gachas by an user.
 
 #makesubparagraph([Market-Service ↔ User-Service:], level: 5)
 The _market service_ connects with the _user service_ to manage the user's currency and transactions, such as checking the user's currency and adding currency.
 
-#makesubparagraph([Market-Service ↔ Gacha-Service:], level: 5) The _market service_ connects with the _gacha service_ to manage the gacha collection, such as listing the gacha collection or checking the gacha details or when a gacha is sold in the market.
+#makesubparagraph([Market-Service ↔ Gacha-Service:], level: 5) The _market service_ connects with the _gacha service_ to add a gacha when a user wins an auction or buy a gacha. Also to remove a gacha to the owner of a closing auction.
 
 #linebreak()
 
 
 = User Stories: Player
 
-Evrey request has to pass through the _gateway_ and the _auth-service_ and _session-db_, to check if it is a valid request. So those services are omitted in the list of the microservice(s) involved for the following requests.
+Evrey request has to pass through the _gateway_, the _auth-service_ and the _session-db_, to check if it is a valid request. So those services are omitted in the list of the microservice(s) involved for the following requests.
 
 == Account
 
@@ -181,11 +181,11 @@ Evrey request has to pass through the _gateway_ and the _auth-service_ and _sess
 
 == Currency
 
-- I want to use in-game currency for roll a gacha, so that I can get a random gacha.
+- I want to use in-game currency to roll a gacha, so that I can get a random gacha.
   - `market/gacha/roll` (_user-service,user-db/market-service,market-db_)
 
 - I want to buy in-game currency, so that I can get more gachas.
-  - `/market/bugscoin/buy` (_market-service,market-db/user-service,user-db_)
+  - `/market/bugscoin/buy` (_user-service,user-db/market-service,market-db/user-service,user-db_)
 
 - I want to be safe about the in-game currency transactions, so that my money is protected.
   - `/auth/logout`, `/auth/login` (_auth-service,session-db_)
@@ -197,7 +197,7 @@ Evrey request has to pass through the _gateway_ and the _auth-service_ and _sess
   - `/market/auction/list` (_market-service,market-db_)
 
 - I want to set an auction for one of my gacha, so that I can sell it.
-  - `/market/auction/` (_gacha-service,gacha-db/market-service,market-db,market-timed-events_)
+  - `/market/auction/` (_user-service,user-db_/_gacha-service,gacha-db/market-service,market-db,market-timed-events_)
 
 - I want to bid for a gacha from the market, so that I can buy it.
   #linebreak()
@@ -207,16 +207,16 @@ Evrey request has to pass through the _gateway_ and the _auth-service_ and _sess
   #linebreak()
   I want to receive my in-game currency back when i lost an auction, so that my in-game currency.
   #linebreak()
-  I want to that the auctions cannot be temperes, so that my in-game currency and collection are safe.
+  I want to that the auctions cannot be tempered, so that my in-game currency and collection are safe.
   - `/market/auction/{{auctionId}}/bid` (_user-service,user-db/market-service,market-db/gacha-service,gacha-db,market-timed-events_)
 
 - I want to view my transaction history, so that I can track my market movements.
-  - `/internal/market/get_transaction_history` (_market-service,market-db_)
+  - `/internal/market/get_transaction_history` (_user-service,user-db/market-service,market-db_)
 
 
 = User Stories: Admin
 
-All the following endpoints requests involve the _admin-service_ and _admin-db_.
+All the following endpoints requests involve the _admin-service_.
 
 == Account
 
@@ -275,25 +275,39 @@ The market service has been implemented with the following rules in mind:
 
 - The user has the permission to create and delete it's own auctions but can not bid to them.
 
-- When a user places a higher bid than the previous one, the currency of the previous highest bid is returned to the user after the finish of the auction.
+- The owner of an auction can delete it only when no bids have been made and the auction is open for less that 1/3 of the total time.
+
+- When a user places a higher bid than the previous one nothing appens till the end of the auction, when all the losing bids will be refounded.
 
 - If someone places a bid at the very last second of the auction, they will win the gacha as the last valid bidder.
 
-- It's also possible to bid on an auction where you are already the highest bidder. However, the user cannot place a bid if they do not have the required amount of coins to bid.
+- It's also possible to bid on an auction where you are already the highest bidder. The user cannot place a bid if they do not have the required amount of coins to bid.
 
-- Additionally, the owner of an auction cannot bid on their own auction. As the owner, you can delete the auction at any time before it expires, but you need to confirm the action by entering your password. The maximum duration of an auction is 24 hours.
+- As the owner, you can delete the auction at any time before it expires, but you need to confirm the action by entering your password.
 
-- All bids that are expired will be refunded at the end of the auction.
+- The maximum duration of an auction is 24 hours.
 
-- All auctions remain visible to users, along with all the auction details. Additionally, all bids made are displayed showing the bidder details.
+- All bids will be refounded at the end of the auction, except for the highest one.
+
+- All auctions remain visible to users, along with all the auction details. Additionally, all bids made are displayed.
+
+- A user can auction the same gacha multiple times, but only one auction can be active at a time.
+
+- The owner of an auction will get the gacha back if no one bids on it.
+
+- The owner of an auction will get the money when the auction ends.
 
 #linebreak()
 
 = Testing
 
-The tests were conducted using mocks that allowed for the isolated testing of individual services. These mocks simulated the behavior of external components, enabling the verification of each service's functionality without relying on real external resources. Both unit and integration tests where carried out with #link("https://www.postman.com/")[Postman].
+The tests were conducted using mocks that allowed isolated testing of individual services. These mocks simulate the behavior of external components enabling the verification of each service's functionality without relying on real external resources. Both unit and integration tests where carried out with #link("https://www.postman.com/")[Postman].
 
 A performance testing tool, #link("https://locust.io/")[Locust], is used to perform load simulations and analysis of the service responses in various scenarios, ensuring an accurate assessment of the performance and robustness of each component.
+
+Locust is also used to calculate the probability distribution of each rarity class of gacha, based on the number of rolls made by the users. Each locust run can add/remove gachas so the distribution can change between locust runs and does not present a fixed value.
+
+// To test the roll mechanism resilience the load test should be performed on a fixed list of gachas, with different amounts of users rolling.
 
 #linebreak()
 
@@ -301,7 +315,7 @@ A performance testing tool, #link("https://locust.io/")[Locust], is used to perf
 
 == Data
 
-All the input data that goes into dbs is automatically sanitized thanks to #link("https://gorm.io/")[GORM], a GO library used to comunicate with databases, which will automatically escape arguments.
+All input data which goes into dbs is automatically sanitized thanks to #link("https://gorm.io/")[GORM], a GO library used to comunicate with databases, which will automatically escape arguments.
 
 In the application, the databases are implemented using PostgreSQL or Redis. For PostgreSQL, Transparent Data Encryption (TDE) is used. TDE is a technology that protect sensitive data by encrypting the database files at rest. It ensures that data stored on disk is encrypted, making it inaccessible to unauthorized users or applications, while it automatically encrypts the data before it is written to disk and decrypts it when it is read.
 
@@ -320,7 +334,7 @@ A middleware in the gateway delegates authentication to the _auth service_. Whic
 A user has to perform the following requests, irrelevant headers are omitted:
 
 #show raw: set text(10pt)
-+ Login: provide user credentials and authenticate himself.
++ _Login_: provide user credentials and authenticate himself.
   ```bash
   POST /api/v1/auth/login HTTP/1.1
   Content-Type: application/json
@@ -337,7 +351,7 @@ A user has to perform the following requests, irrelevant headers are omitted:
     go_session_id=ZGQxNmE5OWUtOGJjYy00YjYxLWEwMTktNGQ1YjdjYzAxZ
     TNm.cfb4dfbd6ddf1da42c5cd21eafd5aad54d06ad6e; Path=/;  Expires=Fri, 13 Dec 2024 14:09:21 GMT; Max-Age=604800;  HttpOnly; Secure
   ```
-+ Authorize: authorize a client to access specific resource server.
++ _Authorize_: authorize a client to access specific resource server.
   ```bash
   GET /oauth/authorize?response_type=code&client_id=beetle-quest
     &redirect_uri=https%3A%2F%2Flocalhost%2Fapi%2Fv1%2Fauth%2FtokenPage
@@ -354,7 +368,7 @@ A user has to perform the following requests, irrelevant headers are omitted:
   date: Fri, 06 Dec 2024 14:13:02 GMT
   location: https://localhost/api/v1/auth/tokenPage?code=Y2VKYMZHOGITOTNLZS0ZZGYZLWE0MZITMZA1NGE5NGNKODA4&state=1234zyx
   ```
-+ Token: exchange authorize code to retrive access and id tokens.
++ _Token_: exchange authorize code to retrive access and id tokens.
   ```bash
   POST /oauth/token HTTP/1.1
   Content-Type: multipart/form-data; boundary=91c9b6f32ab6bf35-4fd95e306a9da8de-ae6d91617e6618a3-c2427f089c8f8027
