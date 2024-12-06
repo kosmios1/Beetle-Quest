@@ -3,7 +3,7 @@
 
 #show: doc => report(
   title: "BeetleQuest",
-  subtitle: "Advanced Software Engineering - Project Delivery",
+  subtitle: "Advanced Software Engineering",
   authors: ("Cosimo Giraldi", "Giacomo Grassi", "Michele Ivan Bruna"),
   date: "2024/2025",
   doc,
@@ -28,7 +28,7 @@ All these actions will be implemented with *_Go_* language and through a _micros
 
 = Gacha Collection
 
-The gachas are fictional creatures inspired by beetles, they are divided into five classes of rariry. Below are a few examples of these imaginative beings.
+The gachas are fictional creatures inspired by beetles, they are divided into five classes of rariry: common, uncommom, rare, epic, legendary. The likelihood of obtaining a gacha during a roll is directly related to its rarity.
 
 
 #[
@@ -46,21 +46,22 @@ The gachas are fictional creatures inspired by beetles, they are divided into fi
     row-gutter: 0.5em,
     column-gutter: -1em,
     align: horizon,
-    image("../assets/images/png/warrior_cricket_common.png", width: 85%),
-    image("../assets/images/png/assassin_mosquito_rare.png", width: 85%),
-    image("../assets/images/png/druid_butterfly_legendary.png", width: 85%),
+    table.header(
+      [_Common_], [_Rare_], [_Legendary_],
+    ),
+    image("../assets/images/png/warrior_cricket_common.png", width: 80%),
+    image("../assets/images/png/assassin_mosquito_rare.png", width: 80%),
+    image("../assets/images/png/druid_butterfly_legendary.png", width: 80%),
 
-    image("../assets/images/png/tank_mole-cricket_common.png", width: 85%),
-    image("../assets/images/png/warrior_beetle_rare.png", width: 85%),
-    image("../assets/images/png/warrior_hercule_beetle_legendary.png", width: 85%),
+    image("../assets/images/png/tank_mole-cricket_common.png", width: 80%),
+    image("../assets/images/png/warrior_beetle_rare.png", width: 80%),
+    image("../assets/images/png/warrior_hercule_beetle_legendary.png", width: 80%),
   )
 ]
 
-#linebreak()
-
 #figure(
   image("../assets/images/currency_cut.png", width: 30%),
-  caption: [The currency used within the game is called `BugsCoins`],
+  caption: [A few examples of the gachas and a `BugsCoin`, the currency used within the game],
 )
 
 
@@ -77,7 +78,7 @@ The microservices architecture defined for this project is the result of a proce
 
 == Design Choices
 
-The architectural analysis of our initial system, carried out using MicroFreshner, revealed smell between the microservices. To isolate potential failures and improve the system's resilience, we introduced Circuit Breakers (CBs).
+The architectural analysis of our initial system, carried out using MicroFreshner, revealed smells between the microservices. To isolate potential failures and improve the system's resilience, we introduced Circuit Breakers (CBs).
 
 The introduced Circuit Breakers effectively address the issues caused by continuous failures of a microservice, preventing the cascading propagation of errors that could slow down or completely halt the entire system.
 
@@ -95,7 +96,7 @@ However, if a service needs to access data managed by another service, it must u
 #linebreak()
 
 In the following pharagrap we will examinate the implemented services, and their functionalities.
-Each service, except for the _Static service_, has his own #link("https://www.postgresql.org/")[PostgreSQL] or #link("https://redis.io/")[Redis] DB. Furthermore user sessions and market-timed-events, that will be discussed later, are stored in #link("https://redis.io/")[Redis] DBs.
+Each service, except for the _Static service_, has his own #link("https://www.postgresql.org/")[PostgreSQL] or #link("https://redis.io/")[Redis] DB. Furthermore user sessions and market timed events, that will be discussed later, are stored in Redis DBs.
 
 #makesubparagraph([_Auth_], level: 5)
 User registration, login and logout are all managed by the Auth service, which also checks the validity of access tokens, allowing authentication and authorization within the application.
@@ -116,7 +117,7 @@ This service is responsible for serving the static content of the web-app, like 
 This service provides the administrator with the necessary tools to manage the system in a controlled manner: allowing operations on users, gacha and market services.
 
 #makesubparagraph([_API gateway_], level: 5)
-There are two reverse proxies (the gateways to access the application) which use different technologies like circuit breakers, load balancers to handle requests. One gateway is exclusive for the admin's operation the other for the users' ones. Reverse proxies are implemented with #link("https://traefik.io/")[Traefik].
+There are two reverse proxies, the gateways to access the application which also act as load balancer, that handle requests. One gateway is exclusive for the admin's operation the other for the users' ones. Reverse proxies are implemented with #link("https://traefik.io/")[Traefik].
 
 #linebreak()
 
@@ -283,8 +284,6 @@ The market service has been implemented with the following rules in mind:
 
 - It's also possible to bid on an auction where you are already the highest bidder. The user cannot place a bid if they do not have the required amount of coins to bid.
 
-- As the owner, you can delete the auction at any time before it expires, but you need to confirm the action by entering your password.
-
 - The maximum duration of an auction is 24 hours.
 
 - All bids will be refounded at the end of the auction, except for the highest one.
@@ -314,6 +313,20 @@ Locust is also used to calculate the probability distribution of each rarity cla
 = Security
 
 == Data
+
+Data in input is validated using the built-in utility provided by the #link("https://gin-gonic.com/")[GIN] web framework, specifing tags on input data. The following example illustrates how constraints on struct's values are defined with the `binding` tag.
+
+#[
+  #set align(center)
+  #show raw: set text(10pt)
+  ```go
+  type AdminLoginRequest struct {
+      AdminID  string `json:"admin_id"  binding:"required,uuid4"`
+      Password string `json:"password"  binding:"required,ascii,min=4"`
+      OtpCode  string `json:"otp_code"  binding:"required,number,len=6"`
+  }
+  ```
+]
 
 All input data which goes into dbs is automatically sanitized thanks to #link("https://gorm.io/")[GORM], a GO library used to comunicate with databases, which will automatically escape arguments.
 
@@ -439,7 +452,7 @@ For the static code analysis, #link("https://pkg.go.dev/golang.org/x/vuln/cmd/go
 
 #linebreak()
 
-Meanwhile, for the analysis of Docker images, #link("https://trivy.dev/")[`trivy`] was employed. In addition to analyzing images for CVEs using commands like `docker scan`, it also allows for the examination of Go binaries for vulnerable dependencies, misconfigurations, and potential leaks of secrets.
+Meanwhile, for the analysis of Docker images, #link("https://trivy.dev/")[`trivy`] was employed. In addition to analyzing images for CVEs, like other tools as `docker scan`, it also allows for the examination of Go binaries for vulnerable dependencies, misconfigurations, and potential leaks of secrets.
 
 #linebreak()
 
@@ -483,84 +496,4 @@ Refresh tokens are also implemeted, which allows the client to obtain a new vali
 A simple web GUI has been developed to improve usability, providing only users (not admins) with an intuitive interface.
 Furthermore, a "buy gacha" feature has been be introduced, enabling users to directly acquire gachas.
 
-/* TO DO
-Describe here any additional feature you implemented.
-• What is this feature?
-• Why is it useful?
-• How is it implemented?
-*/
-
-/*
-  // Not needed anymore
-
-  = Interesting Flows
-
-  Now we proceed analysing a few use case scenarios, to show the flow on the backend.
-
-
-  == Registration and login:
-
-  When a player wants to register he sends a `POST` request to the API Gateway at\ `/auth/register` containig the user's _username_, _email_ and  _password_.
-
-    - The Gateway forwards the request to the `auth` service.
-    - The `auth` service checks for the validity of the provided data;
-    - If no error occurs it creates the new user;
-    - It sends a request to the `user` service to create the new user data.
-    - The user service store the new user data in the `user DB`.
-    - The `user` service forward the action's status to the `auth` service.
-    - If `auth` service gets no error it returns to the API Gateway, a success message.
-
-  Now the user can login trough a `POST` request to the API Gateway at `/auth/login` containig the the _username_ and the _password_.
-
-    - The Gateway forwards the request to the `auth` service.
-    - The `auth` service checks for the validity of the provided data comunicating with the `user` service.
-    - The `user` service checks if the user exist in the `user DB`, and return it's data to the `auth` service.
-    - If the user exist and the provided data is correct the `auth` service returns, to the API Gateway, a response containig a `token` that  authenticates the user.
-
-
-  #linebreak()
-
-  From now on we assume that all the requests contain the authentification `token` and that every microservice will obtain the `user_id` from it.
-
-
-  == Roll gacha:
-
-  To roll for a gacha the user must send a `GET` request to the API Gateway at\ `/market/gacha/roll`
-
-  - The Gateway send the request to the `auth` service.
-  - The `auth` service checks for the validity of the `token`.
-  - If the `token` id is valid then the request gets fowareded to the `market` service.
-  - The `market` service will ask the `user` service if the user exists and it's data, then it checks if it has at least 1000 `BugsCoins`,
-  - If so it removes that amount of money form the user, saving the transaction in the `market DB`.
-  - The  `market` service will request the `gacha` service to get the list of all the gachas.
-  - At this point the `market` service will extract randomly a gacha and, in the case that the user does not own that gacha, forward to the `gacha`   service a save operation of the gacha to the user in question.
-  - If no error appears it returns a success message to the API Gateway.
-
-  == Create auction:
-
-  A user can create an acution sending a `POST` request to the API Gateway at\ `/market/auction` containig the _gacha id_ and the _expiration time_ of  the action.
-
-    - The Gateway send the request to the `auth` service.
-    - The `auth` service checks for the validity of the `token`.
-    - If the `token` id is valid then the request gets fowareded to the `market` service.
-    - The `market` service will check if the user has the specified gacha in his inventory, comunicating with the `gacha` service, then it will check   if the _expiration time_ is valid.
-    - Then it will save the acution in the `market DB` and set a timed event in the `timed event DB` to close the auction.
-    - If no error appears it returns a success message to the API Gateway.
-    - If no other user bid to this auction before the _expiration time_, the `market` service will automatically remove the auction from the DB.
-
-  == Bid an auction:
-
-  To bid an auction a user has to send a `POST` request to the API Gateway at\ `/market/auction/<auctionId>/bid`, where `<auctionId>` is the id of the  auction. The request has to include the amount the user wants to bid.
-
-    - The Gateway send the request to the `auth` service.
-    - The `auth` service checks for the validity of the `token`.
-    - If the `token` id is valid then the request gets fowarded to the `market` service.
-    - Now the `market` service will check with the `user` service if the user has the amount of `BugsCoins` he wants to bid.
-    - If the check passes the `market` service will comunicate the `user` service to remove the amount from the bidder, and store the bid in the  `market DB`.
-    - If no error appears it returns a success message to the API Gateway.
-  rite here any particular fact about the testing.
-  For example:
-  • I tested in isolation the DBManager_x together with the DB_x
-  • I used a third-party service that interacts with Service_y and I put them
-  together in the isolation test because mock it is hard for reason z.
-*/
+Market auctions are stored as timebased events in a Redis database, so their expiration triggers a callback that handles the resolution of the auction.
